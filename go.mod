@@ -1,3 +1,3 @@
 module github.com/Brg92/agent-code-review
 
-go 1.27.3
+go 1.26.0
