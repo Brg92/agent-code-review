@@ -1,0 +1,20 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build output and local files
+/dist/
+/.design/
+*.local.*
