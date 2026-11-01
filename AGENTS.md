@@ -35,3 +35,43 @@ testdata/                synthetic fixtures only
 tools/                   dev-only tools, never shipped
 docs/                    project docs for humans
 ```
+
+## 3. Development rules
+
+1. **Go, standard library only** in production code (`cmd/`, `internal/`). `go.mod` has **no `require` lines** and declares the minimum supported Go version, not the installed one. Dev tools (staticcheck, govulncheck, gitleaks) run via `go run <module>@<version>` or pinned CI actions, never as module dependencies.
+2. **TDD, strictly**: failing test first (run it, see it fail), then the minimum code, then refactor. Every production change comes with its test. Prefer table-driven tests.
+3. **Cross-platform** (Windows, macOS, Linux): `path/filepath`; `os/exec` with separate arguments, never through a shell (`sh -c`, `bash`, `cmd /c`, `powershell`, `pwsh`); explicit UTF-8; `\n` line endings in written files.
+4. **English** for code, identifiers, comments, docs, branch names and commit messages.
+5. **SemVer**: untagged builds print `0.0.0-dev`; the real version is injected at build time via `-ldflags`. Never hardcode a release version in code, manifests or docs.
+6. **No company code, names, hosts or PR content anywhere**: the repository is public. Fixtures and sandbox code are synthetic and original.
+7. **Secrets**: tokens only from the environment (`ACR_GITHUB_TOKEN` for dev tools) or the user's existing `git`/`gh` authentication. Never print, log or write a token to disk.
+8. **Before every commit**: `gofmt -l .` must be empty, `go vet ./...` and `go test ./...` must pass.
+9. **No placeholders**: never create empty packages, `doc.go` stubs, empty `main` functions, `.gitkeep` files or per-directory `README.md` files to "reserve" structure. A directory is created together with its first real file (with TDD: its first test). The layout is documented once, in section 2. Package documentation is a package comment in the main file of the package; use `doc.go` only for multi-file packages with long documentation. Documentation for humans lives in the root `README.md` and in `docs/`.
+10. **No AI attribution** anywhere: no `Co-Authored-By` trailers, no "generated with" lines or similar in commits, PR titles or descriptions, comments, notes or docs. This does not cover the host names and paths the product itself needs.
+
+## 4. Commits — Conventional Commits 1.0.0
+
+- Format: `<type>(<scope>): <description>` — imperative mood, lowercase, no trailing period, subject max 72 chars.
+- Types: `feat`, `fix`, `test`, `refactor`, `docs`, `build`, `ci`, `chore`, `perf`, `style`, `revert`.
+- Scopes (closest one): `version`, `cli`, `state`, `core`, `lexer`, `rules`, `packs`, `render`, `refs`, `forges`, `github`, `gitlab`, `transport`, `auth`, `mcp`, `guards`, `recorder`, `schemas`, `sandbox`, `plugin`, `deps`, `repo`.
+- Body (optional): explain *why*, wrapped at 72 chars. Footer: `Refs: F<phase>/M<milestone>`. Breaking changes: `!` after the scope **and** a `BREAKING CHANGE:` footer.
+- **Small, coherent commits**: one logical change per commit; every commit leaves the repository green. Never mix unrelated changes (feature + docs fix, code + formatting).
+- One TDD cycle (one behaviour) = one commit; refactors and docs in their own commits. Prefer commits under ~200 changed lines; generated fixtures and recorded data go in their own `test(...)` commit.
+- Review `git diff --staged` before committing; stage selectively (`git add -p` or explicit paths).
+- Never `--no-verify`; never amend or rewrite commits already pushed.
+
+## 5. Branches and pull requests
+
+- Branch name: `<type>/<scope>-<short-description>`, kebab-case, lowercase, ASCII, max 50 chars (e.g. `feat/version-command`). The type is the main type of the branch's commits.
+- `main` is protected: never commit to it. Each unit of work starts from the latest `main` (`git checkout main && git pull`) on a new branch and reaches `main` through a PR.
+- PR titles use the same Conventional Commits format.
+- Sandbox repositories (organization `acr-plugin-sandbox`): base content on `main`; scenario branches `<type>/<scope>-s<N>-<short-description>`; scenario PRs are opened by the author account and **never merged**.
+
+## 6. Remote actions need explicit permission
+
+Before **any** action that touches a remote — `git push`, opening/merging/closing a PR, creating or changing a repository or its settings, calling GitHub APIs with a token — stop and ask, stating exactly what will happen (command, branch, target). Proceed only after an explicit "yes" for that specific action; a previous yes does not cover the next one. Never force-push, never push to `main`, never delete remote branches. If `gh` is unavailable, give the user the exact commands instead.
+
+## 7. Working style
+
+- Work in milestones; at the end of each one report: branch, commits (one line each), changed files, test evidence (red → green for TDD), proposed remote actions, open questions. Then stop and wait.
+- If a request conflicts with these rules, say so before acting.
