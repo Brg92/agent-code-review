@@ -1,0 +1,11 @@
+# Paths that may reach the release branch. Everything else is excluded.
+plugin.json
+.claude-plugin/**
+com.github.copilot/**
+skills/**
+agents/**
+hooks/**
+packs/**
+bin/**
+LICENSE
+README.md
