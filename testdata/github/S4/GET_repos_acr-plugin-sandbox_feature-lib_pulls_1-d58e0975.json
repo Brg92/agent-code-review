@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"a14c1eb4dbddbbe32694c7fb9acd350b7a995f007a9d6729a733d05fbcd6a1eb\""
+    "ETag": "\"a029c63e0ef16b18369bcd886fa25af29ab69b8275a78ac41318e32f570aea14\""
   },
   "body": {
     "_links": {
@@ -314,7 +314,7 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "e04ca4d056b0667d15d3378233932058be2375fe",
+    "merge_commit_sha": "c370ae8ec10d9b99019de83d5391dc982ad7668b",
     "mergeable": true,
     "mergeable_state": "clean",
     "merged": false,
@@ -355,7 +355,7 @@
     "state": "open",
     "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/statuses/e7665e368da1fcad940a56e09eeb9f1c7c87a58b",
     "title": "Regenerate the icon catalog",
-    "updated_at": "2026-11-02T18:23:50Z",
+    "updated_at": "2026-11-02T23:11:09Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/pulls/1",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

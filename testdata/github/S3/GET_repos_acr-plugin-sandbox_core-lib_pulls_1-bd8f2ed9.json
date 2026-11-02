@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"c10f4c45aea59800d849ef7285d0efb1873ca3d0d169f62ed1b6c0c43a13f9f6\""
+    "ETag": "\"d53565742eb5688b3929f580fe99a6b570ae62e15418eab2e7d6aeef04907958\""
   },
   "body": {
     "_links": {
@@ -314,7 +314,7 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "e0f0629cb0f9afcf08fbee408561f7cf7850f962",
+    "merge_commit_sha": "cd19b39f790de9f5a79916615d62bf9615992779",
     "mergeable": true,
     "mergeable_state": "clean",
     "merged": false,
@@ -355,7 +355,7 @@
     "state": "open",
     "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/1bb2c03af22c5360e04698de42d0833c0387b499",
     "title": "Reorganize session files",
-    "updated_at": "2026-11-02T18:23:46Z",
+    "updated_at": "2026-11-02T23:10:54Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/1",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"9d9e84ab799d4af2f712d04d7beda19d88b6575f15ebc35a6d8f02d024ddd829\""
+    "ETag": "\"52838d163c7ebff7a87b46b698723c7df890b7cf86024be158516c280e31e33c\""
   },
   "body": {
     "_links": {
@@ -314,9 +314,9 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "0543551e6ae00ccd0f4d0264ac85882b1801b3be",
-    "mergeable": null,
-    "mergeable_state": "unknown",
+    "merge_commit_sha": "64eba2e6d84ec4a5a83ef664118671fa8abe5a97",
+    "mergeable": true,
+    "mergeable_state": "clean",
     "merged": false,
     "merged_at": null,
     "merged_by": null,
@@ -324,7 +324,7 @@
     "node_id": "PR_kwDOVgMp888AAAABMUxSgQ",
     "number": 3,
     "patch_url": "https://github.com/acr-plugin-sandbox/core-lib/pull/3.patch",
-    "rebaseable": null,
+    "rebaseable": true,
     "requested_reviewers": [
       {
         "avatar_url": "https://avatars.githubusercontent.com/u/1001?v=4",
@@ -355,7 +355,7 @@
     "state": "open",
     "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/df06e9a9f2bef2854b522d926923ee6550a4f46c",
     "title": "Replace legacyToken with expiresAt",
-    "updated_at": "2026-11-02T18:23:46Z",
+    "updated_at": "2026-11-02T23:09:37Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/3",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

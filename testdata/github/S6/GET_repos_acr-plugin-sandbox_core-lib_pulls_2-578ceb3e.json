@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"4983d5f3747a484ca81c261613be17b23aaf08b37fa5eff96294d7da3f967200\""
+    "ETag": "\"0f8bc7cb7d610f375113ce6fe696d901c85e879870a69bcc9f2b7fcb6908cbf4\""
   },
   "body": {
     "_links": {
@@ -314,9 +314,9 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "e6689c9517c85cef2f87147a7c8f60a24143215a",
-    "mergeable": null,
-    "mergeable_state": "unknown",
+    "merge_commit_sha": "812e64ca6f59b7317231849ea455823db0f00901",
+    "mergeable": true,
+    "mergeable_state": "clean",
     "merged": false,
     "merged_at": null,
     "merged_by": null,
@@ -324,7 +324,7 @@
     "node_id": "PR_kwDOVgMp888AAAABMUxO-g",
     "number": 2,
     "patch_url": "https://github.com/acr-plugin-sandbox/core-lib/pull/2.patch",
-    "rebaseable": null,
+    "rebaseable": true,
     "requested_reviewers": [
       {
         "avatar_url": "https://avatars.githubusercontent.com/u/1001?v=4",
@@ -355,7 +355,7 @@
     "state": "open",
     "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/cf8b045f0b98cb84fc91415adb4b6753cc431896",
     "title": "Add SessionManager.isSignedIn",
-    "updated_at": "2026-11-02T18:23:46Z",
+    "updated_at": "2026-11-02T23:10:57Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/2",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
