@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/core-lib#2",
-  "headSha": "2ea26058522839e5a317f5dd5d86f5c9bf53d45f",
+  "headSha": "cf8b045f0b98cb84fc91415adb4b6753cc431896",
   "findings": [],
   "preExisting": []
 }

@@ -6,54 +6,54 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"667fecfc3a7ffb72912395a4f47192d6534eb6f33809d652762f68baaa17055e\""
+    "ETag": "W/\"4494c0a63ca230b03dd0b31ba2aab1bddff9922db426c5699a50776dcc328a40\""
   },
   "body": [
     {
       "additions": 3,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/4a859eee35383c94e967835e41a0910e6be836cb/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2FMainActivity.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2FMainActivity.kt",
       "changes": 3,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2FMainActivity.kt?ref=4a859eee35383c94e967835e41a0910e6be836cb",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2FMainActivity.kt?ref=76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
       "deletions": 0,
       "filename": "app/src/main/java/com/example/sample/MainActivity.kt",
       "patch": "@@ -3,11 +3,14 @@ package com.example.sample\n import android.os.Bundle\n import androidx.activity.ComponentActivity\n import androidx.activity.compose.setContent\n+import com.example.core.session.SessionManager\n import com.example.sample.ui.HomeScreen\n+import kotlinx.coroutines.runBlocking\n \n class MainActivity : ComponentActivity() {\n     override fun onCreate(savedInstanceState: Bundle?) {\n         super.onCreate(savedInstanceState)\n+        runBlocking { SessionManager.instance.refresh() }\n         setContent { HomeScreen() }\n     }\n }",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/4a859eee35383c94e967835e41a0910e6be836cb/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2FMainActivity.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2FMainActivity.kt",
       "sha": "85ddbe3625874575a64590133a431507987385fa",
       "status": "modified"
     },
     {
       "additions": 2,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/4a859eee35383c94e967835e41a0910e6be836cb/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt",
       "changes": 2,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt?ref=4a859eee35383c94e967835e41a0910e6be836cb",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt?ref=76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
       "deletions": 0,
       "filename": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "patch": "@@ -7,6 +7,8 @@ class ProfileStore(context: Context) {\n \n     fun displayName(): String = prefs.getString(\"display_name\", null)!!\n \n+    fun hasDisplayName(): Boolean = prefs.contains(\"display_name\")\n+\n     fun saveDisplayName(name: String) {\n         prefs.edit().putString(\"display_name\", name).apply()\n     }",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/4a859eee35383c94e967835e41a0910e6be836cb/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt",
       "sha": "cb1723ea3abb95038dc534e6a04571bec3fb221f",
       "status": "modified"
     },
     {
       "additions": 7,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/4a859eee35383c94e967835e41a0910e6be836cb/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt",
       "changes": 7,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt?ref=4a859eee35383c94e967835e41a0910e6be836cb",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt?ref=76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
       "deletions": 0,
       "filename": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "patch": "@@ -15,6 +15,13 @@ class SessionRepository(\n         }\n     }\n \n+    fun prefetch() {\n+        GlobalScope.launch {\n+            val user = sessionManager.current()!!.userName\n+            cachedUser = user\n+        }\n+    }\n+\n     fun requireUser(): String = checkNotNull(cachedUser) { \"warmUp() must run first\" }\n \n     fun authHeader(): String = \"Bearer ${sessionManager.legacyToken()}\"",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/4a859eee35383c94e967835e41a0910e6be836cb/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt",
       "sha": "5cea2a116dd6b4587f9d0bff64997b7eee05311b",
       "status": "modified"
     },
     {
       "additions": 0,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/4a859eee35383c94e967835e41a0910e6be836cb/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt",
       "changes": 4,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt?ref=4a859eee35383c94e967835e41a0910e6be836cb",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt?ref=76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
       "deletions": 4,
       "filename": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
       "patch": "@@ -11,10 +11,6 @@ class HomeViewModel(\n     private val repository: SessionRepository = SessionRepository(),\n ) : ViewModel() {\n \n-    init {\n-        repository.warmUp()\n-    }\n-\n     private val _state = MutableStateFlow(HomeState(title = \"Welcome\"))\n     val state: StateFlow<HomeState> = _state\n ",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/4a859eee35383c94e967835e41a0910e6be836cb/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt",
       "sha": "d0094a4062f5493b1b61d698ad178b21fc608af7",
       "status": "modified"
     }

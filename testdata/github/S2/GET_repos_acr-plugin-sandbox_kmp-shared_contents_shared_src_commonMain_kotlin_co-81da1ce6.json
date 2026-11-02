@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
+  "query": {
+    "ref": "f9d862f3e8993cf66d4ae780856ef358b7e91d32"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"0125c4f98087526b9089004a430bbdb9aa82c717\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/0125c4f98087526b9089004a430bbdb9aa82c717",
+      "html": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/f9d862f3e8993cf66d4ae780856ef358b7e91d32/shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt?ref=f9d862f3e8993cf66d4ae780856ef358b7e91d32"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zaGFyZWQKCmNsYXNzIFNlc3Npb25Db3Vu\ndGRvd24ocHJpdmF0ZSB2YWwgZXhwaXJlc0F0TWlsbGlzOiBMb25nKSB7CiAg\nICBmdW4gc2Vjb25kc0xlZnQoKTogTG9uZyA9IG1heE9mKDBMLCAoZXhwaXJl\nc0F0TWlsbGlzIC0gY3VycmVudFRpbWVNaWxsaXMoKSkgLyAxMDAwKQp9Cg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/kmp-shared/f9d862f3e8993cf66d4ae780856ef358b7e91d32/shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/0125c4f98087526b9089004a430bbdb9aa82c717",
+    "html_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/f9d862f3e8993cf66d4ae780856ef358b7e91d32/shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
+    "name": "SessionCountdown.kt",
+    "path": "shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
+    "sha": "0125c4f98087526b9089004a430bbdb9aa82c717",
+    "size": 178,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt?ref=f9d862f3e8993cf66d4ae780856ef358b7e91d32"
+  }
+}

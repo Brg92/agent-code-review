@@ -2,7 +2,7 @@
 
 The sandbox is a set of synthetic GitHub repositories with scenario pull requests that exercise the review flow end to end. The recorder (`tools/recorder`) captures read-only API responses from them into `testdata/github/<scenario>/`, which the tests then replay offline.
 
-Everything in the sandbox is original and synthetic: package names are `com.example.*`, commits use the identity `ACR Sandbox Author <author@example.com>`, and no code or text comes from a real project.
+Everything in the sandbox is original and synthetic: package names are `com.example.*`, commits use the identity `ACR Sandbox Author <author@acr-sandbox.invalid>`, and no code or text comes from a real project.
 
 ## Organization and accounts
 
@@ -89,7 +89,7 @@ What the recorder does:
   - the contents of every changed file that has a patch.
   A number that is not a pull request is also looked up as an issue, which tells an issue from a missing number. Missing files are recorded with their `404`.
 - **One file per response page:** method, path, query, status, the `Link` and `ETag` headers only, and the body.
-- **Sanitized:** the two sandbox logins become `sandbox-reviewer` and `sandbox-author`, with ids 1001 and 1002. Their avatar URLs and node ids are replaced. Email addresses outside `example.com` and token-like strings are redacted.
+- **Sanitized:** the two sandbox logins become `sandbox-reviewer` and `sandbox-author`, with ids 1001 and 1002. Their avatar URLs and node ids are replaced. Email addresses outside `example.com` and the reserved `.invalid` domain, and token-like strings, are redacted. Any other user account becomes `sandbox-user-<n>`.
 
 Check before you record:
 

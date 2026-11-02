@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/MainActivity.kt",
+  "query": {
+    "ref": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"85ddbe3625874575a64590133a431507987385fa\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/85ddbe3625874575a64590133a431507987385fa",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app/src/main/java/com/example/sample/MainActivity.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/MainActivity.kt?ref=76ae5f13ca1575b65fe1567c471e8a7b51a00af4"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zYW1wbGUKCmltcG9ydCBhbmRyb2lkLm9z\nLkJ1bmRsZQppbXBvcnQgYW5kcm9pZHguYWN0aXZpdHkuQ29tcG9uZW50QWN0\naXZpdHkKaW1wb3J0IGFuZHJvaWR4LmFjdGl2aXR5LmNvbXBvc2Uuc2V0Q29u\ndGVudAppbXBvcnQgY29tLmV4YW1wbGUuY29yZS5zZXNzaW9uLlNlc3Npb25N\nYW5hZ2VyCmltcG9ydCBjb20uZXhhbXBsZS5zYW1wbGUudWkuSG9tZVNjcmVl\nbgppbXBvcnQga290bGlueC5jb3JvdXRpbmVzLnJ1bkJsb2NraW5nCgpjbGFz\ncyBNYWluQWN0aXZpdHkgOiBDb21wb25lbnRBY3Rpdml0eSgpIHsKICAgIG92\nZXJyaWRlIGZ1biBvbkNyZWF0ZShzYXZlZEluc3RhbmNlU3RhdGU6IEJ1bmRs\nZT8pIHsKICAgICAgICBzdXBlci5vbkNyZWF0ZShzYXZlZEluc3RhbmNlU3Rh\ndGUpCiAgICAgICAgcnVuQmxvY2tpbmcgeyBTZXNzaW9uTWFuYWdlci5pbnN0\nYW5jZS5yZWZyZXNoKCkgfQogICAgICAgIHNldENvbnRlbnQgeyBIb21lU2Ny\nZWVuKCkgfQogICAgfQp9Cg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app/src/main/java/com/example/sample/MainActivity.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/85ddbe3625874575a64590133a431507987385fa",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/76ae5f13ca1575b65fe1567c471e8a7b51a00af4/app/src/main/java/com/example/sample/MainActivity.kt",
+    "name": "MainActivity.kt",
+    "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+    "sha": "85ddbe3625874575a64590133a431507987385fa",
+    "size": 511,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/MainActivity.kt?ref=76ae5f13ca1575b65fe1567c471e8a7b51a00af4"
+  }
+}

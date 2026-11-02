@@ -6,18 +6,18 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"754d39719c510f728d4dd05b82a81cf8a9c60a5420cf29170f7c7dd6acedc561\""
+    "ETag": "W/\"e1fed10e3008345455d532adf8725a61eb561a96658708a79b4e80c16899457b\""
   },
   "body": [
     {
       "additions": 2,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/5abd6a157c93c4881b0778092972b71733ef464d/README.md",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/5a2134959be81633c60752848c6eb98fbec02cb3/README.md",
       "changes": 2,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/README.md?ref=5abd6a157c93c4881b0778092972b71733ef464d",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/README.md?ref=5a2134959be81633c60752848c6eb98fbec02cb3",
       "deletions": 0,
       "filename": "README.md",
       "patch": "@@ -6,3 +6,5 @@ branches contain intentional defects. Scenario pull requests are never merged.\n \n Android app with Jetpack Compose and two product flavors, `free` and `paid`.\n It consumes `core-lib` (`com.example:core-lib`).\n+\n+The `free` flavor shows an upgrade banner; the `paid` flavor does not.",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/5abd6a157c93c4881b0778092972b71733ef464d/README.md",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/5a2134959be81633c60752848c6eb98fbec02cb3/README.md",
       "sha": "8d0b99725608136adc496a6a9febb80969ae7abe",
       "status": "modified"
     }

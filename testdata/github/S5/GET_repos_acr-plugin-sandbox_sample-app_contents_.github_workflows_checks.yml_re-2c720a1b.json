@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/.github/workflows/checks.yml",
+  "query": {
+    "ref": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"07b2ef362a925868b0e4dbb8a750e1bf708cd95d\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/07b2ef362a925868b0e4dbb8a750e1bf708cd95d",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/fdd842c45ac32e215b8c8bbf97ecf19e31fee79f/.github/workflows/checks.yml",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.github/workflows/checks.yml?ref=fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+    },
+    "content": "bmFtZTogY2hlY2tzCgpvbjoKICBwdWxsX3JlcXVlc3Q6CiAgcHVzaDoKICAg\nIGJyYW5jaGVzOiBbbWFpbl0KCnBlcm1pc3Npb25zOgogIGNvbnRlbnRzOiBy\nZWFkCgpqb2JzOgogIGxpbnQ6CiAgICBydW5zLW9uOiB1YnVudHUtbGF0ZXN0\nCiAgICB0aW1lb3V0LW1pbnV0ZXM6IDUKICAgIHN0ZXBzOgogICAgICAtIHVz\nZXM6IGFjdGlvbnMvY2hlY2tvdXRAM2QzYzQyZTVhYWM1YmE4MDU4MjVkYTc2\nNDEwYzE4MTI3M2JhOTBiMSAjIHY3LjAuMQogICAgICAgIHdpdGg6CiAgICAg\nICAgICBwZXJzaXN0LWNyZWRlbnRpYWxzOiBmYWxzZQogICAgICAtIG5hbWU6\nIG5vIHRyYWlsaW5nIHdoaXRlc3BhY2UKICAgICAgICBydW46IHwKICAgICAg\nICAgIGlmIGdyZXAgLXJuSSAtLWluY2x1ZGU9Jyoua3QnIC0taW5jbHVkZT0n\nKi5rdHMnICdbWzpzcGFjZTpdXSQnIC47IHRoZW4KICAgICAgICAgICAgZWNo\nbyAiOjplcnJvcjo6dHJhaWxpbmcgd2hpdGVzcGFjZSBmb3VuZCIKICAgICAg\nICAgICAgZXhpdCAxCiAgICAgICAgICBmaQoKICB0ZXN0OgogICAgcnVucy1v\nbjogdWJ1bnR1LWxhdGVzdAogICAgdGltZW91dC1taW51dGVzOiA1CiAgICBz\ndGVwczoKICAgICAgLSB1c2VzOiBhY3Rpb25zL2NoZWNrb3V0QDNkM2M0MmU1\nYWFjNWJhODA1ODI1ZGE3NjQxMGMxODEyNzNiYTkwYjEgIyB2Ny4wLjEKICAg\nICAgICB3aXRoOgogICAgICAgICAgcGVyc2lzdC1jcmVkZW50aWFsczogZmFs\nc2UKICAgICAgLSBuYW1lOiBzb3VyY2VzIGFyZSBwcmVzZW50CiAgICAgICAg\ncnVuOiB0ZXN0IC1uICIkKGZpbmQgLiAtbmFtZSAnKi5rdCcgLW5vdCAtcGF0\naCAnLi8uZ2l0LyonIHwgaGVhZCAtbiAxKSIK\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/fdd842c45ac32e215b8c8bbf97ecf19e31fee79f/.github/workflows/checks.yml",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/07b2ef362a925868b0e4dbb8a750e1bf708cd95d",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/fdd842c45ac32e215b8c8bbf97ecf19e31fee79f/.github/workflows/checks.yml",
+    "name": "checks.yml",
+    "path": ".github/workflows/checks.yml",
+    "sha": "07b2ef362a925868b0e4dbb8a750e1bf708cd95d",
+    "size": 837,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.github/workflows/checks.yml?ref=fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+  }
+}

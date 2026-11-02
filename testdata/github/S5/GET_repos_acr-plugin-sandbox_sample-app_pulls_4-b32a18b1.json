@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"32859ef5a87a1bc19561b82e9a0c813067694cac88cf1547842375f91319aa66\""
+    "ETag": "\"dab458e833018e3989df379b915c3c1aae570a05c27d435b53afb0ec2e31bf43\""
   },
   "body": {
     "_links": {
@@ -30,7 +30,7 @@
         "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/4"
       },
       "statuses": {
-        "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/5abd6a157c93c4881b0778092972b71733ef464d"
+        "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/5a2134959be81633c60752848c6eb98fbec02cb3"
       }
     },
     "active_lock_reason": null,
@@ -124,7 +124,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:30Z",
+        "pushed_at": "2026-11-02T18:23:42Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/releases{/id}",
         "size": 10,
         "ssh_url": "git@github.com:acr-plugin-sandbox/sample-app.git",
@@ -138,14 +138,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:36Z",
+        "updated_at": "2026-11-02T18:23:49Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f",
+      "sha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -264,7 +264,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:30Z",
+        "pushed_at": "2026-11-02T18:23:42Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/releases{/id}",
         "size": 10,
         "ssh_url": "git@github.com:acr-plugin-sandbox/sample-app.git",
@@ -278,14 +278,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:36Z",
+        "updated_at": "2026-11-02T18:23:49Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "5abd6a157c93c4881b0778092972b71733ef464d",
+      "sha": "5a2134959be81633c60752848c6eb98fbec02cb3",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -314,7 +314,7 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "c802ada3d215e16822b62f1e78911919a3572bae",
+    "merge_commit_sha": "fd1ada9cf5a365137b0c8e9e8681ede4e4c0dc6b",
     "mergeable": true,
     "mergeable_state": "clean",
     "merged": false,
@@ -353,9 +353,9 @@
     "review_comments": 0,
     "review_comments_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/4/comments",
     "state": "open",
-    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/5abd6a157c93c4881b0778092972b71733ef464d",
+    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/5a2134959be81633c60752848c6eb98fbec02cb3",
     "title": "Describe the product flavors",
-    "updated_at": "2026-11-02T14:35:36Z",
+    "updated_at": "2026-11-02T18:23:43Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/4",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/feature-lib/contents/src/main/java/com/example/feature/FeatureToggle.kt",
+  "query": {
+    "ref": "e7665e368da1fcad940a56e09eeb9f1c7c87a58b"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"13eccafcf65cd7bf37b5b4bac76d207808d77cb9\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/git/blobs/13eccafcf65cd7bf37b5b4bac76d207808d77cb9",
+      "html": "https://github.com/acr-plugin-sandbox/feature-lib/blob/e7665e368da1fcad940a56e09eeb9f1c7c87a58b/src/main/java/com/example/feature/FeatureToggle.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/contents/src/main/java/com/example/feature/FeatureToggle.kt?ref=e7665e368da1fcad940a56e09eeb9f1c7c87a58b"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5mZWF0dXJlCgovKiogRmVhdHVyZSBzd2l0\nY2hlcywgd2l0aCBhbiBpY29uIGZyb20gdGhlIGdlbmVyYXRlZCBjYXRhbG9n\nLiAqLwpjbGFzcyBGZWF0dXJlVG9nZ2xlKHByaXZhdGUgdmFsIGRlZmF1bHRz\nOiBNYXA8U3RyaW5nLCBCb29sZWFuPikgewogICAgcHJpdmF0ZSB2YWwgb3Zl\ncnJpZGVzID0gbXV0YWJsZU1hcE9mPFN0cmluZywgQm9vbGVhbj4oKQoKICAg\nIGZ1biBpc0VuYWJsZWQoa2V5OiBTdHJpbmcpOiBCb29sZWFuID0gb3ZlcnJp\nZGVzW2tleV0gPzogZGVmYXVsdHNba2V5XSA/OiBmYWxzZQoKICAgIGZ1biBv\ndmVycmlkZShrZXk6IFN0cmluZywgZW5hYmxlZDogQm9vbGVhbikgewogICAg\nICAgIG92ZXJyaWRlc1trZXldID0gZW5hYmxlZAogICAgfQp9Cg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/feature-lib/e7665e368da1fcad940a56e09eeb9f1c7c87a58b/src/main/java/com/example/feature/FeatureToggle.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/git/blobs/13eccafcf65cd7bf37b5b4bac76d207808d77cb9",
+    "html_url": "https://github.com/acr-plugin-sandbox/feature-lib/blob/e7665e368da1fcad940a56e09eeb9f1c7c87a58b/src/main/java/com/example/feature/FeatureToggle.kt",
+    "name": "FeatureToggle.kt",
+    "path": "src/main/java/com/example/feature/FeatureToggle.kt",
+    "sha": "13eccafcf65cd7bf37b5b4bac76d207808d77cb9",
+    "size": 397,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/contents/src/main/java/com/example/feature/FeatureToggle.kt?ref=e7665e368da1fcad940a56e09eeb9f1c7c87a58b"
+  }
+}

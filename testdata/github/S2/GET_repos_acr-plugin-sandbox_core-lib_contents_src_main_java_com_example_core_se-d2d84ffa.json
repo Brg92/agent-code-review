@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/SessionManager.kt",
+  "query": {
+    "ref": "df06e9a9f2bef2854b522d926923ee6550a4f46c"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"45630da661388bd865b95ea1e9607c9270f82904\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/45630da661388bd865b95ea1e9607c9270f82904",
+      "html": "https://github.com/acr-plugin-sandbox/core-lib/blob/df06e9a9f2bef2854b522d926923ee6550a4f46c/src/main/java/com/example/core/session/SessionManager.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/SessionManager.kt?ref=df06e9a9f2bef2854b522d926923ee6550a4f46c"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5jb3JlLnNlc3Npb24KCmltcG9ydCBrb3Rs\naW54LmNvcm91dGluZXMuRGlzcGF0Y2hlcnMKaW1wb3J0IGtvdGxpbnguY29y\nb3V0aW5lcy53aXRoQ29udGV4dAoKLyoqIEhvbGRzIHRoZSBzaWduZWQtaW4g\nc2Vzc2lvbiBmb3IgdGhlIHdob2xlIHByb2Nlc3MuICovCmNsYXNzIFNlc3Np\nb25NYW5hZ2VyIGludGVybmFsIGNvbnN0cnVjdG9yKHByaXZhdGUgdmFsIHN0\nb3JlOiBTZXNzaW9uU3RvcmUpIHsKCiAgICBwcml2YXRlIHZhbCBsaXN0ZW5l\ncnMgPSBtdXRhYmxlTGlzdE9mPFNlc3Npb25MaXN0ZW5lcj4oKQoKICAgIEBW\nb2xhdGlsZQogICAgcHJpdmF0ZSB2YXIgc2Vzc2lvbjogU2Vzc2lvbj8gPSBu\ndWxsCgogICAgZnVuIGN1cnJlbnQoKTogU2Vzc2lvbj8gPSBzZXNzaW9uCgog\nICAgZnVuIGFkZExpc3RlbmVyKGxpc3RlbmVyOiBTZXNzaW9uTGlzdGVuZXIp\nIHsKICAgICAgICBsaXN0ZW5lcnMgKz0gbGlzdGVuZXIKICAgIH0KCiAgICBm\ndW4gcmVtb3ZlTGlzdGVuZXIobGlzdGVuZXI6IFNlc3Npb25MaXN0ZW5lcikg\newogICAgICAgIGxpc3RlbmVycyAtPSBsaXN0ZW5lcgogICAgfQoKICAgIHN1\nc3BlbmQgZnVuIHJlZnJlc2goKTogU2Vzc2lvbj8gPSB3aXRoQ29udGV4dChE\naXNwYXRjaGVycy5JTykgewogICAgICAgIHZhbCByZXN0b3JlZCA9IHN0b3Jl\nLmxvYWQoKQogICAgICAgIHNlc3Npb24gPSByZXN0b3JlZAogICAgICAgIGxp\nc3RlbmVycy5mb3JFYWNoIHsgaXQub25TZXNzaW9uQ2hhbmdlZChyZXN0b3Jl\nZCkgfQogICAgICAgIHJlc3RvcmVkCiAgICB9CgogICAgZnVuIHNpZ25PdXQo\nKSB7CiAgICAgICAgc2Vzc2lvbiA9IG51bGwKICAgICAgICBzdG9yZS5jbGVh\ncigpCiAgICAgICAgbGlzdGVuZXJzLmZvckVhY2ggeyBpdC5vblNlc3Npb25D\naGFuZ2VkKG51bGwpIH0KICAgIH0KCiAgICAvKiogV2hlbiB0aGUgY3VycmVu\ndCBzZXNzaW9uIGV4cGlyZXMsIGluIGVwb2NoIG1pbGxpc2Vjb25kcy4gKi8K\nICAgIGZ1biBleHBpcmVzQXQoKTogTG9uZz8gPSBzZXNzaW9uPy5leHBpcmVz\nQXRNaWxsaXMKCiAgICBjb21wYW5pb24gb2JqZWN0IHsKICAgICAgICB2YWwg\naW5zdGFuY2U6IFNlc3Npb25NYW5hZ2VyIGJ5IGxhenkgeyBTZXNzaW9uTWFu\nYWdlcihJbk1lbW9yeVNlc3Npb25TdG9yZSgpKSB9CiAgICB9Cn0K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/core-lib/df06e9a9f2bef2854b522d926923ee6550a4f46c/src/main/java/com/example/core/session/SessionManager.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/45630da661388bd865b95ea1e9607c9270f82904",
+    "html_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/df06e9a9f2bef2854b522d926923ee6550a4f46c/src/main/java/com/example/core/session/SessionManager.kt",
+    "name": "SessionManager.kt",
+    "path": "src/main/java/com/example/core/session/SessionManager.kt",
+    "sha": "45630da661388bd865b95ea1e9607c9270f82904",
+    "size": 1164,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/SessionManager.kt?ref=df06e9a9f2bef2854b522d926923ee6550a4f46c"
+  }
+}

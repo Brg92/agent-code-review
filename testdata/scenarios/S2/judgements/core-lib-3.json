@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",
-  "headSha": "e5de4506e4ca4653f33ff5a12f08587e8e32f16d",
+  "headSha": "df06e9a9f2bef2854b522d926923ee6550a4f46c",
   "findings": [
     {
       "rule": "uses-removed-api",

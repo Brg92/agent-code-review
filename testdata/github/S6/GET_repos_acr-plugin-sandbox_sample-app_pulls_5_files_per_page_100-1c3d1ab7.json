@@ -6,30 +6,30 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"f0528491bb23c5a2a60b23ca72c5e36d226a3b6d5d37ab516c37acd6e3c08025\""
+    "ETag": "W/\"30c792361fd627085510a1b952afcb72722ee19492780fd408d7f45b052e4895\""
   },
   "body": [
     {
       "additions": 2,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5/.agent-code-review%2Fconfig.json",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/edf5ce35fec83754d0155405db423ddf92d85709/.agent-code-review%2Fconfig.json",
       "changes": 3,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review%2Fconfig.json?ref=d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review%2Fconfig.json?ref=edf5ce35fec83754d0155405db423ddf92d85709",
       "deletions": 1,
       "filename": ".agent-code-review/config.json",
       "patch": "@@ -2,5 +2,6 @@\n   \"schema\": 1,\n   \"profile\": \"app\",\n   \"packs\": [\"android\"],\n-  \"variants\": [\"free\", \"paid\"]\n+  \"variants\": [\"free\", \"paid\"],\n+  \"disabledRules\": [\"kotlin.not-null-assertion\"]\n }",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5/.agent-code-review%2Fconfig.json",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/edf5ce35fec83754d0155405db423ddf92d85709/.agent-code-review%2Fconfig.json",
       "sha": "5ebdb48235531ac5c09790ff976e1f6384bf9b56",
       "status": "modified"
     },
     {
       "additions": 2,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/edf5ce35fec83754d0155405db423ddf92d85709/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt",
       "changes": 2,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt?ref=d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt?ref=edf5ce35fec83754d0155405db423ddf92d85709",
       "deletions": 0,
       "filename": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "patch": "@@ -7,6 +7,8 @@ class ProfileStore(context: Context) {\n \n     fun displayName(): String = prefs.getString(\"display_name\", null)!!\n \n+    fun initials(): String = prefs.getString(\"display_name\", null)!!.take(2)\n+\n     fun saveDisplayName(name: String) {\n         prefs.edit().putString(\"display_name\", name).apply()\n     }",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/edf5ce35fec83754d0155405db423ddf92d85709/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FProfileStore.kt",
       "sha": "695ed2b300b7d5398c3017ed1055e8b6d37f1ec7",
       "status": "modified"
     }

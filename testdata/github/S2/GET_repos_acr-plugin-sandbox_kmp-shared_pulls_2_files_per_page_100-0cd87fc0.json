@@ -6,18 +6,18 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"da52d756e908a457a77db2ccb084222ad718f2ac6c711830a4193ade6a36a661\""
+    "ETag": "W/\"9b31820fb34e0160718d78e2e4ddc465504dd1f9b348eeb73ebe2e168d34c484\""
   },
   "body": [
     {
       "additions": 5,
-      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/0d7021b6926280b936e7c096291855d0284ace92/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FSessionCountdown.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/f9d862f3e8993cf66d4ae780856ef358b7e91d32/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FSessionCountdown.kt",
       "changes": 5,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FSessionCountdown.kt?ref=0d7021b6926280b936e7c096291855d0284ace92",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FSessionCountdown.kt?ref=f9d862f3e8993cf66d4ae780856ef358b7e91d32",
       "deletions": 0,
       "filename": "shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
       "patch": "@@ -0,0 +1,5 @@\n+package com.example.shared\n+\n+class SessionCountdown(private val expiresAtMillis: Long) {\n+    fun secondsLeft(): Long = maxOf(0L, (expiresAtMillis - currentTimeMillis()) / 1000)\n+}",
-      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/0d7021b6926280b936e7c096291855d0284ace92/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FSessionCountdown.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/f9d862f3e8993cf66d4ae780856ef358b7e91d32/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FSessionCountdown.kt",
       "sha": "0125c4f98087526b9089004a430bbdb9aa82c717",
       "status": "added"
     }

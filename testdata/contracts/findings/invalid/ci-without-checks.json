@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
-  "headSha": "4a859eee35383c94e967835e41a0910e6be836cb",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
   "verdict": "BLOCKED",
   "findings": [
     {

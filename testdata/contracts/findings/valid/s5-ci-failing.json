@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#3",
-  "headSha": "3514ed9d2f2d64ff51101ea91c26f73f55bfc217",
+  "headSha": "4dc88fffde4723ffdc84b221102f511e8f21dd4f",
   "verdict": "APPROVABLE",
   "findings": [],
   "preExisting": [],

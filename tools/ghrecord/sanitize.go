@@ -67,7 +67,9 @@ func (s *Sanitizer) Text(in string) string {
 	out := tokenPattern.ReplaceAllString(in, redactedToken)
 	out = emailPattern.ReplaceAllStringFunc(out, func(addr string) string {
 		lower := strings.ToLower(addr)
-		if strings.HasSuffix(lower, "@example.com") || lower == "git@github.com" {
+		// example.com and the .invalid top-level domain are reserved and
+		// never belong to a real person.
+		if strings.HasSuffix(lower, "@example.com") || strings.HasSuffix(lower, ".invalid") || lower == "git@github.com" {
 			return addr
 		}
 		return redactedEmail

@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"7695324665ca2952c78d0513de9aea7f94dcff8dcbf7067f1ae4e2629a3fd710\""
+    "ETag": "\"4983d5f3747a484ca81c261613be17b23aaf08b37fa5eff96294d7da3f967200\""
   },
   "body": {
     "_links": {
@@ -30,7 +30,7 @@
         "href": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/2"
       },
       "statuses": {
-        "href": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/2ea26058522839e5a317f5dd5d86f5c9bf53d45f"
+        "href": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/cf8b045f0b98cb84fc91415adb4b6753cc431896"
       }
     },
     "active_lock_reason": null,
@@ -124,7 +124,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:37Z",
+        "pushed_at": "2026-11-02T18:23:44Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/releases{/id}",
         "size": 8,
         "ssh_url": "git@github.com:acr-plugin-sandbox/core-lib.git",
@@ -138,14 +138,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:42Z",
+        "updated_at": "2026-11-02T18:23:48Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "f41b5837146e657837182428a3229ac32f3e458a",
+      "sha": "d83c3b464e4cb6a40e366f2a7bed9964d91c62f5",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -264,7 +264,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:37Z",
+        "pushed_at": "2026-11-02T18:23:44Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/releases{/id}",
         "size": 8,
         "ssh_url": "git@github.com:acr-plugin-sandbox/core-lib.git",
@@ -278,14 +278,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:42Z",
+        "updated_at": "2026-11-02T18:23:48Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "2ea26058522839e5a317f5dd5d86f5c9bf53d45f",
+      "sha": "cf8b045f0b98cb84fc91415adb4b6753cc431896",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -315,8 +315,8 @@
     "locked": false,
     "maintainer_can_modify": false,
     "merge_commit_sha": "e6689c9517c85cef2f87147a7c8f60a24143215a",
-    "mergeable": true,
-    "mergeable_state": "clean",
+    "mergeable": null,
+    "mergeable_state": "unknown",
     "merged": false,
     "merged_at": null,
     "merged_by": null,
@@ -324,7 +324,7 @@
     "node_id": "PR_kwDOVgMp888AAAABMUxO-g",
     "number": 2,
     "patch_url": "https://github.com/acr-plugin-sandbox/core-lib/pull/2.patch",
-    "rebaseable": true,
+    "rebaseable": null,
     "requested_reviewers": [
       {
         "avatar_url": "https://avatars.githubusercontent.com/u/1001?v=4",
@@ -353,9 +353,9 @@
     "review_comments": 0,
     "review_comments_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/2/comments",
     "state": "open",
-    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/2ea26058522839e5a317f5dd5d86f5c9bf53d45f",
+    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/cf8b045f0b98cb84fc91415adb4b6753cc431896",
     "title": "Add SessionManager.isSignedIn",
-    "updated_at": "2026-11-02T14:35:22Z",
+    "updated_at": "2026-11-02T18:23:46Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/2",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

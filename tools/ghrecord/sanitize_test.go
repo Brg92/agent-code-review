@@ -51,6 +51,8 @@ func TestSanitizeText(t *testing.T) {
 		{"email", "mail me at someone@mail.test.org now", "mail me at redacted@example.com now"},
 		{"noreply email", "1234+real-author@users.noreply.github.com", "redacted@example.com"},
 		{"example email kept", "author@example.com", "author@example.com"},
+		{"reserved invalid domain kept", "author@acr-sandbox.invalid", "author@acr-sandbox.invalid"},
+		{"invalid only as a label", "a@invalid.com b@x.invalid.org", "redacted@example.com redacted@example.com"},
 		{"git ssh url kept", "git@github.com:acr-plugin-sandbox/core-lib.git", "git@github.com:acr-plugin-sandbox/core-lib.git"},
 		{"classic token", "token ghp_" + strings.Repeat("a1", 18) + " end", "token [REDACTED] end"},
 		{"fine-grained token", "github_pat_" + strings.Repeat("Ab3_", 10), "[REDACTED]"},

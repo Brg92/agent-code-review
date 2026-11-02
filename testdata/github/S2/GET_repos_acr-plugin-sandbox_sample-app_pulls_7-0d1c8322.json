@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"9d203ea73317b8ff4055a64784df7eb6a3c9160246f3a5684d82013b9bb7445b\""
+    "ETag": "\"6a72d3a74fcc42028b0796d9ae05056ba88d6bd4cdaec32b7e8653aad7d994ca\""
   },
   "body": {
     "_links": {
@@ -30,7 +30,7 @@
         "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/7"
       },
       "statuses": {
-        "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501"
+        "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/e9009ec0098be0aa6733ce77c43bc53161ad9c5f"
       }
     },
     "active_lock_reason": null,
@@ -124,7 +124,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:30Z",
+        "pushed_at": "2026-11-02T18:23:42Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/releases{/id}",
         "size": 10,
         "ssh_url": "git@github.com:acr-plugin-sandbox/sample-app.git",
@@ -138,14 +138,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:36Z",
+        "updated_at": "2026-11-02T18:23:49Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f",
+      "sha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -264,7 +264,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:30Z",
+        "pushed_at": "2026-11-02T18:23:42Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/releases{/id}",
         "size": 10,
         "ssh_url": "git@github.com:acr-plugin-sandbox/sample-app.git",
@@ -278,14 +278,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:36Z",
+        "updated_at": "2026-11-02T18:23:49Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
+      "sha": "e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -314,7 +314,7 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "0ad4e2d687639b86ab12bbbbba9a4705d34a117a",
+    "merge_commit_sha": "b8e3e34ce16ff2b6fb7c45320bd67119f2c40a39",
     "mergeable": true,
     "mergeable_state": "clean",
     "merged": false,
@@ -353,9 +353,9 @@
     "review_comments": 0,
     "review_comments_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/7/comments",
     "state": "open",
-    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
+    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
     "title": "Show when the session expires",
-    "updated_at": "2026-11-02T14:35:51Z",
+    "updated_at": "2026-11-02T18:23:44Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/7",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

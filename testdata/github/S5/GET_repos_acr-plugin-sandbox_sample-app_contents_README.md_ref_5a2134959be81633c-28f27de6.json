@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/README.md",
+  "query": {
+    "ref": "5a2134959be81633c60752848c6eb98fbec02cb3"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"8d0b99725608136adc496a6a9febb80969ae7abe\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/8d0b99725608136adc496a6a9febb80969ae7abe",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/5a2134959be81633c60752848c6eb98fbec02cb3/README.md",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/README.md?ref=5a2134959be81633c60752848c6eb98fbec02cb3"
+    },
+    "content": "IyBzYW1wbGUtYXBwCgpTeW50aGV0aWMgc2FuZGJveCByZXBvc2l0b3J5IGZv\nciBbYWdlbnQtY29kZS1yZXZpZXddKGh0dHBzOi8vZ2l0aHViLmNvbS9Ccmc5\nMi9hZ2VudC1jb2RlLXJldmlldykuCkl0IGlzIG5vdCBhIHJlYWwgcHJvZHVj\ndDogdGhlIGNvZGUgaXMgb3JpZ2luYWwsIGl0IGlzIG5vdCBtZWFudCB0byBi\ndWlsZCwgYW5kIHNjZW5hcmlvCmJyYW5jaGVzIGNvbnRhaW4gaW50ZW50aW9u\nYWwgZGVmZWN0cy4gU2NlbmFyaW8gcHVsbCByZXF1ZXN0cyBhcmUgbmV2ZXIg\nbWVyZ2VkLgoKQW5kcm9pZCBhcHAgd2l0aCBKZXRwYWNrIENvbXBvc2UgYW5k\nIHR3byBwcm9kdWN0IGZsYXZvcnMsIGBmcmVlYCBhbmQgYHBhaWRgLgpJdCBj\nb25zdW1lcyBgY29yZS1saWJgIChgY29tLmV4YW1wbGU6Y29yZS1saWJgKS4K\nClRoZSBgZnJlZWAgZmxhdm9yIHNob3dzIGFuIHVwZ3JhZGUgYmFubmVyOyB0\naGUgYHBhaWRgIGZsYXZvciBkb2VzIG5vdC4K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/5a2134959be81633c60752848c6eb98fbec02cb3/README.md",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/8d0b99725608136adc496a6a9febb80969ae7abe",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/5a2134959be81633c60752848c6eb98fbec02cb3/README.md",
+    "name": "README.md",
+    "path": "README.md",
+    "sha": "8d0b99725608136adc496a6a9febb80969ae7abe",
+    "size": 477,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/README.md?ref=5a2134959be81633c60752848c6eb98fbec02cb3"
+  }
+}

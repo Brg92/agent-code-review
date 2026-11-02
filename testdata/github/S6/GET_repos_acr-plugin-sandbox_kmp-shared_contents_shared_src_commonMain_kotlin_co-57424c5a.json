@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/Greeting.kt",
+  "query": {
+    "ref": "915c4dd07f7847183fc8b976497a755b48df03a9"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"e799c7c872e144a6ff8dfd0be83f28d80a1f7ef5\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/e799c7c872e144a6ff8dfd0be83f28d80a1f7ef5",
+      "html": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/915c4dd07f7847183fc8b976497a755b48df03a9/shared/src/commonMain/kotlin/com/example/shared/Greeting.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/Greeting.kt?ref=915c4dd07f7847183fc8b976497a755b48df03a9"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zaGFyZWQKCmNsYXNzIEdyZWV0aW5nIHsK\nICAgIGZ1biBncmVldChuYW1lOiBTdHJpbmc/ID0gbnVsbCk6IFN0cmluZyA9\nCiAgICAgICAgaWYgKG5hbWUgPT0gbnVsbCkgIkhlbGxvIGZyb20gJHtwbGF0\nZm9ybU5hbWUoKX0iIGVsc2UgIkhlbGxvICRuYW1lLCBmcm9tICR7cGxhdGZv\ncm1OYW1lKCl9Igp9Cg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/kmp-shared/915c4dd07f7847183fc8b976497a755b48df03a9/shared/src/commonMain/kotlin/com/example/shared/Greeting.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/e799c7c872e144a6ff8dfd0be83f28d80a1f7ef5",
+    "html_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/915c4dd07f7847183fc8b976497a755b48df03a9/shared/src/commonMain/kotlin/com/example/shared/Greeting.kt",
+    "name": "Greeting.kt",
+    "path": "shared/src/commonMain/kotlin/com/example/shared/Greeting.kt",
+    "sha": "e799c7c872e144a6ff8dfd0be83f28d80a1f7ef5",
+    "size": 193,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/Greeting.kt?ref=915c4dd07f7847183fc8b976497a755b48df03a9"
+  }
+}

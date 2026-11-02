@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/contents/iosApp/iosApp/ContentView.swift",
+  "query": {
+    "ref": "f00f8b2d30bf64d8619db447a93fd9781267bbd4"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"b549039bf57241bffc5ac15f0f3280aafaec35a6\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/b549039bf57241bffc5ac15f0f3280aafaec35a6",
+      "html": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/f00f8b2d30bf64d8619db447a93fd9781267bbd4/iosApp/iosApp/ContentView.swift",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/iosApp/iosApp/ContentView.swift?ref=f00f8b2d30bf64d8619db447a93fd9781267bbd4"
+    },
+    "content": "aW1wb3J0IFN3aWZ0VUkKaW1wb3J0IFNoYXJlZAoKc3RydWN0IENvbnRlbnRW\naWV3OiBWaWV3IHsKICAgIGxldCBncmVldGluZyA9IEdyZWV0aW5nKCkuZ3Jl\nZXQoKQoKICAgIHZhciBib2R5OiBzb21lIFZpZXcgewogICAgICAgIFRleHQo\nZ3JlZXRpbmcpCiAgICAgICAgICAgIC5wYWRkaW5nKCkKICAgIH0KfQo=\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/kmp-shared/f00f8b2d30bf64d8619db447a93fd9781267bbd4/iosApp/iosApp/ContentView.swift",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/b549039bf57241bffc5ac15f0f3280aafaec35a6",
+    "html_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/f00f8b2d30bf64d8619db447a93fd9781267bbd4/iosApp/iosApp/ContentView.swift",
+    "name": "ContentView.swift",
+    "path": "iosApp/iosApp/ContentView.swift",
+    "sha": "b549039bf57241bffc5ac15f0f3280aafaec35a6",
+    "size": 176,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/iosApp/iosApp/ContentView.swift?ref=f00f8b2d30bf64d8619db447a93fd9781267bbd4"
+  }
+}

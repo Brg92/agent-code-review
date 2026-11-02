@@ -1,0 +1,572 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/commits/edf5ce35fec83754d0155405db423ddf92d85709/check-runs",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"5a1b5672d413e6e38cc955e89de65dfaa975e436656632a9befcb6dc4ae4854d\""
+  },
+  "body": {
+    "check_runs": [
+      {
+        "app": {
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "created_at": "2018-07-30T09:30:17Z",
+          "description": "Automate your workflow from idea to production",
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ],
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "id": 15368,
+          "name": "GitHub Actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "gravatar_id": "",
+            "html_url": "https://github.com/github",
+            "id": 9919,
+            "login": "github",
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "site_admin": false,
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "type": "Organization",
+            "url": "https://api.github.com/users/github",
+            "user_view_type": "public"
+          },
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "slug": "github-actions",
+          "updated_at": "2026-06-18T16:17:48Z"
+        },
+        "check_suite": {
+          "id": 112461740586
+        },
+        "completed_at": "2026-11-02T18:24:28Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/41500167297/job/125465293553",
+        "external_id": "a8e905be-1c96-53f4-9854-dfb640a1349d",
+        "head_sha": "edf5ce35fec83754d0155405db423ddf92d85709",
+        "html_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/41500167297/job/125465293553",
+        "id": 125465293553,
+        "name": "test",
+        "node_id": "CR_kwDOVgMpdM8AAAAdNlBy8Q",
+        "output": {
+          "annotations_count": 1,
+          "annotations_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/125465293553/annotations",
+          "summary": null,
+          "text": null,
+          "title": null
+        },
+        "pull_requests": [
+          {
+            "base": {
+              "ref": "main",
+              "repo": {
+                "id": 1443047796,
+                "name": "sample-app",
+                "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
+              },
+              "sha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+            },
+            "head": {
+              "ref": "chore/criteria-s6-relax-overlay",
+              "repo": {
+                "id": 1443047796,
+                "name": "sample-app",
+                "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
+              },
+              "sha": "edf5ce35fec83754d0155405db423ddf92d85709"
+            },
+            "id": 5122056205,
+            "number": 5,
+            "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/5"
+          }
+        ],
+        "started_at": "2026-11-02T18:24:18Z",
+        "status": "completed",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/125465293553"
+      },
+      {
+        "app": {
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "created_at": "2018-07-30T09:30:17Z",
+          "description": "Automate your workflow from idea to production",
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ],
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "id": 15368,
+          "name": "GitHub Actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "gravatar_id": "",
+            "html_url": "https://github.com/github",
+            "id": 9919,
+            "login": "github",
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "site_admin": false,
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "type": "Organization",
+            "url": "https://api.github.com/users/github",
+            "user_view_type": "public"
+          },
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "slug": "github-actions",
+          "updated_at": "2026-06-18T16:17:48Z"
+        },
+        "check_suite": {
+          "id": 112461740586
+        },
+        "completed_at": "2026-11-02T18:24:33Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/41500167297/job/125465293097",
+        "external_id": "6a93c49a-c4ae-5d63-a79e-14c3f143970b",
+        "head_sha": "edf5ce35fec83754d0155405db423ddf92d85709",
+        "html_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/41500167297/job/125465293097",
+        "id": 125465293097,
+        "name": "lint",
+        "node_id": "CR_kwDOVgMpdM8AAAAdNlBxKQ",
+        "output": {
+          "annotations_count": 1,
+          "annotations_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/125465293097/annotations",
+          "summary": null,
+          "text": null,
+          "title": null
+        },
+        "pull_requests": [
+          {
+            "base": {
+              "ref": "main",
+              "repo": {
+                "id": 1443047796,
+                "name": "sample-app",
+                "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
+              },
+              "sha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+            },
+            "head": {
+              "ref": "chore/criteria-s6-relax-overlay",
+              "repo": {
+                "id": 1443047796,
+                "name": "sample-app",
+                "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
+              },
+              "sha": "edf5ce35fec83754d0155405db423ddf92d85709"
+            },
+            "id": 5122056205,
+            "number": 5,
+            "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/5"
+          }
+        ],
+        "started_at": "2026-11-02T18:24:16Z",
+        "status": "completed",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/125465293097"
+      },
+      {
+        "app": {
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "created_at": "2018-07-30T09:30:17Z",
+          "description": "Automate your workflow from idea to production",
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ],
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "id": 15368,
+          "name": "GitHub Actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "gravatar_id": "",
+            "html_url": "https://github.com/github",
+            "id": 9919,
+            "login": "github",
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "site_admin": false,
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "type": "Organization",
+            "url": "https://api.github.com/users/github",
+            "user_view_type": "public"
+          },
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "slug": "github-actions",
+          "updated_at": "2026-06-18T16:17:48Z"
+        },
+        "check_suite": {
+          "id": 112461736041
+        },
+        "completed_at": "2026-11-02T18:24:23Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/41500165429/job/125465290395",
+        "external_id": "f7e76326-a263-5732-97e2-91ad7c9abd37",
+        "head_sha": "edf5ce35fec83754d0155405db423ddf92d85709",
+        "html_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/41500165429/job/125465290395",
+        "id": 125465290395,
+        "name": "test",
+        "node_id": "CR_kwDOVgMpdM8AAAAdNlBmmw",
+        "output": {
+          "annotations_count": 1,
+          "annotations_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/125465290395/annotations",
+          "summary": null,
+          "text": null,
+          "title": null
+        },
+        "pull_requests": [
+          {
+            "base": {
+              "ref": "main",
+              "repo": {
+                "id": 1443047796,
+                "name": "sample-app",
+                "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
+              },
+              "sha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+            },
+            "head": {
+              "ref": "chore/criteria-s6-relax-overlay",
+              "repo": {
+                "id": 1443047796,
+                "name": "sample-app",
+                "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
+              },
+              "sha": "edf5ce35fec83754d0155405db423ddf92d85709"
+            },
+            "id": 5122056205,
+            "number": 5,
+            "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/5"
+          }
+        ],
+        "started_at": "2026-11-02T18:24:14Z",
+        "status": "completed",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/125465290395"
+      },
+      {
+        "app": {
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "created_at": "2018-07-30T09:30:17Z",
+          "description": "Automate your workflow from idea to production",
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ],
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "id": 15368,
+          "name": "GitHub Actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "gravatar_id": "",
+            "html_url": "https://github.com/github",
+            "id": 9919,
+            "login": "github",
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "site_admin": false,
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "type": "Organization",
+            "url": "https://api.github.com/users/github",
+            "user_view_type": "public"
+          },
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "slug": "github-actions",
+          "updated_at": "2026-06-18T16:17:48Z"
+        },
+        "check_suite": {
+          "id": 112461736041
+        },
+        "completed_at": "2026-11-02T18:24:06Z",
+        "conclusion": "success",
+        "details_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/41500165429/job/125465289778",
+        "external_id": "911a4d28-5e7f-548b-8510-935b9948064c",
+        "head_sha": "edf5ce35fec83754d0155405db423ddf92d85709",
+        "html_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/41500165429/job/125465289778",
+        "id": 125465289778,
+        "name": "lint",
+        "node_id": "CR_kwDOVgMpdM8AAAAdNlBkMg",
+        "output": {
+          "annotations_count": 1,
+          "annotations_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/125465289778/annotations",
+          "summary": null,
+          "text": null,
+          "title": null
+        },
+        "pull_requests": [
+          {
+            "base": {
+              "ref": "main",
+              "repo": {
+                "id": 1443047796,
+                "name": "sample-app",
+                "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
+              },
+              "sha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+            },
+            "head": {
+              "ref": "chore/criteria-s6-relax-overlay",
+              "repo": {
+                "id": 1443047796,
+                "name": "sample-app",
+                "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
+              },
+              "sha": "edf5ce35fec83754d0155405db423ddf92d85709"
+            },
+            "id": 5122056205,
+            "number": 5,
+            "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/5"
+          }
+        ],
+        "started_at": "2026-11-02T18:24:02Z",
+        "status": "completed",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/125465289778"
+      }
+    ],
+    "total_count": 4
+  }
+}

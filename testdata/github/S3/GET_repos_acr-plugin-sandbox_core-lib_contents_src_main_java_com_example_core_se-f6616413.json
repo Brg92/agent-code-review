@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/TokenCodec.kt",
+  "query": {
+    "ref": "d83c3b464e4cb6a40e366f2a7bed9964d91c62f5"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"0d02ac489fa18e453e080dd420ea235a5e2f3725\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/0d02ac489fa18e453e080dd420ea235a5e2f3725",
+      "html": "https://github.com/acr-plugin-sandbox/core-lib/blob/d83c3b464e4cb6a40e366f2a7bed9964d91c62f5/src/main/java/com/example/core/session/TokenCodec.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/TokenCodec.kt?ref=d83c3b464e4cb6a40e366f2a7bed9964d91c62f5"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5jb3JlLnNlc3Npb24KCmltcG9ydCBhbmRy\nb2lkLnV0aWwuQmFzZTY0CgppbnRlcm5hbCBvYmplY3QgVG9rZW5Db2RlYyB7\nCiAgICBmdW4gZW5jb2RlKHRva2VuOiBTdHJpbmcpOiBTdHJpbmcgewogICAg\nICAgIHJlcXVpcmUodG9rZW4uaXNOb3RCbGFuaygpKSB7ICJ0b2tlbiBtdXN0\nIG5vdCBiZSBibGFuayIgfQogICAgICAgIHJldHVybiBCYXNlNjQuZW5jb2Rl\nVG9TdHJpbmcodG9rZW4udG9CeXRlQXJyYXkoQ2hhcnNldHMuVVRGXzgpLCBC\nYXNlNjQuTk9fV1JBUCkKICAgIH0KCiAgICBmdW4gZGVjb2RlKGVuY29kZWQ6\nIFN0cmluZyk6IFN0cmluZyA9CiAgICAgICAgU3RyaW5nKEJhc2U2NC5kZWNv\nZGUoZW5jb2RlZCwgQmFzZTY0Lk5PX1dSQVApLCBDaGFyc2V0cy5VVEZfOCkK\nfQo=\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/core-lib/d83c3b464e4cb6a40e366f2a7bed9964d91c62f5/src/main/java/com/example/core/session/TokenCodec.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/0d02ac489fa18e453e080dd420ea235a5e2f3725",
+    "html_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/d83c3b464e4cb6a40e366f2a7bed9964d91c62f5/src/main/java/com/example/core/session/TokenCodec.kt",
+    "name": "TokenCodec.kt",
+    "path": "src/main/java/com/example/core/session/TokenCodec.kt",
+    "sha": "0d02ac489fa18e453e080dd420ea235a5e2f3725",
+    "size": 407,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/TokenCodec.kt?ref=d83c3b464e4cb6a40e366f2a7bed9964d91c62f5"
+  }
+}

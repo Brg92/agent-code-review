@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"3b456a545fda5f1ed2d4336bebcb258f1daa39cbdb88762572a8002bd3763b79\""
+    "ETag": "\"9d9e84ab799d4af2f712d04d7beda19d88b6575f15ebc35a6d8f02d024ddd829\""
   },
   "body": {
     "_links": {
@@ -30,7 +30,7 @@
         "href": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/3"
       },
       "statuses": {
-        "href": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/e5de4506e4ca4653f33ff5a12f08587e8e32f16d"
+        "href": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/df06e9a9f2bef2854b522d926923ee6550a4f46c"
       }
     },
     "active_lock_reason": null,
@@ -124,7 +124,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:37Z",
+        "pushed_at": "2026-11-02T18:23:44Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/releases{/id}",
         "size": 8,
         "ssh_url": "git@github.com:acr-plugin-sandbox/core-lib.git",
@@ -138,14 +138,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:42Z",
+        "updated_at": "2026-11-02T18:23:48Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "f41b5837146e657837182428a3229ac32f3e458a",
+      "sha": "d83c3b464e4cb6a40e366f2a7bed9964d91c62f5",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -264,7 +264,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:37Z",
+        "pushed_at": "2026-11-02T18:23:44Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/releases{/id}",
         "size": 8,
         "ssh_url": "git@github.com:acr-plugin-sandbox/core-lib.git",
@@ -278,14 +278,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:42Z",
+        "updated_at": "2026-11-02T18:23:48Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "e5de4506e4ca4653f33ff5a12f08587e8e32f16d",
+      "sha": "df06e9a9f2bef2854b522d926923ee6550a4f46c",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -315,8 +315,8 @@
     "locked": false,
     "maintainer_can_modify": false,
     "merge_commit_sha": "0543551e6ae00ccd0f4d0264ac85882b1801b3be",
-    "mergeable": true,
-    "mergeable_state": "clean",
+    "mergeable": null,
+    "mergeable_state": "unknown",
     "merged": false,
     "merged_at": null,
     "merged_by": null,
@@ -324,7 +324,7 @@
     "node_id": "PR_kwDOVgMp888AAAABMUxSgQ",
     "number": 3,
     "patch_url": "https://github.com/acr-plugin-sandbox/core-lib/pull/3.patch",
-    "rebaseable": true,
+    "rebaseable": null,
     "requested_reviewers": [
       {
         "avatar_url": "https://avatars.githubusercontent.com/u/1001?v=4",
@@ -353,9 +353,9 @@
     "review_comments": 0,
     "review_comments_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/3/comments",
     "state": "open",
-    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/e5de4506e4ca4653f33ff5a12f08587e8e32f16d",
+    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/statuses/df06e9a9f2bef2854b522d926923ee6550a4f46c",
     "title": "Replace legacyToken with expiresAt",
-    "updated_at": "2026-11-02T14:35:49Z",
+    "updated_at": "2026-11-02T18:23:46Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/pulls/3",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
