@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/plan.schema.json",
+  "title": "Publish plan",
+  "description": "Writes that publish --plan proposes for one change request. publish --apply executes exactly these actions, and only if the head commit is still headSha.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "runId",
+    "cr",
+    "headSha",
+    "createdAt",
+    "actions"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "runId": {
+      "description": "Run the plan belongs to.",
+      "$ref": "#/$defs/runId"
+    },
+    "cr": {
+      "description": "Change request the plan writes to.",
+      "$ref": "#/$defs/crKey"
+    },
+    "headSha": {
+      "description": "Head commit the plan was made for.",
+      "$ref": "#/$defs/sha"
+    },
+    "createdAt": {
+      "description": "When the plan was made.",
+      "$ref": "#/$defs/timestamp"
+    },
+    "actions": {
+      "description": "Writes in the order they are executed. An empty list means there is nothing to publish.",
+      "type": "array",
+      "items": {
+        "description": "One write. review-comment needs path, side and line; issue needs project and title; related-tick needs entry.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "body"
+        ],
+        "properties": {
+          "id": {
+            "description": "Number of the action, from 1, so the user can confirm or drop single actions.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "kind": {
+            "description": "review-comment is an inline comment, summary-comment a comment on the change request, issue a new issue, related-tick ticks an entry of Related Changes.",
+            "enum": [
+              "review-comment",
+              "summary-comment",
+              "issue",
+              "related-tick"
+            ]
+          },
+          "body": {
+            "description": "Text to post, in Markdown; it is secret-scanned before it is sent. Empty for related-tick.",
+            "type": "string"
+          },
+          "findingId": {
+            "description": "Finding the action publishes.",
+            "type": "string",
+            "pattern": "^[0-9a-f]{16}$"
+          },
+          "path": {
+            "description": "File of an inline comment.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "side": {
+            "description": "Diff side of an inline comment.",
+            "$ref": "#/$defs/side"
+          },
+          "line": {
+            "description": "Last line of an inline comment.",
+            "$ref": "#/$defs/line"
+          },
+          "startLine": {
+            "description": "First line of a multi-line inline comment.",
+            "$ref": "#/$defs/line"
+          },
+          "project": {
+            "description": "Project of a new issue.",
+            "$ref": "#/$defs/projectKey"
+          },
+          "title": {
+            "description": "Title of a new issue.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "entry": {
+            "description": "Related Changes entry to tick.",
+            "$ref": "#/$defs/crKey"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "crKey": {
+      "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+#[1-9][0-9]*$"
+    },
+    "line": {
+      "description": "Line number, starting at 1, in the file version of the chosen side.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "projectKey": {
+      "description": "Project key: <forge>:<host>/<project>, for example github:github.com/acr-plugin-sandbox/sample-app.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
+    },
+    "relativePath": {
+      "description": "Relative path with forward slashes, without empty, '.' or '..' segments.",
+      "type": "string",
+      "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
+    },
+    "runId": {
+      "description": "Identifier of a review run, also the name of its work directory.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]{8,64}$"
+    },
+    "sha": {
+      "description": "Full commit SHA, 40 lowercase hexadecimal characters.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "side": {
+      "description": "Side of the diff: LEFT is the target branch version, RIGHT the change request version.",
+      "enum": [
+        "LEFT",
+        "RIGHT"
+      ]
+    },
+    "timestamp": {
+      "description": "UTC time in RFC 3339 format, for example 2026-11-02T10:15:00Z.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"
+    }
+  }
+}
