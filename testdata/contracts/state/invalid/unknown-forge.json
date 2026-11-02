@@ -12,7 +12,7 @@
       "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
       "depth": 0,
       "status": "finalized",
-      "headSha": "a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
+      "headSha": "e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
       "title": "Show when the session expires"
     },
     {
@@ -20,7 +20,7 @@
       "depth": 1,
       "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
       "status": "finalized",
-      "headSha": "e5de4506e4ca4653f33ff5a12f08587e8e32f16d",
+      "headSha": "df06e9a9f2bef2854b522d926923ee6550a4f46c",
       "title": "Replace legacyToken with expiresAt"
     },
     {
@@ -35,7 +35,7 @@
       "depth": 1,
       "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
       "status": "finalized",
-      "headSha": "4a859eee35383c94e967835e41a0910e6be836cb",
+      "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
       "title": "Prefetch the session on startup"
     },
     {
@@ -71,7 +71,7 @@
       "depth": 2,
       "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
       "status": "finalized",
-      "headSha": "0d7021b6926280b936e7c096291855d0284ace92",
+      "headSha": "f9d862f3e8993cf66d4ae780856ef358b7e91d32",
       "title": "Add a session countdown"
     },
     {

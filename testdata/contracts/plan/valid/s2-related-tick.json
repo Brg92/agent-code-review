@@ -2,7 +2,7 @@
   "schema": 1,
   "runId": "20261102-101500-s2cascade",
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
-  "headSha": "a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
+  "headSha": "e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
   "createdAt": "2026-11-02T10:45:00Z",
   "actions": [
     {

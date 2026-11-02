@@ -5,8 +5,8 @@
   "url": "https://github.com/acr-plugin-sandbox/sample-app/pull/7",
   "title": "Show when the session expires",
   "description": "Shows the session expiry on the home screen, using `SessionManager.expiresAt()` from core-lib.",
-  "headSha": "a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
-  "baseSha": "2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f",
+  "headSha": "e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
+  "baseSha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
   "baseRef": "main",
   "criteria": {
     "source": "overlay",

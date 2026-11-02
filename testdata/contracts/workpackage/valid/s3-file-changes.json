@@ -5,8 +5,8 @@
   "url": "https://github.com/acr-plugin-sandbox/core-lib/pull/1",
   "title": "Reorganize session files",
   "description": "Moves the token codec and the status badge into their own packages, drops the legacy SharedPreferences store, adds `SessionExpiry` and a badge background.",
-  "headSha": "0a05be290bd0f40d32cb93d1c6685303c50d3920",
-  "baseSha": "f41b5837146e657837182428a3229ac32f3e458a",
+  "headSha": "1bb2c03af22c5360e04698de42d0833c0387b499",
+  "baseSha": "d83c3b464e4cb6a40e366f2a7bed9964d91c62f5",
   "baseRef": "main",
   "criteria": {
     "source": "legacy",
