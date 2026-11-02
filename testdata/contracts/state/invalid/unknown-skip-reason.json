@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "runId": "20261102-101500-s2cascade",
+  "forge": "github",
+  "root": "github:github.com/acr-plugin-sandbox/sample-app#7",
+  "phase": "finalized",
+  "cascadeLimit": 2,
+  "createdAt": "2026-11-02T10:15:00Z",
+  "updatedAt": "2026-11-02T10:42:07Z",
+  "changeRequests": [
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "depth": 0,
+      "status": "finalized",
+      "headSha": "a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
+      "title": "Show when the session expires"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "depth": 1,
+      "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "status": "finalized",
+      "headSha": "e5de4506e4ca4653f33ff5a12f08587e8e32f16d",
+      "title": "Replace legacyToken with expiresAt"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/feature-lib#2",
+      "depth": 1,
+      "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "status": "skipped",
+      "skipReason": "ticked"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+      "depth": 1,
+      "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "status": "finalized",
+      "headSha": "4a859eee35383c94e967835e41a0910e6be836cb",
+      "title": "Prefetch the session on startup"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#1",
+      "depth": 1,
+      "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "status": "skipped",
+      "skipReason": "not-a-change-request"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "depth": 1,
+      "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "status": "skipped",
+      "skipReason": "self-reference"
+    },
+    {
+      "cr": "gitlab:gitlab.com/acr-plugin-sandbox/sample-app#1",
+      "depth": 1,
+      "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "status": "skipped",
+      "skipReason": "other-platform"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/core-lib#9999",
+      "depth": 1,
+      "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "status": "skipped",
+      "skipReason": "not-found"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+      "depth": 2,
+      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "status": "finalized",
+      "headSha": "0d7021b6926280b936e7c096291855d0284ace92",
+      "title": "Add a session countdown"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "depth": 2,
+      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "status": "skipped",
+      "skipReason": "cycle"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/feature-lib#1",
+      "depth": 3,
+      "parent": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+      "status": "skipped",
+      "skipReason": "over-limit"
+    }
+  ]
+}

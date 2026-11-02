@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/state.schema.json",
+  "title": "Run state",
+  "description": "State of one review run, kept in its work directory. The CLI moves it through resolved, collected, judged, finalized, planned and published.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "runId",
+    "forge",
+    "root",
+    "phase",
+    "cascadeLimit",
+    "createdAt",
+    "updatedAt",
+    "changeRequests"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "runId": {
+      "description": "Identifier of the run.",
+      "$ref": "#/$defs/runId"
+    },
+    "forge": {
+      "description": "Platform of the whole cascade; a cascade uses one platform only.",
+      "enum": [
+        "github",
+        "gitlab"
+      ]
+    },
+    "root": {
+      "description": "Change request the review started from.",
+      "$ref": "#/$defs/crKey"
+    },
+    "phase": {
+      "description": "Last phase the run completed.",
+      "enum": [
+        "resolved",
+        "collected",
+        "judged",
+        "finalized",
+        "planned",
+        "published"
+      ]
+    },
+    "cascadeLimit": {
+      "description": "Deepest level of Related Changes that is reviewed; the root is level 0.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "createdAt": {
+      "description": "When the run started.",
+      "$ref": "#/$defs/timestamp"
+    },
+    "updatedAt": {
+      "description": "When the state last changed.",
+      "$ref": "#/$defs/timestamp"
+    },
+    "changeRequests": {
+      "description": "The root and every Related Changes entry found from it, including the ones that are skipped, in discovery order.",
+      "type": "array",
+      "items": {
+        "description": "One change request of the cascade.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cr",
+          "depth",
+          "status"
+        ],
+        "properties": {
+          "cr": {
+            "description": "Key of the change request.",
+            "$ref": "#/$defs/crKey"
+          },
+          "depth": {
+            "description": "Level in the cascade; the root is 0.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "parent": {
+            "description": "Change request whose Related Changes listed this one; absent for the root.",
+            "$ref": "#/$defs/crKey"
+          },
+          "status": {
+            "description": "Progress of this change request.",
+            "enum": [
+              "pending",
+              "collected",
+              "judged",
+              "finalized",
+              "skipped"
+            ]
+          },
+          "skipReason": {
+            "description": "Why a skipped entry is not reviewed: already-done is a ticked entry, over-limit is deeper than cascadeLimit.",
+            "enum": [
+              "already-done",
+              "not-a-change-request",
+              "not-found",
+              "other-platform",
+              "over-limit",
+              "cycle",
+              "self-reference"
+            ]
+          },
+          "headSha": {
+            "description": "Head commit, once collected.",
+            "$ref": "#/$defs/sha"
+          },
+          "title": {
+            "description": "Title on the platform, once known.",
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "crKey": {
+      "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+#[1-9][0-9]*$"
+    },
+    "runId": {
+      "description": "Identifier of a review run, also the name of its work directory.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]{8,64}$"
+    },
+    "sha": {
+      "description": "Full commit SHA, 40 lowercase hexadecimal characters.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "timestamp": {
+      "description": "UTC time in RFC 3339 format, for example 2026-11-02T10:15:00Z.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"
+    }
+  }
+}
