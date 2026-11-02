@@ -141,6 +141,69 @@ func TestSanitizeJSON(t *testing.T) {
 	}
 }
 
+func TestSanitizeJSONReplacesUnknownUsers(t *testing.T) {
+	s := testSanitizer(t)
+	first := `{"z":{"html_url":"https://github.com/Stranger"},` +
+		`"a":{"login":"Stranger","id":555,"type":"User","avatar_url":"https://avatars.githubusercontent.com/u/555?v=4"},` +
+		`"b":{"login":"another-one","id":556,"type":"User"},` +
+		`"app":{"login":"github","id":9919,"type":"Organization"},` +
+		`"bot":{"login":"github-actions[bot]","id":41898282,"type":"Bot"}}`
+	want := `{
+  "a": {
+    "avatar_url": "https://avatars.githubusercontent.com/u/1102?v=4",
+    "id": 1102,
+    "login": "sandbox-user-2",
+    "type": "User"
+  },
+  "app": {
+    "id": 9919,
+    "login": "github",
+    "type": "Organization"
+  },
+  "b": {
+    "id": 1101,
+    "login": "sandbox-user-1",
+    "type": "User"
+  },
+  "bot": {
+    "id": 41898282,
+    "login": "github-actions[bot]",
+    "type": "Bot"
+  },
+  "z": {
+    "html_url": "https://github.com/sandbox-user-2"
+  }
+}
+`
+	got, err := s.JSON([]byte(first))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != want {
+		t.Errorf("JSON =\n%s\nwant\n%s", got, want)
+	}
+	// A later document keeps the names given earlier.
+	got, err = s.JSON([]byte(`[{"login":"stranger","id":555,"type":"User"},{"login":"third","type":"User"}]`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantLater := `[
+  {
+    "id": 1102,
+    "login": "sandbox-user-2",
+    "type": "User"
+  },
+  {
+    "login": "sandbox-user-3",
+    "type": "User"
+  }
+]
+`
+	if string(got) != wantLater {
+		t.Errorf("JSON =\n%s\nwant\n%s", got, wantLater)
+	}
+}
+
 func TestSanitizeJSONRejectsInvalidInput(t *testing.T) {
 	s := testSanitizer(t)
 	for _, in := range []string{``, `{`, `{"a":1} {"b":2}`, `not json`} {

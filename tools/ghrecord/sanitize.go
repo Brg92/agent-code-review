@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -22,9 +23,12 @@ type Identity struct {
 }
 
 // Sanitizer replaces real logins, user ids, avatar URLs, email addresses and
-// token-like strings in recorded data.
+// token-like strings in recorded data. It remembers the unknown users it has
+// seen, so one Sanitizer serves one recording run and is not safe for
+// concurrent use.
 type Sanitizer struct {
-	ids []Identity
+	ids     []Identity
+	unknown int
 }
 
 var (
@@ -119,6 +123,7 @@ func (s *Sanitizer) JSON(data []byte) ([]byte, error) {
 	if _, err := dec.Token(); err != io.EOF {
 		return nil, errors.New("decode JSON: trailing data after the document")
 	}
+	s.registerUnknownUsers(v)
 	var out bytes.Buffer
 	enc := json.NewEncoder(&out)
 	enc.SetEscapeHTML(false)
@@ -127,6 +132,59 @@ func (s *Sanitizer) JSON(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	return out.Bytes(), nil
+}
+
+// unknownUserID is added to the number of an unknown user to form its
+// synthetic id.
+const unknownUserID = 1100
+
+// registerUnknownUsers gives every user account in v that is not a known
+// identity a synthetic one, sandbox-user-<n>. GitHub links commits to any
+// account that verified the commit email, so strangers can appear in
+// recorded data. Names are assigned in sorted order within a document and
+// kept for the rest of the run.
+func (s *Sanitizer) registerUnknownUsers(v any) {
+	found := map[string]string{}
+	var walk func(any)
+	walk = func(v any) {
+		switch v := v.(type) {
+		case []any:
+			for _, e := range v {
+				walk(e)
+			}
+		case map[string]any:
+			login, _ := v["login"].(string)
+			if typ, _ := v["type"].(string); typ == "User" && login != "" && !s.known(login) {
+				found[strings.ToLower(login)] = login
+			}
+			for _, e := range v {
+				walk(e)
+			}
+		}
+	}
+	walk(v)
+	keys := make([]string, 0, len(found))
+	for k := range found {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		s.unknown++
+		s.ids = append(s.ids, Identity{
+			Login:     found[k],
+			Synthetic: "sandbox-user-" + strconv.Itoa(s.unknown),
+			ID:        int64(unknownUserID + s.unknown),
+		})
+	}
+}
+
+func (s *Sanitizer) known(login string) bool {
+	for _, id := range s.ids {
+		if strings.EqualFold(id.Login, login) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Sanitizer) value(v any) any {
