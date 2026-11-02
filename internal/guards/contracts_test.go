@@ -209,3 +209,28 @@ func TestInvalidOverlayNamesEveryField(t *testing.T) {
 		t.Errorf("issues = %q, want %q", got, want)
 	}
 }
+
+// TestJudgementRulesAreCataloged keeps the rule ids of the scenario
+// judgements in step with the example rules catalog.
+func TestJudgementRulesAreCataloged(t *testing.T) {
+	catalog := readJSON(t, filepath.Join(repoRoot, "testdata", "contracts", "rules-catalog", "valid", "android.json"))
+	known := map[string]bool{}
+	rules, _ := catalog["rules"].([]any)
+	for _, r := range rules {
+		rule, _ := r.(map[string]any)
+		id, _ := rule["id"].(string)
+		known[id] = true
+	}
+	for _, f := range globAll(t, moreValidExamples["judgement"]...) {
+		j := readJSON(t, f)
+		for _, group := range []string{"findings", "preExisting"} {
+			list, _ := j[group].([]any)
+			for _, item := range list {
+				finding, _ := item.(map[string]any)
+				if id, _ := finding["rule"].(string); !known[id] {
+					t.Errorf("%s: rule %q is not in the rules catalog", f, id)
+				}
+			}
+		}
+	}
+}
