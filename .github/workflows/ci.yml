@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache-dependency-path: go.mod
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "::error::files not formatted with gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi
+      - name: go vet
+        run: go vet ./...
+      - name: staticcheck
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...
+
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache-dependency-path: go.mod
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+      - name: gitleaks
+        env:
+          # One extra regex per line; the default gitleaks rules always apply.
+          ACR_SECRET_PATTERNS: ${{ secrets.ACR_SECRET_PATTERNS }}
+        run: |
+          config=()
+          if [ -n "${ACR_SECRET_PATTERNS:-}" ]; then
+            config_file="$RUNNER_TEMP/gitleaks.toml"
+            printf '[extend]\nuseDefault = true\n' > "$config_file"
+            n=0
+            while IFS= read -r pattern || [ -n "$pattern" ]; do
+              pattern=${pattern%$'\r'}
+              [ -z "$pattern" ] && continue
+              n=$((n + 1))
+              case $pattern in
+                *"'''"*)
+                  echo "::error::ACR_SECRET_PATTERNS pattern $n contains ''' and cannot be used"
+                  exit 1
+                  ;;
+              esac
+              printf "\n[[rules]]\nid = \"acr-extra-%d\"\ndescription = \"Extra pattern from ACR_SECRET_PATTERNS\"\nregex = '''%s'''\n" "$n" "$pattern" >> "$config_file"
+            done <<< "$ACR_SECRET_PATTERNS"
+            config=(--config "$config_file")
+          fi
+          go run github.com/zricethezav/gitleaks/v8@v8.30.1 git --redact --no-banner "${config[@]}" .
+
+  test:
+    name: test (${{ matrix.os }}, go ${{ matrix.go }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: [stable, oldstable]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+          cache-dependency-path: go.mod
+      - name: go test
+        run: go test -race -coverprofile=coverage.out ./...
+      - name: coverage
+        run: go tool cover -func=coverage.out | tail -n 1
+
+  build:
+    name: build (${{ matrix.goos }}, ${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache-dependency-path: go.mod
+      - name: go build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          ext=""
+          if [ "$GOOS" = windows ]; then ext=".exe"; fi
+          version="0.0.0-ci+${GITHUB_SHA::7}"
+          go build -trimpath \
+            -ldflags "-s -w -X github.com/Brg92/agent-code-review/internal/version.Version=$version" \
+            -o "dist/agent-code-review-$GOOS-$GOARCH$ext" ./cmd/agent-code-review
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: agent-code-review-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 3
