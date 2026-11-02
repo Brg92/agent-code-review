@@ -12,8 +12,19 @@
     }
   ],
   "ci": {
-    "state": "none",
-    "checks": []
+    "state": "passing",
+    "checks": [
+      {
+        "name": "lint",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "test",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
   },
   "criteria": {
     "source": "default",
