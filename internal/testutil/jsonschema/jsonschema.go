@@ -29,6 +29,7 @@ func (i Issue) String() string { return i.Path + ": " + i.Keyword + ": " + i.Mes
 type Schema struct {
 	root     any
 	patterns map[string]*regexp.Regexp
+	refs     map[string]any
 }
 
 // annotations are keywords that do not affect validation.
@@ -46,11 +47,67 @@ func Compile(data []byte) (*Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &Schema{root: root, patterns: map[string]*regexp.Regexp{}}
+	s := &Schema{root: root, patterns: map[string]*regexp.Regexp{}, refs: map[string]any{}}
 	if err := s.check(root, ""); err != nil {
 		return nil, err
 	}
+	if err := s.resolveRefs(); err != nil {
+		return nil, err
+	}
 	return s, nil
+}
+
+// resolveRefs resolves every $ref, which must be a JSON pointer into the
+// same schema, and rejects chains of references that loop.
+func (s *Schema) resolveRefs() error {
+	for ref := range s.refs {
+		target, err := resolve(s.root, ref)
+		if err != nil {
+			return err
+		}
+		s.refs[ref] = target
+	}
+	for ref := range s.refs {
+		seen := map[string]bool{}
+		for next := ref; next != ""; {
+			if seen[next] {
+				return fmt.Errorf("$ref %q: references loop", ref)
+			}
+			seen[next] = true
+			target, _ := s.refs[next].(map[string]any)
+			next, _ = target["$ref"].(string)
+		}
+	}
+	return nil
+}
+
+func resolve(root any, ref string) (any, error) {
+	if !strings.HasPrefix(ref, "#") {
+		return nil, fmt.Errorf("$ref %q: only references within the schema are supported", ref)
+	}
+	v := root
+	pointer := strings.TrimPrefix(ref, "#")
+	if pointer == "" {
+		return v, nil
+	}
+	if !strings.HasPrefix(pointer, "/") {
+		return nil, fmt.Errorf("$ref %q: not a JSON pointer", ref)
+	}
+	for _, token := range strings.Split(pointer[1:], "/") {
+		token = strings.ReplaceAll(strings.ReplaceAll(token, "~1", "/"), "~0", "~")
+		m, ok := v.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("$ref %q: not found", ref)
+		}
+		if v, ok = m[token]; !ok {
+			return nil, fmt.Errorf("$ref %q: not found", ref)
+		}
+	}
+	switch v.(type) {
+	case bool, map[string]any:
+		return v, nil
+	}
+	return nil, fmt.Errorf("$ref %q: does not point to a schema", ref)
 }
 
 // Validate returns the issues of a document. The error reports a document
@@ -124,6 +181,22 @@ func (sc *Schema) check(schema any, at string) error {
 			if err := sc.check(v, here); err != nil {
 				return err
 			}
+		case k == "$defs":
+			defs, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("%s: must be an object", here)
+			}
+			for _, name := range sortedKeys(defs) {
+				if err := sc.check(defs[name], here+"/"+escape(name)); err != nil {
+					return err
+				}
+			}
+		case k == "$ref":
+			ref, ok := v.(string)
+			if !ok {
+				return fmt.Errorf("%s: must be a string", here)
+			}
+			sc.refs[ref] = nil
 		case k == "enum":
 			if list, ok := v.([]any); !ok || len(list) == 0 {
 				return fmt.Errorf("%s: must be a non-empty array", here)
@@ -196,6 +269,10 @@ func (s *Schema) validate(schema, v any, path string, issues *[]Issue) {
 		return
 	}
 	sch := schema.(map[string]any)
+
+	if ref, ok := sch["$ref"].(string); ok {
+		s.validate(s.refs[ref], v, path, issues)
+	}
 
 	if t, ok := sch["type"]; ok && !hasType(t, v) {
 		add(path, "type", "want %v, got %s", t, typeOf(v))

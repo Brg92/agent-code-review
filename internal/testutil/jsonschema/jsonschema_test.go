@@ -152,3 +152,32 @@ func TestValueKeywords(t *testing.T) {
 		{"nested", `{"properties":{"l":{"items":{"minimum":0}}}}`, `{"l":[0,-1]}`, []string{"/l/1 minimum"}},
 	})
 }
+
+func TestCompileRejectsInvalidRefs(t *testing.T) {
+	for _, schema := range []string{
+		`{"$ref":"other.json#/a"}`,
+		`{"$ref":"#/$defs/missing"}`,
+		`{"$ref":3}`,
+		`{"$defs":3}`,
+		`{"$defs":{"a":{"type":"nope"}}}`,
+		`{"$defs":{"a":{"$ref":"#/$defs/b"},"b":{"$ref":"#/$defs/a"}},"$ref":"#/$defs/a"}`,
+	} {
+		if _, err := Compile([]byte(schema)); err == nil {
+			t.Errorf("Compile(%s) succeeded, want error", schema)
+		}
+	}
+}
+
+func TestRef(t *testing.T) {
+	defs := `"$defs":{"key":{"type":"string","pattern":"^[a-z]+#[0-9]+$"},"a/b":{"minimum":1},` +
+		`"node":{"type":"object","properties":{"key":{"$ref":"#/$defs/key"},"children":{"items":{"$ref":"#/$defs/node"}}}}}`
+	runValidationCases(t, []validationCase{
+		{"ref ok", `{` + defs + `,"$ref":"#/$defs/key"}`, `"core#3"`, nil},
+		{"ref bad", `{` + defs + `,"$ref":"#/$defs/key"}`, `"core"`, []string{" pattern"}},
+		{"ref with siblings", `{` + defs + `,"$ref":"#/$defs/key","enum":["a#1"]}`, `"b#2"`, []string{" enum"}},
+		{"escaped pointer", `{` + defs + `,"$ref":"#/$defs/a~1b"}`, `0`, []string{" minimum"}},
+		{"recursive", `{` + defs + `,"$ref":"#/$defs/node"}`, `{"key":"a#1","children":[{"key":"b#2","children":[{"key":"bad"}]}]}`,
+			[]string{"/children/0/children/0/key pattern"}},
+		{"root ref", `{"properties":{"self":{"$ref":"#"}},"required":["x"]}`, `{"x":1,"self":{}}`, []string{"/self required"}},
+	})
+}
