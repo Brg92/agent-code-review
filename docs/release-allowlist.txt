@@ -6,6 +6,7 @@ skills/**
 agents/**
 hooks/**
 packs/**
+schemas/**
 bin/**
 LICENSE
 README.md
