@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/repo-criteria.schema.json",
+  "title": "Resolved repository criteria",
+  "description": "Criteria of one repository after the CLI has read its overlay, its legacy files or its defaults from the target branch.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "project",
+    "ref",
+    "source",
+    "profile",
+    "packs",
+    "variants",
+    "disabledRules",
+    "noise",
+    "publicApi",
+    "consumers",
+    "cascadeLimit",
+    "files",
+    "notes"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "project": {
+      "description": "Repository the criteria belong to.",
+      "$ref": "#/$defs/projectKey"
+    },
+    "ref": {
+      "description": "Target branch the criteria were read from.",
+      "type": "string",
+      "pattern": "^\\S+$"
+    },
+    "source": {
+      "description": "Where the criteria come from.",
+      "$ref": "#/$defs/criteriaSource"
+    },
+    "profile": {
+      "description": "Profile in use.",
+      "$ref": "#/$defs/profile"
+    },
+    "packs": {
+      "description": "Stack packs in use.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/packId"
+      }
+    },
+    "variants": {
+      "description": "Build variants or flavors.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][A-Za-z0-9]*$"
+      }
+    },
+    "disabledRules": {
+      "description": "Rules that are not applied.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ruleId"
+      }
+    },
+    "noise": {
+      "description": "Globs of changed files listed as noise, from the packs and the repository.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/glob"
+      }
+    },
+    "publicApi": {
+      "description": "Globs of files that are public API, whose removals are checked against the consumers.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/glob"
+      }
+    },
+    "consumers": {
+      "description": "Repositories that use this one's public API.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/projectKey"
+      }
+    },
+    "cascadeLimit": {
+      "description": "Deepest level of Related Changes to review.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "files": {
+      "description": "Criteria files that were read, relative to the repository root.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relativePath"
+      }
+    },
+    "notes": {
+      "description": "Notes for the summary, for example that legacy criteria are in use.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "\\S"
+      }
+    }
+  },
+  "$defs": {
+    "criteriaSource": {
+      "description": "Where the criteria come from: overlay is .agent-code-review/, legacy is .github/skills and .github/mr-review.json, default is the packs alone.",
+      "enum": [
+        "overlay",
+        "legacy",
+        "default"
+      ]
+    },
+    "glob": {
+      "description": "Path glob with forward slashes: '*' matches within a segment, '**' matches any number of segments.",
+      "type": "string",
+      "pattern": "^[^/\\\\]+(?:/[^/\\\\]+)*$"
+    },
+    "packId": {
+      "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "profile": {
+      "description": "Kind of repository, which selects the default criteria.",
+      "enum": [
+        "app",
+        "library",
+        "kmp"
+      ]
+    },
+    "projectKey": {
+      "description": "Project key: <forge>:<host>/<project>, for example github:github.com/acr-plugin-sandbox/sample-app.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
+    },
+    "relativePath": {
+      "description": "Relative path with forward slashes, without empty, '.' or '..' segments.",
+      "type": "string",
+      "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
+    },
+    "ruleId": {
+      "description": "Rule identifier: lowercase dot-separated words, for example kotlin.not-null-assertion.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
+    }
+  }
+}

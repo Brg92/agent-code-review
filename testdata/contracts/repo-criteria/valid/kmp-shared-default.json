@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "project": "github:github.com/acr-plugin-sandbox/kmp-shared",
+  "ref": "main",
+  "source": "default",
+  "profile": "kmp",
+  "packs": [
+    "kotlin-multiplatform"
+  ],
+  "variants": [],
+  "disabledRules": [],
+  "noise": [],
+  "publicApi": [],
+  "consumers": [],
+  "cascadeLimit": 2,
+  "files": [],
+  "notes": [
+    "No criteria files: the profile was detected from commonMain, androidMain and iosMain."
+  ]
+}
