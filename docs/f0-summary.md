@@ -54,24 +54,19 @@ ACR_SANDBOX_LOGINS=<reviewer>,<author> go test ./internal/guards/
 - **Schema patterns use Go regexp syntax**, so they have no lookahead.
 - **Unknown accounts are anonymized:** the recorder replaces every user account it does not know with `sandbox-user-<n>`, because GitHub links commits to any account that verified the commit email.
 
+## Decisions taken at the end of F0
+
+- **Criteria edited in a change request (S6 A):** the review goes on with the target branch's criteria and the summary notes that the edit was not applied. Exit code 5 is reserved and unused.
+- **Default cascade limit:** 2. A repository can change it with `cascadeLimit` in `.agent-code-review/config.json`.
+- **Schemas ship:** `schemas/**` is in the release allowlist, so agents can read the judgement schema.
+- **Sandbox commit email:** sandbox commits move to an address on a reserved domain that no account can verify, so GitHub stops linking them to an unrelated account. This rewrites the sandbox history once, as an explicit exception to the no-force-push rule, and the recordings and judgements are regenerated in their own pull request.
+
 ## Open items
 
-### Needs a decision
-
-- **Criteria override in a change request (S6 A):** exit code 5, or only a note in the summary? The schemas and examples assume a note.
-- **Default cascade limit:** the examples and the S2 tests assume 2.
-- **Schemas in the release:** `schemas/` is not in the release allowlist. Agents may need at least the judgement schema.
-- **Exit codes:** [exit-codes.md](exit-codes.md) is a proposal until the first command returns them.
-
-### Needs an action
-
 - **Required checks:** add the 14 checks listed in [ci.md](ci.md) to the `protect-main` ruleset.
-- **Sandbox commit email:** sandbox commits use `author@example.com`, which GitHub links to an unrelated account. The recordings hide it. Fixing it at the source means rewriting the sandbox history with a force-push, which needs an explicit decision.
+- **Exit codes:** [exit-codes.md](exit-codes.md) stays a proposal until the first command returns them.
 - **Sandbox checks:** `core-lib`, `kmp-shared` and `feature-lib` have no check runs on their pull requests, although their `checks` workflow exists. S5 only needs `sample-app`, but the cause is unknown.
 - **Recorder token:** the recordings were made with the reviewer's `gh` token. The fine-grained, read-only token described in [sandbox.md](sandbox.md) is not tested yet, in particular whether it can read check runs.
-
-### Provisional
-
 - **Rule ids and severities** live in the example catalog `testdata/contracts/rules-catalog/valid/android.json`. They become real with the `android` pack.
 - **Recordings age:** the S5 A recording shows `instrumented` in progress. Recording S5 again needs the job to be re-run first.
 
