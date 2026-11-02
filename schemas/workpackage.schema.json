@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/workpackage.schema.json",
+  "title": "Work package",
+  "description": "Everything the agent needs to judge one change request, as handed out by the next command. Paths of copied files are relative to the run's work directory.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "runId",
+    "cr",
+    "url",
+    "title",
+    "description",
+    "headSha",
+    "baseSha",
+    "baseRef",
+    "criteria",
+    "rules",
+    "files",
+    "relatedChanges",
+    "judgementPath"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "runId": {
+      "description": "Run the work package belongs to.",
+      "$ref": "#/$defs/runId"
+    },
+    "cr": {
+      "description": "Change request to judge.",
+      "$ref": "#/$defs/crKey"
+    },
+    "url": {
+      "description": "Web address of the change request.",
+      "type": "string",
+      "pattern": "^https://"
+    },
+    "title": {
+      "description": "Title of the change request.",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of the change request, in Markdown.",
+      "type": "string"
+    },
+    "headSha": {
+      "description": "Head commit to judge; the judgement must repeat it.",
+      "$ref": "#/$defs/sha"
+    },
+    "baseSha": {
+      "description": "Target branch commit the diff is computed against.",
+      "$ref": "#/$defs/sha"
+    },
+    "baseRef": {
+      "description": "Target branch, where the criteria are read from.",
+      "type": "string",
+      "pattern": "^\\S+$"
+    },
+    "criteria": {
+      "description": "Criteria to judge with.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "profile",
+        "packs",
+        "files"
+      ],
+      "properties": {
+        "source": {
+          "description": "Where the criteria come from.",
+          "$ref": "#/$defs/criteriaSource"
+        },
+        "profile": {
+          "description": "Profile in use.",
+          "$ref": "#/$defs/profile"
+        },
+        "packs": {
+          "description": "Stack packs in use.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/packId"
+          }
+        },
+        "files": {
+          "description": "Copies of the criteria and checklist files to read, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relativePath"
+          }
+        }
+      }
+    },
+    "rules": {
+      "description": "Rules that apply, after disabled rules are removed.",
+      "type": "array",
+      "items": {
+        "description": "One rule.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "title"
+        ],
+        "properties": {
+          "id": {
+            "description": "Rule identifier to use in findings.",
+            "$ref": "#/$defs/ruleId"
+          },
+          "severity": {
+            "description": "Default severity of the rule.",
+            "$ref": "#/$defs/severity"
+          },
+          "title": {
+            "description": "One-line summary of the rule.",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "files": {
+      "description": "Changed files to review. Files that are not reviewed are listed in the findings instead.",
+      "type": "array",
+      "items": {
+        "description": "One changed file.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "status",
+          "language",
+          "patch"
+        ],
+        "properties": {
+          "path": {
+            "description": "Path in the change request; for a removed file, its old path.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "previousPath": {
+            "description": "Old path of a renamed or copied file.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "status": {
+            "description": "Kind of change.",
+            "enum": [
+              "added",
+              "removed",
+              "modified",
+              "renamed",
+              "copied"
+            ]
+          },
+          "language": {
+            "description": "Language identifier from the pack that covers the file.",
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "patch": {
+            "description": "Copy of the unified diff of the file.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "head": {
+            "description": "Copy of the file at the head commit; absent for a removed file.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "base": {
+            "description": "Copy of the file on the target branch; absent for an added file.",
+            "$ref": "#/$defs/relativePath"
+          }
+        }
+      }
+    },
+    "relatedChanges": {
+      "description": "Other change requests reviewed in the same cascade, so that changes made together are not reported as missing.",
+      "type": "array",
+      "items": {
+        "description": "One related change request.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cr",
+          "title"
+        ],
+        "properties": {
+          "cr": {
+            "description": "Key of the related change request.",
+            "$ref": "#/$defs/crKey"
+          },
+          "title": {
+            "description": "Its title.",
+            "type": "string"
+          },
+          "workPackage": {
+            "description": "Its work package, when it is in the same run.",
+            "$ref": "#/$defs/relativePath"
+          }
+        }
+      }
+    },
+    "judgementPath": {
+      "description": "Where the agent writes its judgement.",
+      "$ref": "#/$defs/relativePath"
+    }
+  },
+  "$defs": {
+    "crKey": {
+      "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+#[1-9][0-9]*$"
+    },
+    "criteriaSource": {
+      "description": "Where the criteria come from: overlay is .agent-code-review/, legacy is .github/skills and .github/mr-review.json, default is the packs alone.",
+      "enum": [
+        "overlay",
+        "legacy",
+        "default"
+      ]
+    },
+    "packId": {
+      "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "profile": {
+      "description": "Kind of repository, which selects the default criteria.",
+      "enum": [
+        "app",
+        "library",
+        "kmp"
+      ]
+    },
+    "relativePath": {
+      "description": "Relative path with forward slashes, without empty, '.' or '..' segments.",
+      "type": "string",
+      "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
+    },
+    "ruleId": {
+      "description": "Rule identifier: lowercase dot-separated words, for example kotlin.not-null-assertion.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
+    },
+    "runId": {
+      "description": "Identifier of a review run, also the name of its work directory.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]{8,64}$"
+    },
+    "severity": {
+      "description": "Severity of a finding, from the most to the least serious.",
+      "enum": [
+        "BLOCKER",
+        "MAJOR",
+        "MINOR",
+        "INFO"
+      ]
+    },
+    "sha": {
+      "description": "Full commit SHA, 40 lowercase hexadecimal characters.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    }
+  }
+}

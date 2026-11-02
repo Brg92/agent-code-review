@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "runId": "20261102-110000-s3",
+  "cr": "github:github.com/acr-plugin-sandbox/core-lib#1",
+  "url": "https://github.com/acr-plugin-sandbox/core-lib/pull/1",
+  "title": "Reorganize session files",
+  "description": "Moves the token codec and the status badge into their own packages, drops the legacy SharedPreferences store, adds `SessionExpiry` and a badge background.",
+  "headSha": "0a05be290bd0f40d32cb93d1c6685303c50d3920",
+  "baseSha": "f41b5837146e657837182428a3229ac32f3e458a",
+  "baseRef": "main",
+  "criteria": {
+    "source": "legacy",
+    "profile": "library",
+    "packs": [
+      "android"
+    ],
+    "files": [
+      "cr/core-lib-1/criteria/.github/skills/core-lib-code-review/SKILL.md",
+      "packs/android/checklists/library.md"
+    ]
+  },
+  "rules": [
+    {
+      "id": "logic.removed-validation",
+      "severity": "MAJOR",
+      "title": "A change removes input validation"
+    },
+    {
+      "id": "style.redundant-if",
+      "severity": "MINOR",
+      "title": "An if/else only returns its condition"
+    }
+  ],
+  "files": [
+    {
+      "path": "src/main/java/com/example/core/session/SessionExpiry.kt",
+      "status": "added",
+      "language": "kotlin",
+      "patch": "cr/core-lib-1/patches/src_main_java_com_example_core_session_SessionExpiry.kt.diff",
+      "head": "cr/core-lib-1/head/src/main/java/com/example/core/session/SessionExpiry.kt"
+    },
+    {
+      "path": "src/main/java/com/example/core/session/LegacySessionStore.kt",
+      "status": "removed",
+      "language": "kotlin",
+      "patch": "cr/core-lib-1/patches/src_main_java_com_example_core_session_LegacySessionStore.kt.diff",
+      "base": "cr/core-lib-1/base/src/main/java/com/example/core/session/LegacySessionStore.kt"
+    },
+    {
+      "path": "src/main/java/com/example/core/session/SessionManager.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "patch": "cr/core-lib-1/patches/src_main_java_com_example_core_session_SessionManager.kt.diff",
+      "head": "cr/core-lib-1/head/src/main/java/com/example/core/session/SessionManager.kt",
+      "base": "cr/core-lib-1/base/src/main/java/com/example/core/session/SessionManager.kt"
+    },
+    {
+      "path": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
+      "previousPath": "src/main/java/com/example/core/session/TokenCodec.kt",
+      "status": "renamed",
+      "language": "kotlin",
+      "patch": "cr/core-lib-1/patches/src_main_java_com_example_core_session_codec_TokenCodec.kt.diff",
+      "head": "cr/core-lib-1/head/src/main/java/com/example/core/session/codec/TokenCodec.kt",
+      "base": "cr/core-lib-1/base/src/main/java/com/example/core/session/TokenCodec.kt"
+    }
+  ],
+  "relatedChanges": []
+}
