@@ -51,7 +51,7 @@ Read-only. Settings:
   - Checks, if the form offers it. Otherwise confirm, the first time you record, that check runs can still be read.
 - **No write permission and no account permissions.** The review-requested search runs as the token's user.
 
-Set `ACR_SANDBOX_LOGINS` to the comma-separated logins of the two accounts when you run the tests. The test that keeps real logins out of `testdata/` skips itself when the variable is unset.
+Set `ACR_SANDBOX_LOGINS` to the logins of the two accounts, reviewer first: `<reviewer>,<author>`. The recorder requires it. The test that keeps real logins out of `testdata/` also uses it, and skips itself when the variable is unset.
 
 ### Author: publishing token
 
@@ -68,3 +68,32 @@ Only needed when the author account does not use `gh auth login`. Settings:
 Later phases that write review comments need their own reviewer token with Pull requests and Issues set to read and write. Never reuse the recorder token for that.
 
 Tokens never go on disk, in logs or in `testdata/`. The recorder reads `ACR_GITHUB_TOKEN` from the environment, and the sanitizer removes logins, ids, emails and avatar URLs from the recorded data.
+
+## Recording
+
+Run the recorder from the repository root:
+
+```bash
+ACR_GITHUB_TOKEN=<token> ACR_SANDBOX_LOGINS=<reviewer>,<author> go run ./tools/recorder all
+```
+
+Pass scenario names instead of `all` to record only some of them: `S1` to `S6`, or `queue` for the review-requested search. Each scenario is recorded into `testdata/github/<scenario>/`, and the recordings of the previous run are removed first.
+
+What the recorder does:
+
+- **Read-only:** it only sends `GET` requests, and follows pagination only within the API base URL.
+- **Requests:** for each pull request of the scenario, it reads what a review reads:
+  - the pull request, its files, commits, reviews and comments;
+  - the check runs and the combined status of the head commit;
+  - the criteria files on the target branch;
+  - the contents of every changed file that has a patch.
+  A number that is not a pull request is also looked up as an issue, which tells an issue from a missing number. Missing files are recorded with their `404`.
+- **One file per response page:** method, path, query, status, the `Link` and `ETag` headers only, and the body.
+- **Sanitized:** the two sandbox logins become `sandbox-reviewer` and `sandbox-author`, with ids 1001 and 1002. Their avatar URLs and node ids are replaced. Email addresses outside `example.com` and token-like strings are redacted.
+
+Check before you record:
+
+- **S5 A:** the `instrumented` job only stays `in_progress` for 45 minutes after it starts. Re-run it right before you record S5.
+- **S4:** the files API must return no `patch` for `IconCatalog.kt`.
+
+Commit the recorded data on its own, in a `test(recorder): ...` commit, after `go test ./...` passes with `ACR_SANDBOX_LOGINS` set.
