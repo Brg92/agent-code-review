@@ -1,12 +1,14 @@
 package guards
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -111,4 +113,83 @@ func TestTestdataHasNoSandboxLogins(t *testing.T) {
 		t.Skip("ACR_SANDBOX_LOGINS is not set")
 	}
 	checkTestdata(t, logins)
+}
+
+var allowedLogin = regexp.MustCompile(`^(?:sandbox-(?:reviewer|author|user-[0-9]+)|acr-plugin-sandbox|github|[a-z0-9-]+\[bot\])$`)
+
+// unexpectedLogins returns, sorted, every login in a JSON document that is
+// neither synthetic, the sandbox organization, GitHub itself nor a bot.
+func unexpectedLogins(data []byte) ([]string, error) {
+	var v any
+	if err := json.Unmarshal(data, &v); err != nil {
+		return nil, err
+	}
+	var bad []string
+	var walk func(any)
+	walk = func(v any) {
+		switch v := v.(type) {
+		case []any:
+			for _, e := range v {
+				walk(e)
+			}
+		case map[string]any:
+			if login, ok := v["login"].(string); ok && !allowedLogin.MatchString(login) {
+				bad = append(bad, login)
+			}
+			for _, e := range v {
+				walk(e)
+			}
+		}
+	}
+	walk(v)
+	sort.Strings(bad)
+	return bad, nil
+}
+
+func TestUnexpectedLogins(t *testing.T) {
+	tests := []struct {
+		name string
+		data string
+		want []string
+	}{
+		{"allowed", `{"user":{"login":"sandbox-author"},"r":[{"login":"sandbox-reviewer"},{"login":"sandbox-user-12"}],` +
+			`"owner":{"login":"acr-plugin-sandbox"},"app":{"owner":{"login":"github"}},"bot":{"login":"github-actions[bot]"}}`, nil},
+		{"stranger", `{"commit":{"author":{"login":"Someone"}},"items":[{"login":"sandbox-author"},{"login":"other"}]}`, []string{"Someone", "other"}},
+		{"look-alike", `[{"login":"sandbox-user-"},{"login":"xsandbox-author"},{"login":"github2"}]`, []string{"github2", "sandbox-user-", "xsandbox-author"}},
+		{"not a string", `{"login":7}`, nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := unexpectedLogins([]byte(tt.data))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("unexpectedLogins = %q, want %q", got, tt.want)
+			}
+		})
+	}
+	if _, err := unexpectedLogins([]byte(`{`)); err == nil {
+		t.Error("unexpectedLogins accepted invalid JSON")
+	}
+}
+
+func TestRecordingsHaveOnlySyntheticLogins(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join(repoRoot, "testdata", "github", "*", "*.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		logins, err := unexpectedLogins(data)
+		if err != nil {
+			t.Errorf("%s: %v", f, err)
+		}
+		for _, l := range logins {
+			t.Errorf("%s: unexpected login %q", f, l)
+		}
+	}
 }
