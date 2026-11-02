@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/core-lib#1",
+  "headSha": "0a05be290bd0f40d32cb93d1c6685303c50d3920",
+  "findings": [
+    {
+      "rule": "logic.removed-validation",
+      "severity": "CRITICAL",
+      "path": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
+      "side": "LEFT",
+      "line": 7,
+      "message": "The move to the codec package also drops the check that the token is not blank, so encode() now silently stores an empty token. Keep the require() call.",
+      "references": []
+    },
+    {
+      "rule": "style.redundant-if",
+      "severity": "MINOR",
+      "path": "src/main/java/com/example/core/session/SessionExpiry.kt",
+      "side": "RIGHT",
+      "startLine": 5,
+      "line": 9,
+      "message": "The if/else only returns the value of its condition. Return the comparison directly.",
+      "suggestion": "        return session.expiresAtMillis <= nowMillis",
+      "references": []
+    }
+  ],
+  "preExisting": []
+}

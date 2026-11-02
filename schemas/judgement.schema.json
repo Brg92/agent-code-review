@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/judgement.schema.json",
+  "title": "Judgement",
+  "description": "What the agent concludes about one change request. The agent writes it into the work directory; the CLI validates it before finalizing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "cr",
+    "headSha",
+    "findings",
+    "preExisting"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "cr": {
+      "description": "Change request that was judged.",
+      "$ref": "#/$defs/crKey"
+    },
+    "headSha": {
+      "description": "Head commit the judgement refers to; it must match the work package.",
+      "$ref": "#/$defs/sha"
+    },
+    "summary": {
+      "description": "Optional overall remarks in Markdown, shown in the report.",
+      "type": "string"
+    },
+    "findings": {
+      "description": "Problems the change introduces or exposes.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "preExisting": {
+      "description": "Defects that already exist on the target branch. They are reported apart and do not change the verdict on their own.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    }
+  },
+  "$defs": {
+    "crKey": {
+      "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+#[1-9][0-9]*$"
+    },
+    "finding": {
+      "description": "A problem in one place of the code, as judged by the agent.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule",
+        "severity",
+        "path",
+        "side",
+        "line",
+        "message",
+        "references"
+      ],
+      "properties": {
+        "rule": {
+          "description": "Rule the finding applies.",
+          "$ref": "#/$defs/ruleId"
+        },
+        "severity": {
+          "description": "How serious the finding is.",
+          "$ref": "#/$defs/severity"
+        },
+        "path": {
+          "description": "File path in the change request; for a removed file, its old path.",
+          "$ref": "#/$defs/relativePath"
+        },
+        "side": {
+          "description": "Diff side that line and startLine refer to.",
+          "$ref": "#/$defs/side"
+        },
+        "line": {
+          "description": "Last line of the finding.",
+          "$ref": "#/$defs/line"
+        },
+        "startLine": {
+          "description": "First line of a finding that spans several lines; absent for a single line.",
+          "$ref": "#/$defs/line"
+        },
+        "message": {
+          "description": "Explanation in Markdown: what is wrong, why it matters, how to fix it.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "suggestion": {
+          "description": "Replacement text for the lines from startLine (or line) to line, without a trailing newline.",
+          "type": "string"
+        },
+        "references": {
+          "description": "Other places the finding relies on.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        }
+      }
+    },
+    "line": {
+      "description": "Line number, starting at 1, in the file version of the chosen side.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "projectKey": {
+      "description": "Project key: <forge>:<host>/<project>, for example github:github.com/acr-plugin-sandbox/sample-app.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
+    },
+    "reference": {
+      "description": "Another place in the code that a finding relies on, possibly in another project.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "ref",
+        "path",
+        "line"
+      ],
+      "properties": {
+        "project": {
+          "description": "Project that holds the code.",
+          "$ref": "#/$defs/projectKey"
+        },
+        "ref": {
+          "description": "Branch, tag or commit SHA the line refers to.",
+          "type": "string",
+          "pattern": "^\\S+$"
+        },
+        "path": {
+          "description": "File path within the project.",
+          "$ref": "#/$defs/relativePath"
+        },
+        "line": {
+          "description": "Line in that file.",
+          "$ref": "#/$defs/line"
+        }
+      }
+    },
+    "relativePath": {
+      "description": "Relative path with forward slashes, without empty, '.' or '..' segments.",
+      "type": "string",
+      "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
+    },
+    "ruleId": {
+      "description": "Rule identifier: lowercase dot-separated words, for example kotlin.not-null-assertion.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
+    },
+    "severity": {
+      "description": "Severity of a finding, from the most to the least serious.",
+      "enum": [
+        "BLOCKER",
+        "MAJOR",
+        "MINOR",
+        "INFO"
+      ]
+    },
+    "sha": {
+      "description": "Full commit SHA, 40 lowercase hexadecimal characters.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "side": {
+      "description": "Side of the diff: LEFT is the target branch version, RIGHT the change request version.",
+      "enum": [
+        "LEFT",
+        "RIGHT"
+      ]
+    }
+  }
+}

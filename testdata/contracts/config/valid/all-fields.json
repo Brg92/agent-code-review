@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "profile": "kmp",
+  "packs": [
+    "kotlin-multiplatform"
+  ],
+  "variants": [],
+  "disabledRules": [
+    "style.redundant-if"
+  ],
+  "noise": [
+    "iosApp/**/*.xcassets/**"
+  ],
+  "cascadeLimit": 1
+}

@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",
+  "headSha": "e5de4506e4ca4653f33ff5a12f08587e8e32f16d",
+  "findings": [
+    {
+      "rule": "uses-removed-api",
+      "severity": "BLOCKER",
+      "path": "src/main/java/com/example/core/session/SessionManager.kt",
+      "side": "LEFT",
+      "line": 39,
+      "message": "legacyToken() is public API and is still called by a consumer: sample-app's SessionRepository.authHeader() on main, which the sample-app change in this cascade does not update. Removing it breaks that build. Migrate the consumer first, or keep the deprecated method for one more release.",
+      "references": [
+        {
+          "project": "github:github.com/acr-plugin-sandbox/sample-app",
+          "ref": "main",
+          "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+          "line": 20
+        }
+      ]
+    }
+  ],
+  "preExisting": []
+}

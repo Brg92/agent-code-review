@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "profile": "app",
+  "packs": ["android"],
+  "variants": ["free", "paid"],
+  "disabledRules": ["kotlin.not-null-assertion"]
+}

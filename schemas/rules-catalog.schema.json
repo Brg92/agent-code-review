@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/rules-catalog.schema.json",
+  "title": "Rules catalog",
+  "description": "The rules a stack pack defines. Findings refer to rules by id.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "pack",
+    "rules"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "pack": {
+      "description": "Pack the catalog belongs to.",
+      "$ref": "#/$defs/packId"
+    },
+    "rules": {
+      "description": "Rules of the pack.",
+      "type": "array",
+      "items": {
+        "description": "One rule.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "severity",
+          "description",
+          "languages",
+          "tags"
+        ],
+        "properties": {
+          "id": {
+            "description": "Rule identifier.",
+            "$ref": "#/$defs/ruleId"
+          },
+          "title": {
+            "description": "One-line summary.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "severity": {
+            "description": "Default severity; criteria may say more.",
+            "$ref": "#/$defs/severity"
+          },
+          "description": {
+            "description": "What the rule checks and why, in Markdown.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "languages": {
+            "description": "Languages the rule applies to; empty means all languages of the pack.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$"
+            }
+          },
+          "tags": {
+            "description": "Free-form tags, for example coroutines.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "packId": {
+      "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "ruleId": {
+      "description": "Rule identifier: lowercase dot-separated words, for example kotlin.not-null-assertion.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
+    },
+    "severity": {
+      "description": "Severity of a finding, from the most to the least serious.",
+      "enum": [
+        "BLOCKER",
+        "MAJOR",
+        "MINOR",
+        "INFO"
+      ]
+    }
+  }
+}

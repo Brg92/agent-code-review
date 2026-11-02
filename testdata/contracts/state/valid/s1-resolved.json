@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "runId": "20261102-090000-s1",
+  "forge": "github",
+  "root": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "phase": "resolved",
+  "cascadeLimit": 2,
+  "createdAt": "2026-11-02T09:00:00Z",
+  "updatedAt": "2026-11-02T09:00:01Z",
+  "changeRequests": [
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+      "depth": 0,
+      "status": "pending"
+    }
+  ]
+}

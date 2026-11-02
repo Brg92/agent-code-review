@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#3",
+  "headSha": "3514ed9d2f2d64ff51101ea91c26f73f55bfc217",
+  "verdict": "APPROVABLE",
+  "findings": [],
+  "preExisting": [],
+  "notVerified": [],
+  "ci": {
+    "state": "failing",
+    "checks": [
+      {
+        "name": "test",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "lint",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "name": "instrumented",
+        "status": "in_progress",
+        "conclusion": null
+      }
+    ]
+  },
+  "criteria": {
+    "source": "overlay",
+    "profile": "app",
+    "packs": [
+      "android"
+    ],
+    "notes": []
+  }
+}

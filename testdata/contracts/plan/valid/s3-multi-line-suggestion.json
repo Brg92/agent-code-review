@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "runId": "20261102-110000-s3",
+  "cr": "github:github.com/acr-plugin-sandbox/core-lib#1",
+  "headSha": "0a05be290bd0f40d32cb93d1c6685303c50d3920",
+  "createdAt": "2026-11-02T11:30:00Z",
+  "actions": [
+    {
+      "id": 1,
+      "kind": "review-comment",
+      "body": "**MAJOR** `logic.removed-validation`: the blank-token check is gone.",
+      "path": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
+      "side": "LEFT",
+      "line": 7
+    },
+    {
+      "id": 2,
+      "kind": "review-comment",
+      "body": "**MINOR** `style.redundant-if`: return the comparison directly.\n\n```suggestion\n        return session.expiresAtMillis <= nowMillis\n```",
+      "path": "src/main/java/com/example/core/session/SessionExpiry.kt",
+      "side": "RIGHT",
+      "startLine": 5,
+      "line": 9
+    }
+  ]
+}

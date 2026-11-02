@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "runId": "20261102-090000-s1",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "createdAt": "2026-11-02T09:20:00Z",
+  "actions": [
+    {
+      "id": 1,
+      "kind": "review-comment",
+      "body": "**BLOCKER** `coroutines.run-blocking`: runBlocking in onCreate blocks the main thread until the session refresh completes.",
+      "findingId": "3d211532409505ba",
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "side": "RIGHT",
+      "line": 13
+    },
+    {
+      "id": 2,
+      "kind": "review-comment",
+      "body": "**MAJOR** `coroutines.global-scope`: prefetch() launches in GlobalScope.",
+      "findingId": "6b982c141107316e",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 19
+    },
+    {
+      "id": 3,
+      "kind": "summary-comment",
+      "body": "## Review summary\n\n**BLOCKED**: 2 BLOCKER, 2 MAJOR.\n\nOutside the diff: `ui/HomeViewModel.kt` line 27 always throws now that warmUp() is never called."
+    },
+    {
+      "id": 4,
+      "kind": "issue",
+      "body": "`ProfileStore.displayName()` throws when no name is stored. Found while reviewing sample-app#2.",
+      "project": "github:github.com/acr-plugin-sandbox/sample-app",
+      "title": "displayName() crashes without a stored name"
+    }
+  ]
+}

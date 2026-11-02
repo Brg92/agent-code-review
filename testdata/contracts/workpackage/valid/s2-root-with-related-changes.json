@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "runId": "20261102-101500-s2cascade",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+  "url": "https://github.com/acr-plugin-sandbox/sample-app/pull/7",
+  "title": "Show when the session expires",
+  "description": "Shows the session expiry on the home screen, using `SessionManager.expiresAt()` from core-lib.",
+  "headSha": "a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
+  "baseSha": "2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f",
+  "baseRef": "main",
+  "criteria": {
+    "source": "overlay",
+    "profile": "app",
+    "packs": [
+      "android"
+    ],
+    "files": [
+      "cr/sample-app-7/criteria/.agent-code-review/criteria.md"
+    ]
+  },
+  "rules": [
+    {
+      "id": "coroutines.run-blocking",
+      "severity": "BLOCKER",
+      "title": "runBlocking on the main thread"
+    }
+  ],
+  "files": [
+    {
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "patch": "cr/sample-app-7/patches/SessionRepository.kt.diff",
+      "head": "cr/sample-app-7/head/SessionRepository.kt",
+      "base": "cr/sample-app-7/base/SessionRepository.kt"
+    }
+  ],
+  "relatedChanges": [
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "title": "Replace legacyToken with expiresAt",
+      "workPackage": "cr/core-lib-3/workpackage.json"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+      "title": "Prefetch the session on startup",
+      "workPackage": "cr/sample-app-2/workpackage.json"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+      "title": "Add a session countdown",
+      "workPackage": "cr/kmp-shared-2/workpackage.json"
+    }
+  ],
+  "judgementPath": "cr/sample-app-7/judgement.json"
+}
