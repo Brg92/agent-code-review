@@ -2,11 +2,11 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
-	"github.com/Brg92/agent-code-review/internal/version"
+	"github.com/Brg92/agent-code-review/internal/cli"
 )
 
 func main() {
-	fmt.Println(version.Version)
+	os.Exit(cli.Run(os.Args[1:], os.Stdout, os.Stderr))
 }
