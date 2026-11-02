@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"fb4fab94d887c8f748387cac5e46b996f9b8ba7644dfe0910cbeb89fa69d1e7e\""
+    "ETag": "\"350b04f0022f7c607af3cbf2dec69645ccb6d1bfb74fa4e3d1274c664f34432e\""
   },
   "body": {
     "_links": {
@@ -314,9 +314,9 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "019758e81caf739a929715b010efeb8bae3724be",
-    "mergeable": null,
-    "mergeable_state": "unknown",
+    "merge_commit_sha": "239398e493f3793707fc03c9c7ea215a35c82faf",
+    "mergeable": true,
+    "mergeable_state": "clean",
     "merged": false,
     "merged_at": null,
     "merged_by": null,
@@ -324,7 +324,7 @@
     "node_id": "PR_kwDOVgMqkM8AAAABMUxIYA",
     "number": 2,
     "patch_url": "https://github.com/acr-plugin-sandbox/kmp-shared/pull/2.patch",
-    "rebaseable": null,
+    "rebaseable": true,
     "requested_reviewers": [
       {
         "avatar_url": "https://avatars.githubusercontent.com/u/1001?v=4",
@@ -355,7 +355,7 @@
     "state": "open",
     "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/statuses/f9d862f3e8993cf66d4ae780856ef358b7e91d32",
     "title": "Add a session countdown",
-    "updated_at": "2026-11-02T18:23:47Z",
+    "updated_at": "2026-11-02T23:11:05Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/pulls/2",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

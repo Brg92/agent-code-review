@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"f7e1138240c757a6be64385cd439e05d723354dcbff4eca1ef65eaee47d069a4\""
+    "ETag": "\"055bb99b6596769388c895e8954daa014ad3a69dd5aa7bdc7bf644499da34e88\""
   },
   "body": {
     "_links": {
@@ -314,9 +314,9 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "9e10b4d8c9b3d497b8a3524996f75c7d5fc4d49b",
-    "mergeable": null,
-    "mergeable_state": "unknown",
+    "merge_commit_sha": "9ff7538f319e755301e69869bc9d907380977287",
+    "mergeable": true,
+    "mergeable_state": "clean",
     "merged": false,
     "merged_at": null,
     "merged_by": null,
@@ -324,7 +324,7 @@
     "node_id": "PR_kwDOVgMqkM8AAAABMUxE4w",
     "number": 1,
     "patch_url": "https://github.com/acr-plugin-sandbox/kmp-shared/pull/1.patch",
-    "rebaseable": null,
+    "rebaseable": true,
     "requested_reviewers": [
       {
         "avatar_url": "https://avatars.githubusercontent.com/u/1001?v=4",
@@ -355,7 +355,7 @@
     "state": "open",
     "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/statuses/915c4dd07f7847183fc8b976497a755b48df03a9",
     "title": "Greet the user by name on iOS",
-    "updated_at": "2026-11-02T18:23:48Z",
+    "updated_at": "2026-11-02T23:11:01Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/pulls/1",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
