@@ -26,8 +26,7 @@ Each change request in the cascade is reviewed with the criteria from its own re
 
 - **Heading variant:** core-lib S2 uses `## Related PRs`, which is accepted as a variant.
 - **Cycle:** core-lib S2 links back to sample-app S2. The cycle is detected and the root is not reviewed again.
-- **Over the cascade limit:** kmp-shared S2 links `feature-lib#N` (S4) at depth 3. With a cascade limit of 2 it is listed as not reviewed, over the limit.
-  - **Open question:** the default limit is not defined yet. Tests for this scenario set the limit to 2.
+- **Over the cascade limit:** kmp-shared S2 links `feature-lib#N` (S4) at depth 3. With the default cascade limit of 2 it is listed as not reviewed, over the limit. A repository can change the limit with `cascadeLimit` in its configuration.
 
 ## Expected findings
 

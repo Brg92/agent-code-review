@@ -23,7 +23,7 @@ Expected:
 - **Summary:** notes that the overlay changed in the pull request and was not applied.
 - **Variants:** `free` and `paid` come from `main`'s `config.json`.
 
-Open question: should a pull request that changes its own overlay end with exit code 5 ("criteria override not allowed") instead of a note?
+The review does not fail because of the edited overlay: a change request may legitimately change its repository's criteria, which apply once it is merged.
 
 ## B: invalid overlay on the target
 
@@ -32,7 +32,7 @@ The base branch `chore/criteria-s6-invalid-overlay-base` has a `config.json` wit
 - `"profile": "spaceship"`;
 - `"variants": "free"`, a string instead of an array.
 
-Expected: the review stops before judging, with a criteria validation error: exit code 3, to be confirmed in M7. The error names the file and each invalid field. There is no silent fallback to the defaults.
+Expected: the review stops before judging, with a criteria validation error: exit code 3. The error names the file and each invalid field. There is no silent fallback to the defaults.
 
 ## C: legacy criteria
 
