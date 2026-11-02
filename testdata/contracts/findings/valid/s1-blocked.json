@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "headSha": "4a859eee35383c94e967835e41a0910e6be836cb",
+  "verdict": "BLOCKED",
+  "findings": [
+    {
+      "id": "3d211532409505ba",
+      "rule": "coroutines.run-blocking",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "side": "RIGHT",
+      "line": 13,
+      "message": "runBlocking in onCreate blocks the main thread until the session refresh completes, which can freeze the app or trigger an ANR. Launch the refresh in lifecycleScope instead.",
+      "references": [],
+      "placement": "inline"
+    },
+    {
+      "id": "6b982c141107316e",
+      "rule": "coroutines.global-scope",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 19,
+      "message": "prefetch() launches in GlobalScope, so the work is never cancelled and outlives its caller. Make prefetch() a suspend function or take a CoroutineScope.",
+      "references": [],
+      "placement": "inline"
+    },
+    {
+      "id": "91122ec00818e006",
+      "rule": "kotlin.not-null-assertion",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 20,
+      "message": "current() returns null when nobody is signed in, so !! throws a NullPointerException inside the coroutine. Return early when there is no session.",
+      "references": [],
+      "placement": "inline"
+    },
+    {
+      "id": "76cbab58bbf34813",
+      "rule": "logic.always-throws",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
+      "side": "RIGHT",
+      "line": 27,
+      "message": "This change removes the warmUp() call from init, and nothing else calls warmUp(). cachedUser therefore stays null, and requireUser() always throws IllegalStateException when refresh() runs.",
+      "references": [],
+      "placement": "summary"
+    }
+  ],
+  "preExisting": [
+    {
+      "id": "38094ca5869efe85",
+      "rule": "kotlin.not-null-assertion",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "side": "RIGHT",
+      "line": 8,
+      "message": "displayName() throws a NullPointerException when no name has been stored.",
+      "references": [],
+      "placement": "inline"
+    },
+    {
+      "id": "5aeb49767dfeef92",
+      "rule": "coroutines.global-scope",
+      "severity": "MINOR",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 13,
+      "message": "warmUp() launches in GlobalScope, so the work is never cancelled.",
+      "references": [],
+      "placement": "summary"
+    }
+  ],
+  "notVerified": [],
+  "ci": {
+    "state": "passing",
+    "checks": [
+      {
+        "name": "lint",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "test",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "criteria": {
+    "source": "overlay",
+    "profile": "app",
+    "packs": [
+      "android"
+    ],
+    "notes": []
+  }
+}

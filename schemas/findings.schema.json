@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/findings.schema.json",
+  "title": "Findings",
+  "description": "Result of one change request after finalize: the verdict and everything the report and the publish plan are built from.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "cr",
+    "headSha",
+    "verdict",
+    "findings",
+    "preExisting",
+    "notVerified",
+    "ci",
+    "criteria"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "cr": {
+      "description": "Change request the result belongs to.",
+      "$ref": "#/$defs/crKey"
+    },
+    "headSha": {
+      "description": "Head commit that was reviewed.",
+      "$ref": "#/$defs/sha"
+    },
+    "verdict": {
+      "description": "BLOCKED with any BLOCKER, CHANGES_REQUESTED with any MAJOR, APPROVABLE otherwise. The plugin never approves; APPROVABLE only means nothing blocks.",
+      "enum": [
+        "BLOCKED",
+        "CHANGES_REQUESTED",
+        "APPROVABLE"
+      ]
+    },
+    "summary": {
+      "description": "Overall remarks from the judgement, in Markdown.",
+      "type": "string"
+    },
+    "findings": {
+      "description": "Findings that count towards the verdict.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reportedFinding"
+      }
+    },
+    "preExisting": {
+      "description": "Defects already on the target branch, reported apart.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reportedFinding"
+      }
+    },
+    "notVerified": {
+      "description": "Changed files that were not reviewed, and why.",
+      "type": "array",
+      "items": {
+        "description": "One file that was not reviewed.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "reason"
+        ],
+        "properties": {
+          "path": {
+            "description": "File path in the change request.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "reason": {
+            "description": "generated: marked as generated; binary: no text diff; patch-unavailable: the platform omitted the diff; noise: matches a noise glob; unsupported-language: no pack covers it.",
+            "enum": [
+              "generated",
+              "binary",
+              "patch-unavailable",
+              "noise",
+              "unsupported-language"
+            ]
+          },
+          "detail": {
+            "description": "Optional human-readable detail.",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ci": {
+      "description": "State of the checks on the head commit when the change request was collected.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "checks"
+      ],
+      "properties": {
+        "state": {
+          "description": "failing if any check failed, else pending if any is not completed, passing if all passed, none if the head has no checks.",
+          "enum": [
+            "passing",
+            "failing",
+            "pending",
+            "none"
+          ]
+        },
+        "checks": {
+          "description": "Every check on the head commit.",
+          "type": "array",
+          "items": {
+            "description": "One check.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "status",
+              "conclusion"
+            ],
+            "properties": {
+              "name": {
+                "description": "Name of the check.",
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "status": {
+                "description": "Progress of the check.",
+                "enum": [
+                  "queued",
+                  "in_progress",
+                  "completed"
+                ]
+              },
+              "conclusion": {
+                "description": "Outcome of a completed check; null while it is not completed.",
+                "enum": [
+                  "success",
+                  "failure",
+                  "neutral",
+                  "cancelled",
+                  "skipped",
+                  "timed_out",
+                  "action_required",
+                  "stale",
+                  null
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "criteria": {
+      "description": "Criteria the change request was reviewed with, always read from the target branch.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "profile",
+        "packs",
+        "notes"
+      ],
+      "properties": {
+        "source": {
+          "description": "Where the criteria come from.",
+          "$ref": "#/$defs/criteriaSource"
+        },
+        "profile": {
+          "description": "Profile in use.",
+          "$ref": "#/$defs/profile"
+        },
+        "packs": {
+          "description": "Stack packs in use.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/packId"
+          }
+        },
+        "notes": {
+          "description": "Notes for the summary, for example that the change request edits its own criteria and the edit was not applied.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "crKey": {
+      "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+#[1-9][0-9]*$"
+    },
+    "criteriaSource": {
+      "description": "Where the criteria come from: overlay is .agent-code-review/, legacy is .github/skills and .github/mr-review.json, default is the packs alone.",
+      "enum": [
+        "overlay",
+        "legacy",
+        "default"
+      ]
+    },
+    "line": {
+      "description": "Line number, starting at 1, in the file version of the chosen side.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "packId": {
+      "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "profile": {
+      "description": "Kind of repository, which selects the default criteria.",
+      "enum": [
+        "app",
+        "library",
+        "kmp"
+      ]
+    },
+    "projectKey": {
+      "description": "Project key: <forge>:<host>/<project>, for example github:github.com/acr-plugin-sandbox/sample-app.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
+    },
+    "reference": {
+      "description": "Another place in the code that a finding relies on, possibly in another project.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "ref",
+        "path",
+        "line"
+      ],
+      "properties": {
+        "project": {
+          "description": "Project that holds the code.",
+          "$ref": "#/$defs/projectKey"
+        },
+        "ref": {
+          "description": "Branch, tag or commit SHA the line refers to.",
+          "type": "string",
+          "pattern": "^\\S+$"
+        },
+        "path": {
+          "description": "File path within the project.",
+          "$ref": "#/$defs/relativePath"
+        },
+        "line": {
+          "description": "Line in that file.",
+          "$ref": "#/$defs/line"
+        }
+      }
+    },
+    "relativePath": {
+      "description": "Relative path with forward slashes, without empty, '.' or '..' segments.",
+      "type": "string",
+      "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
+    },
+    "reportedFinding": {
+      "description": "A finding after finalization, with its fingerprint and placement.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "rule",
+        "severity",
+        "path",
+        "side",
+        "line",
+        "message",
+        "references",
+        "placement"
+      ],
+      "properties": {
+        "id": {
+          "description": "Stable fingerprint of the finding, used to avoid posting it twice.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "rule": {
+          "description": "Rule the finding applies.",
+          "$ref": "#/$defs/ruleId"
+        },
+        "severity": {
+          "description": "How serious the finding is.",
+          "$ref": "#/$defs/severity"
+        },
+        "path": {
+          "description": "File path in the change request; for a removed file, its old path.",
+          "$ref": "#/$defs/relativePath"
+        },
+        "side": {
+          "description": "Diff side that line and startLine refer to.",
+          "$ref": "#/$defs/side"
+        },
+        "line": {
+          "description": "Last line of the finding.",
+          "$ref": "#/$defs/line"
+        },
+        "startLine": {
+          "description": "First line of a finding that spans several lines; absent for a single line.",
+          "$ref": "#/$defs/line"
+        },
+        "message": {
+          "description": "Explanation in Markdown: what is wrong, why it matters, how to fix it.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "suggestion": {
+          "description": "Replacement text for the lines from startLine (or line) to line, without a trailing newline.",
+          "type": "string"
+        },
+        "references": {
+          "description": "Other places the finding relies on.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          }
+        },
+        "placement": {
+          "description": "Where the finding is published: inline on the diff, or in the summary when its lines are outside the diff.",
+          "enum": [
+            "inline",
+            "summary"
+          ]
+        }
+      }
+    },
+    "ruleId": {
+      "description": "Rule identifier: lowercase dot-separated words, for example kotlin.not-null-assertion.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
+    },
+    "severity": {
+      "description": "Severity of a finding, from the most to the least serious.",
+      "enum": [
+        "BLOCKER",
+        "MAJOR",
+        "MINOR",
+        "INFO"
+      ]
+    },
+    "sha": {
+      "description": "Full commit SHA, 40 lowercase hexadecimal characters.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "side": {
+      "description": "Side of the diff: LEFT is the target branch version, RIGHT the change request version.",
+      "enum": [
+        "LEFT",
+        "RIGHT"
+      ]
+    }
+  }
+}
