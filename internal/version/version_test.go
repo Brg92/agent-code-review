@@ -81,3 +81,12 @@ func TestIsValidSemVer(t *testing.T) {
 		})
 	}
 }
+
+func TestDefaultVersion(t *testing.T) {
+	if Version != "0.0.0-dev" {
+		t.Errorf("Version = %q, want %q", Version, "0.0.0-dev")
+	}
+	if !IsValidSemVer(Version) {
+		t.Errorf("default Version %q is not valid SemVer", Version)
+	}
+}
