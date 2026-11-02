@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/README.md",
+  "query": {
+    "ref": "2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"004ade367f2f78f8c78cbaec8ce59b9dce02bd36\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/004ade367f2f78f8c78cbaec8ce59b9dce02bd36",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f/README.md",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/README.md?ref=2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f"
+    },
+    "content": "IyBzYW1wbGUtYXBwCgpTeW50aGV0aWMgc2FuZGJveCByZXBvc2l0b3J5IGZv\nciBbYWdlbnQtY29kZS1yZXZpZXddKGh0dHBzOi8vZ2l0aHViLmNvbS9Ccmc5\nMi9hZ2VudC1jb2RlLXJldmlldykuCkl0IGlzIG5vdCBhIHJlYWwgcHJvZHVj\ndDogdGhlIGNvZGUgaXMgb3JpZ2luYWwsIGl0IGlzIG5vdCBtZWFudCB0byBi\ndWlsZCwgYW5kIHNjZW5hcmlvCmJyYW5jaGVzIGNvbnRhaW4gaW50ZW50aW9u\nYWwgZGVmZWN0cy4gU2NlbmFyaW8gcHVsbCByZXF1ZXN0cyBhcmUgbmV2ZXIg\nbWVyZ2VkLgoKQW5kcm9pZCBhcHAgd2l0aCBKZXRwYWNrIENvbXBvc2UgYW5k\nIHR3byBwcm9kdWN0IGZsYXZvcnMsIGBmcmVlYCBhbmQgYHBhaWRgLgpJdCBj\nb25zdW1lcyBgY29yZS1saWJgIChgY29tLmV4YW1wbGU6Y29yZS1saWJgKS4K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f/README.md",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/004ade367f2f78f8c78cbaec8ce59b9dce02bd36",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f/README.md",
+    "name": "README.md",
+    "path": "README.md",
+    "sha": "004ade367f2f78f8c78cbaec8ce59b9dce02bd36",
+    "size": 405,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/README.md?ref=2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f"
+  }
+}
