@@ -113,3 +113,42 @@ func TestObjectKeywords(t *testing.T) {
 		{"pointer escaping", `{"properties":{"a/b~c":{"type":"string"}}}`, `{"a/b~c":1}`, []string{"/a~1b~0c type"}},
 	})
 }
+
+func TestCompileRejectsInvalidValueKeywords(t *testing.T) {
+	for _, schema := range []string{
+		`{"items":3}`,
+		`{"items":{"type":"nope"}}`,
+		`{"enum":[]}`,
+		`{"enum":"a"}`,
+		`{"pattern":3}`,
+		`{"pattern":"("}`,
+		`{"minimum":"1"}`,
+	} {
+		if _, err := Compile([]byte(schema)); err == nil {
+			t.Errorf("Compile(%s) succeeded, want error", schema)
+		}
+	}
+}
+
+func TestValueKeywords(t *testing.T) {
+	runValidationCases(t, []validationCase{
+		{"items ok", `{"items":{"type":"integer"}}`, `[1,2]`, nil},
+		{"items bad", `{"items":{"type":"integer"}}`, `[1,"x",true]`, []string{"/1 type", "/2 type"}},
+		{"items on non-array", `{"items":{"type":"integer"}}`, `"x"`, nil},
+		{"enum ok", `{"enum":["a","b",1]}`, `"b"`, nil},
+		{"enum number", `{"enum":[1]}`, `1.0`, nil},
+		{"enum bad", `{"enum":["a","b"]}`, `"c"`, []string{" enum"}},
+		{"const ok", `{"const":1}`, `1`, nil},
+		{"const object", `{"const":{"a":[1,"x"]}}`, `{"a":[1,"x"]}`, nil},
+		{"const bad", `{"const":1}`, `2`, []string{" const"}},
+		{"const type matters", `{"const":"1"}`, `1`, []string{" const"}},
+		{"pattern ok", `{"pattern":"^[a-z]+#[0-9]+$"}`, `"core#3"`, nil},
+		{"pattern is a search", `{"pattern":"b"}`, `"abc"`, nil},
+		{"pattern bad", `{"pattern":"^[a-z]+$"}`, `"A1"`, []string{" pattern"}},
+		{"pattern on non-string", `{"pattern":"^a$"}`, `1`, nil},
+		{"minimum ok", `{"minimum":1}`, `1`, nil},
+		{"minimum bad", `{"minimum":1}`, `0.5`, []string{" minimum"}},
+		{"minimum on non-number", `{"minimum":1}`, `"0"`, nil},
+		{"nested", `{"properties":{"l":{"items":{"minimum":0}}}}`, `{"l":[0,-1]}`, []string{"/l/1 minimum"}},
+	})
+}

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -26,7 +27,8 @@ func (i Issue) String() string { return i.Path + ": " + i.Keyword + ": " + i.Mes
 
 // Schema is a compiled schema.
 type Schema struct {
-	root any
+	root     any
+	patterns map[string]*regexp.Regexp
 }
 
 // annotations are keywords that do not affect validation.
@@ -44,10 +46,11 @@ func Compile(data []byte) (*Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := check(root, ""); err != nil {
+	s := &Schema{root: root, patterns: map[string]*regexp.Regexp{}}
+	if err := s.check(root, ""); err != nil {
 		return nil, err
 	}
-	return &Schema{root: root}, nil
+	return s, nil
 }
 
 // Validate returns the issues of a document. The error reports a document
@@ -86,7 +89,7 @@ func sortedKeys(m map[string]any) []string {
 
 // check verifies that a schema only uses supported keywords with values of
 // the right shape. at is the JSON pointer of the schema, for error messages.
-func check(schema any, at string) error {
+func (sc *Schema) check(schema any, at string) error {
 	if _, ok := schema.(bool); ok {
 		return nil
 	}
@@ -113,13 +116,32 @@ func check(schema any, at string) error {
 				return fmt.Errorf("%s: must be an object", here)
 			}
 			for _, name := range sortedKeys(props) {
-				if err := check(props[name], here+"/"+escape(name)); err != nil {
+				if err := sc.check(props[name], here+"/"+escape(name)); err != nil {
 					return err
 				}
 			}
-		case k == "additionalProperties":
-			if err := check(v, here); err != nil {
+		case k == "additionalProperties" || k == "items":
+			if err := sc.check(v, here); err != nil {
 				return err
+			}
+		case k == "enum":
+			if list, ok := v.([]any); !ok || len(list) == 0 {
+				return fmt.Errorf("%s: must be a non-empty array", here)
+			}
+		case k == "const":
+		case k == "pattern":
+			p, ok := v.(string)
+			if !ok {
+				return fmt.Errorf("%s: must be a string", here)
+			}
+			re, err := regexp.Compile(p)
+			if err != nil {
+				return fmt.Errorf("%s: %w", here, err)
+			}
+			sc.patterns[p] = re
+		case k == "minimum":
+			if _, ok := v.(json.Number); !ok {
+				return fmt.Errorf("%s: must be a number", here)
 			}
 		default:
 			return fmt.Errorf("%s: unsupported keyword", here)
@@ -179,6 +201,29 @@ func (s *Schema) validate(schema, v any, path string, issues *[]Issue) {
 		add(path, "type", "want %v, got %s", t, typeOf(v))
 	}
 
+	if list, ok := sch["enum"].([]any); ok && !containsEqual(list, v) {
+		add(path, "enum", "value is not one of %v", list)
+	}
+	if c, ok := sch["const"]; ok && !equal(c, v) {
+		add(path, "const", "want %v", c)
+	}
+	switch v := v.(type) {
+	case string:
+		if p, ok := sch["pattern"].(string); ok && !s.patterns[p].MatchString(v) {
+			add(path, "pattern", "%q does not match %s", v, p)
+		}
+	case json.Number:
+		if m, ok := sch["minimum"].(json.Number); ok && number(v) < number(m) {
+			add(path, "minimum", "%s is less than %s", v, m)
+		}
+	case []any:
+		if items, ok := sch["items"]; ok {
+			for i, e := range v {
+				s.validate(items, e, fmt.Sprintf("%s/%d", path, i), issues)
+			}
+		}
+	}
+
 	obj, isObject := v.(map[string]any)
 	if !isObject {
 		return
@@ -210,6 +255,53 @@ func (s *Schema) validate(schema, v any, path string, issues *[]Issue) {
 		}
 		s.validate(extra, obj[k], here, issues)
 	}
+}
+
+func number(n json.Number) float64 {
+	f, _ := n.Float64()
+	return f
+}
+
+func containsEqual(list []any, v any) bool {
+	for _, e := range list {
+		if equal(e, v) {
+			return true
+		}
+	}
+	return false
+}
+
+// equal compares two decoded JSON values; numbers compare by value.
+func equal(a, b any) bool {
+	switch a := a.(type) {
+	case json.Number:
+		bn, ok := b.(json.Number)
+		return ok && number(a) == number(bn)
+	case []any:
+		bl, ok := b.([]any)
+		if !ok || len(a) != len(bl) {
+			return false
+		}
+		for i := range a {
+			if !equal(a[i], bl[i]) {
+				return false
+			}
+		}
+		return true
+	case map[string]any:
+		bm, ok := b.(map[string]any)
+		if !ok || len(a) != len(bm) {
+			return false
+		}
+		for k, av := range a {
+			bv, ok := bm[k]
+			if !ok || !equal(av, bv) {
+				return false
+			}
+		}
+		return true
+	}
+	return a == b
 }
 
 func hasType(t, v any) bool {
