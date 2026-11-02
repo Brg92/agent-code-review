@@ -65,6 +65,8 @@ docs/                    project docs for humans
 - Branch name: `<type>/<scope>-<short-description>`, kebab-case, lowercase, ASCII, max 50 chars (e.g. `feat/version-command`). The type is the main type of the branch's commits.
 - `main` is protected: never commit to it. Each unit of work starts from the latest `main` (`git checkout main && git pull`) on a new branch and reaches `main` through a PR.
 - PR titles use the same Conventional Commits format.
+- PRs are merged with **squash** only; the PR title (Conventional Commits) becomes the commit message on `main`.
+- After the squash merge the branch is deleted: on GitHub automatically (repository setting "Automatically delete head branches"); locally with `git checkout main && git pull && git branch -D <branch>` (`-D` is required because git does not see a squash-merged branch as merged). Sandbox scenario branches are never merged nor deleted.
 - Sandbox repositories (organization `acr-plugin-sandbox`): base content on `main`; scenario branches `<type>/<scope>-s<N>-<short-description>`; scenario PRs are opened by the author account and **never merged**.
 
 ## 6. Remote actions need explicit permission
