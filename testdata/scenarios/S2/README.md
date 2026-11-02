@@ -39,7 +39,9 @@ Each change request in the cascade is reviewed with the criteria from its own re
 
 sample-app S2 uses `SessionManager.expiresAt()`. That method is added by core-lib S2, which is in the same cascade, so it is not a finding.
 
+S1 is reviewed at depth 1 through its `#N` entry, so its findings (see `../S1/README.md`) are part of the cascade too.
+
 ## Expected verdict
 
-- **Cascade:** BLOCKED, because of core-lib S2.
-- **kmp-shared S2:** no findings.
+- **Cascade:** BLOCKED, because of core-lib S2 and S1.
+- **sample-app S2 and kmp-shared S2:** no findings.
