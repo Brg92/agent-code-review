@@ -19,6 +19,8 @@ Expected check runs on the head commit, when recorded within 45 minutes of the p
 | `test` | completed | success |
 | `instrumented` | in_progress | none |
 
+In the recording each check appears twice, because the workflow ran twice for the same head: once when the branch was force-pushed and once when its base was. The CLI keeps the most recent check run per name.
+
 Expected:
 - The summary reports that CI is failing (`lint`) and still running (`instrumented`).
 - The review still runs.
