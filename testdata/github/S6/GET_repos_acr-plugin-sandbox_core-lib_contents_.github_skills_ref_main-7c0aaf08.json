@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/contents/.github/skills",
+  "query": {
+    "ref": "main"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"cb480179b51aa3757aa24e94eb3641c9cadebaf0\""
+  },
+  "body": [
+    {
+      "_links": {
+        "git": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/trees/6c033ce56643fe997fc2a5310b4ee3ccc522749c",
+        "html": "https://github.com/acr-plugin-sandbox/core-lib/tree/main/.github/skills/core-lib-code-review",
+        "self": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/.github/skills/core-lib-code-review?ref=main"
+      },
+      "download_url": null,
+      "git_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/trees/6c033ce56643fe997fc2a5310b4ee3ccc522749c",
+      "html_url": "https://github.com/acr-plugin-sandbox/core-lib/tree/main/.github/skills/core-lib-code-review",
+      "name": "core-lib-code-review",
+      "path": ".github/skills/core-lib-code-review",
+      "sha": "6c033ce56643fe997fc2a5310b4ee3ccc522749c",
+      "size": 0,
+      "type": "dir",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/.github/skills/core-lib-code-review?ref=main"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/pulls/5/reviews",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"24d99c5ae7b7a58a341b08978c40378898e31c2206fbe3ed514dce21f6982274\""
+  },
+  "body": []
+}

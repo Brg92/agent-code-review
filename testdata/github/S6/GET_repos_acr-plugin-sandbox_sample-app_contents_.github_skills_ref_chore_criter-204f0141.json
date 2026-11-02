@@ -1,0 +1,14 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/.github/skills",
+  "query": {
+    "ref": "chore/criteria-s6-invalid-overlay-base"
+  },
+  "status": 404,
+  "headers": {},
+  "body": {
+    "documentation_url": "https://docs.github.com/rest/repos/contents#get-repository-content",
+    "message": "Not Found",
+    "status": "404"
+  }
+}

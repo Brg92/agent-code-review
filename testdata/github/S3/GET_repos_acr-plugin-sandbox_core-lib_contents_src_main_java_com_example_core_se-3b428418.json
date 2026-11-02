@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/SessionExpiry.kt",
+  "query": {
+    "ref": "0a05be290bd0f40d32cb93d1c6685303c50d3920"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"b1968c5b60618368086111968f96407a51edc9c1\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/b1968c5b60618368086111968f96407a51edc9c1",
+      "html": "https://github.com/acr-plugin-sandbox/core-lib/blob/0a05be290bd0f40d32cb93d1c6685303c50d3920/src/main/java/com/example/core/session/SessionExpiry.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/SessionExpiry.kt?ref=0a05be290bd0f40d32cb93d1c6685303c50d3920"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5jb3JlLnNlc3Npb24KCmludGVybmFsIG9i\namVjdCBTZXNzaW9uRXhwaXJ5IHsKICAgIGZ1biBpc0V4cGlyZWQoc2Vzc2lv\nbjogU2Vzc2lvbiwgbm93TWlsbGlzOiBMb25nKTogQm9vbGVhbiB7CiAgICAg\nICAgaWYgKHNlc3Npb24uZXhwaXJlc0F0TWlsbGlzIDw9IG5vd01pbGxpcykg\newogICAgICAgICAgICByZXR1cm4gdHJ1ZQogICAgICAgIH0gZWxzZSB7CiAg\nICAgICAgICAgIHJldHVybiBmYWxzZQogICAgICAgIH0KICAgIH0KfQo=\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/core-lib/0a05be290bd0f40d32cb93d1c6685303c50d3920/src/main/java/com/example/core/session/SessionExpiry.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/b1968c5b60618368086111968f96407a51edc9c1",
+    "html_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/0a05be290bd0f40d32cb93d1c6685303c50d3920/src/main/java/com/example/core/session/SessionExpiry.kt",
+    "name": "SessionExpiry.kt",
+    "path": "src/main/java/com/example/core/session/SessionExpiry.kt",
+    "sha": "b1968c5b60618368086111968f96407a51edc9c1",
+    "size": 266,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src/main/java/com/example/core/session/SessionExpiry.kt?ref=0a05be290bd0f40d32cb93d1c6685303c50d3920"
+  }
+}

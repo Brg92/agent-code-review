@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/ProfileStore.kt",
+  "query": {
+    "ref": "4a859eee35383c94e967835e41a0910e6be836cb"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"cb1723ea3abb95038dc534e6a04571bec3fb221f\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/cb1723ea3abb95038dc534e6a04571bec3fb221f",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/4a859eee35383c94e967835e41a0910e6be836cb/app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/ProfileStore.kt?ref=4a859eee35383c94e967835e41a0910e6be836cb"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zYW1wbGUuZGF0YQoKaW1wb3J0IGFuZHJv\naWQuY29udGVudC5Db250ZXh0CgpjbGFzcyBQcm9maWxlU3RvcmUoY29udGV4\ndDogQ29udGV4dCkgewogICAgcHJpdmF0ZSB2YWwgcHJlZnMgPSBjb250ZXh0\nLmdldFNoYXJlZFByZWZlcmVuY2VzKCJwcm9maWxlIiwgQ29udGV4dC5NT0RF\nX1BSSVZBVEUpCgogICAgZnVuIGRpc3BsYXlOYW1lKCk6IFN0cmluZyA9IHBy\nZWZzLmdldFN0cmluZygiZGlzcGxheV9uYW1lIiwgbnVsbCkhIQoKICAgIGZ1\nbiBoYXNEaXNwbGF5TmFtZSgpOiBCb29sZWFuID0gcHJlZnMuY29udGFpbnMo\nImRpc3BsYXlfbmFtZSIpCgogICAgZnVuIHNhdmVEaXNwbGF5TmFtZShuYW1l\nOiBTdHJpbmcpIHsKICAgICAgICBwcmVmcy5lZGl0KCkucHV0U3RyaW5nKCJk\naXNwbGF5X25hbWUiLCBuYW1lKS5hcHBseSgpCiAgICB9Cn0K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/4a859eee35383c94e967835e41a0910e6be836cb/app/src/main/java/com/example/sample/data/ProfileStore.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/cb1723ea3abb95038dc534e6a04571bec3fb221f",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/4a859eee35383c94e967835e41a0910e6be836cb/app/src/main/java/com/example/sample/data/ProfileStore.kt",
+    "name": "ProfileStore.kt",
+    "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+    "sha": "cb1723ea3abb95038dc534e6a04571bec3fb221f",
+    "size": 441,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/ProfileStore.kt?ref=4a859eee35383c94e967835e41a0910e6be836cb"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/pulls/3/files",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"10d247e98abbba483a55cf59ebbb3d2f25416a3dfae676d39546ad33d25d669c\""
+  },
+  "body": [
+    {
+      "additions": 7,
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/3514ed9d2f2d64ff51101ea91c26f73f55bfc217/.github%2Fworkflows%2Fchecks.yml",
+      "changes": 7,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.github%2Fworkflows%2Fchecks.yml?ref=3514ed9d2f2d64ff51101ea91c26f73f55bfc217",
+      "deletions": 0,
+      "filename": ".github/workflows/checks.yml",
+      "patch": "@@ -32,3 +32,10 @@ jobs:\n           persist-credentials: false\n       - name: sources are present\n         run: test -n \"$(find . -name '*.kt' -not -path './.git/*' | head -n 1)\"\n+\n+  instrumented:\n+    runs-on: ubuntu-latest\n+    timeout-minutes: 50\n+    steps:\n+      - name: simulate a long instrumented test run\n+        run: sleep 2700",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/3514ed9d2f2d64ff51101ea91c26f73f55bfc217/.github%2Fworkflows%2Fchecks.yml",
+      "sha": "ba0a5a131eefdfc2a286bea685c4e9c843796503",
+      "status": "modified"
+    },
+    {
+      "additions": 1,
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/3514ed9d2f2d64ff51101ea91c26f73f55bfc217/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt",
+      "changes": 2,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt?ref=3514ed9d2f2d64ff51101ea91c26f73f55bfc217",
+      "deletions": 1,
+      "filename": "app/src/main/java/com/example/sample/ui/HomeScreen.kt",
+      "patch": "@@ -15,7 +15,7 @@ import com.example.sample.FeatureFlags\n @Composable\n fun HomeScreen(viewModel: HomeViewModel = viewModel()) {\n     val state by viewModel.state.collectAsState()\n-    Column(modifier = Modifier.padding(16.dp)) {\n+    Column(modifier = Modifier.padding(24.dp)) { \n         Text(text = state.title, style = MaterialTheme.typography.headlineSmall)\n         if (FeatureFlags.SHOW_UPGRADE_BANNER) {\n             Text(text = \"Upgrade to unlock offline mode\")",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/3514ed9d2f2d64ff51101ea91c26f73f55bfc217/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt",
+      "sha": "d8f857d36c862080d4ee15f7616906641538c993",
+      "status": "modified"
+    }
+  ]
+}

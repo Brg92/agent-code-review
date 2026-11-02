@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/contents/.github/skills/core-lib-code-review/SKILL.md",
+  "query": {
+    "ref": "main"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"7f6e889ffca01b621195fa1c5a58174bc7ec5a74\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/7f6e889ffca01b621195fa1c5a58174bc7ec5a74",
+      "html": "https://github.com/acr-plugin-sandbox/core-lib/blob/main/.github/skills/core-lib-code-review/SKILL.md",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/.github/skills/core-lib-code-review/SKILL.md?ref=main"
+    },
+    "content": "LS0tCm5hbWU6IGNvcmUtbGliLWNvZGUtcmV2aWV3CmRlc2NyaXB0aW9uOiBS\nZXZpZXcgY3JpdGVyaWEgZm9yIGNvcmUtbGliIHB1bGwgcmVxdWVzdHMuCi0t\nLQoKIyBjb3JlLWxpYiByZXZpZXcgY3JpdGVyaWEKCi0gYGNvbS5leGFtcGxl\nLmNvcmUuc2Vzc2lvbmAgaXMgcHVibGljIEFQSSB1c2VkIGJ5IG90aGVyIGFw\ncHMuIFJlbW92aW5nIG9yIGNoYW5naW5nIGEKICBwdWJsaWMgZGVjbGFyYXRp\nb24gd2hpbGUgYSBjb25zdW1lciBzdGlsbCB1c2VzIGl0IGlzIGEgQkxPQ0tF\nUi4KLSBEZXByZWNhdGUgYmVmb3JlIHJlbW92aW5nOiBhIHB1YmxpYyBkZWNs\nYXJhdGlvbiBuZWVkcyBvbmUgcmVsZWFzZSB3aXRoIGBARGVwcmVjYXRlZGAu\nCi0gVmlld3MgbXVzdCBub3Qga2VlcCBhIHJlZmVyZW5jZSB0byBhbiBBY3Rp\ndml0eSBiZXlvbmQgdGhlaXIgb3duIGxpZmV0aW1lLgotIE5vIGJsb2NraW5n\nIGNhbGxzIG9uIHRoZSBtYWluIHRocmVhZC4K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/core-lib/main/.github/skills/core-lib-code-review/SKILL.md",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/7f6e889ffca01b621195fa1c5a58174bc7ec5a74",
+    "html_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/main/.github/skills/core-lib-code-review/SKILL.md",
+    "name": "SKILL.md",
+    "path": ".github/skills/core-lib-code-review/SKILL.md",
+    "sha": "7f6e889ffca01b621195fa1c5a58174bc7ec5a74",
+    "size": 477,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/.github/skills/core-lib-code-review/SKILL.md?ref=main"
+  }
+}

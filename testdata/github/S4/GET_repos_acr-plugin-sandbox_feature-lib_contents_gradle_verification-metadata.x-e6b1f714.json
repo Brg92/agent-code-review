@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/feature-lib/contents/gradle/verification-metadata.xml",
+  "query": {
+    "ref": "f738b4d67e5c88dd9c00ba8e8a7415031a9f60aa"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"8d6f376a107921845d5bb6653dfcdbe3858c9833\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/git/blobs/8d6f376a107921845d5bb6653dfcdbe3858c9833",
+      "html": "https://github.com/acr-plugin-sandbox/feature-lib/blob/f738b4d67e5c88dd9c00ba8e8a7415031a9f60aa/gradle/verification-metadata.xml",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/contents/gradle/verification-metadata.xml?ref=f738b4d67e5c88dd9c00ba8e8a7415031a9f60aa"
+    },
+    "content": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHZlcmlm\naWNhdGlvbi1tZXRhZGF0YSB4bWxucz0iaHR0cHM6Ly9zY2hlbWEuZ3JhZGxl\nLm9yZy9kZXBlbmRlbmN5LXZlcmlmaWNhdGlvbiI+CiAgIDxjb25maWd1cmF0\naW9uPgogICAgICA8dmVyaWZ5LW1ldGFkYXRhPnRydWU8L3ZlcmlmeS1tZXRh\nZGF0YT4KICAgICAgPHZlcmlmeS1zaWduYXR1cmVzPmZhbHNlPC92ZXJpZnkt\nc2lnbmF0dXJlcz4KICAgPC9jb25maWd1cmF0aW9uPgogICA8Y29tcG9uZW50\ncz4KICAgICAgPGNvbXBvbmVudCBncm91cD0ib3JnLmhhbWNyZXN0IiBuYW1l\nPSJoYW1jcmVzdC1jb3JlIiB2ZXJzaW9uPSIxLjMiPgogICAgICAgICA8YXJ0\naWZhY3QgbmFtZT0iaGFtY3Jlc3QtY29yZS0xLjMuamFyIj4KICAgICAgICAg\nICAgPHNoYTI1NiB2YWx1ZT0iNjZmZGVmOTFlOTczOTM0OGRmN2EwOTZhYTM4\nNGE1Njg1ZjRlODc1NTg0Y2NlODkzODZhN2E0NzI1MWM0ZDhlOSIgb3JpZ2lu\nPSJHZW5lcmF0ZWQgYnkgR3JhZGxlIi8+CiAgICAgICAgIDwvYXJ0aWZhY3Q+\nCiAgICAgIDwvY29tcG9uZW50PgogICAgICA8Y29tcG9uZW50IGdyb3VwPSJq\ndW5pdCIgbmFtZT0ianVuaXQiIHZlcnNpb249IjQuMTMuMiI+CiAgICAgICAg\nIDxhcnRpZmFjdCBuYW1lPSJqdW5pdC00LjEzLjIuamFyIj4KICAgICAgICAg\nICAgPHNoYTI1NiB2YWx1ZT0iOGU0OTViNjM0NDY5ZDY0ZmI4YWNmYTM0OTVh\nMDY1Y2JhY2M4YTBmZmY1NWNlMWUzMTAwN2JlNGMxNmRjNTdkMyIgb3JpZ2lu\nPSJHZW5lcmF0ZWQgYnkgR3JhZGxlIi8+CiAgICAgICAgIDwvYXJ0aWZhY3Q+\nCiAgICAgIDwvY29tcG9uZW50PgogICA8L2NvbXBvbmVudHM+CjwvdmVyaWZp\nY2F0aW9uLW1ldGFkYXRhPgo=\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/feature-lib/f738b4d67e5c88dd9c00ba8e8a7415031a9f60aa/gradle/verification-metadata.xml",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/git/blobs/8d6f376a107921845d5bb6653dfcdbe3858c9833",
+    "html_url": "https://github.com/acr-plugin-sandbox/feature-lib/blob/f738b4d67e5c88dd9c00ba8e8a7415031a9f60aa/gradle/verification-metadata.xml",
+    "name": "verification-metadata.xml",
+    "path": "gradle/verification-metadata.xml",
+    "sha": "8d6f376a107921845d5bb6653dfcdbe3858c9833",
+    "size": 872,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/contents/gradle/verification-metadata.xml?ref=f738b4d67e5c88dd9c00ba8e8a7415031a9f60aa"
+  }
+}

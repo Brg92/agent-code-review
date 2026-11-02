@@ -1,0 +1,14 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/feature-lib/contents/.agent-code-review/config.json",
+  "query": {
+    "ref": "main"
+  },
+  "status": 404,
+  "headers": {},
+  "body": {
+    "documentation_url": "https://docs.github.com/rest/repos/contents#get-repository-content",
+    "message": "Not Found",
+    "status": "404"
+  }
+}
