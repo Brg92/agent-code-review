@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/contents/.github/mr-review.json",
+  "query": {
+    "ref": "main"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"56145870f1c87a9a545e325f7268efb21cd24b0d\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/56145870f1c87a9a545e325f7268efb21cd24b0d",
+      "html": "https://github.com/acr-plugin-sandbox/core-lib/blob/main/.github/mr-review.json",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/.github/mr-review.json?ref=main"
+    },
+    "content": "ewogICJwcm9maWxlIjogImxpYnJhcnkiLAogICJwdWJsaWNBcGkiOiBbInNy\nYy9tYWluL2phdmEvY29tL2V4YW1wbGUvY29yZS9zZXNzaW9uLyoqIl0sCiAg\nImNvbnN1bWVycyI6IFsiYWNyLXBsdWdpbi1zYW5kYm94L3NhbXBsZS1hcHAi\nXQp9Cg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/core-lib/main/.github/mr-review.json",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/blobs/56145870f1c87a9a545e325f7268efb21cd24b0d",
+    "html_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/main/.github/mr-review.json",
+    "name": "mr-review.json",
+    "path": ".github/mr-review.json",
+    "sha": "56145870f1c87a9a545e325f7268efb21cd24b0d",
+    "size": 139,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/.github/mr-review.json?ref=main"
+  }
+}

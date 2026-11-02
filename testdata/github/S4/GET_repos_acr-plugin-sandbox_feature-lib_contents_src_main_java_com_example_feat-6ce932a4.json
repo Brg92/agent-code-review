@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/feature-lib/contents/src/main/java/com/example/feature/FeatureToggle.kt",
+  "query": {
+    "ref": "2ed0529eb4ef4db0895e0204916b75edb3f5b82f"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"bce6ce627b01832fb955d23728b0ce9aa2fce000\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/git/blobs/bce6ce627b01832fb955d23728b0ce9aa2fce000",
+      "html": "https://github.com/acr-plugin-sandbox/feature-lib/blob/2ed0529eb4ef4db0895e0204916b75edb3f5b82f/src/main/java/com/example/feature/FeatureToggle.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/contents/src/main/java/com/example/feature/FeatureToggle.kt?ref=2ed0529eb4ef4db0895e0204916b75edb3f5b82f"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5mZWF0dXJlCgpjbGFzcyBGZWF0dXJlVG9n\nZ2xlKHByaXZhdGUgdmFsIGRlZmF1bHRzOiBNYXA8U3RyaW5nLCBCb29sZWFu\nPikgewogICAgcHJpdmF0ZSB2YWwgb3ZlcnJpZGVzID0gbXV0YWJsZU1hcE9m\nPFN0cmluZywgQm9vbGVhbj4oKQoKICAgIGZ1biBpc0VuYWJsZWQoa2V5OiBT\ndHJpbmcpOiBCb29sZWFuID0gb3ZlcnJpZGVzW2tleV0gPzogZGVmYXVsdHNb\na2V5XSA/OiBmYWxzZQoKICAgIGZ1biBvdmVycmlkZShrZXk6IFN0cmluZywg\nZW5hYmxlZDogQm9vbGVhbikgewogICAgICAgIG92ZXJyaWRlc1trZXldID0g\nZW5hYmxlZAogICAgfQp9Cg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/feature-lib/2ed0529eb4ef4db0895e0204916b75edb3f5b82f/src/main/java/com/example/feature/FeatureToggle.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/git/blobs/bce6ce627b01832fb955d23728b0ce9aa2fce000",
+    "html_url": "https://github.com/acr-plugin-sandbox/feature-lib/blob/2ed0529eb4ef4db0895e0204916b75edb3f5b82f/src/main/java/com/example/feature/FeatureToggle.kt",
+    "name": "FeatureToggle.kt",
+    "path": "src/main/java/com/example/feature/FeatureToggle.kt",
+    "sha": "bce6ce627b01832fb955d23728b0ce9aa2fce000",
+    "size": 331,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/contents/src/main/java/com/example/feature/FeatureToggle.kt?ref=2ed0529eb4ef4db0895e0204916b75edb3f5b82f"
+  }
+}

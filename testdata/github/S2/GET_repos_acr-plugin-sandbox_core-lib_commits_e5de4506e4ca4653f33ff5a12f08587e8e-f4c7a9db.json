@@ -1,0 +1,15 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/commits/e5de4506e4ca4653f33ff5a12f08587e8e32f16d/check-runs",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"941573dd0069fada73573882c7aafc7d38c5a9acc043b52a107d48bd50bf456c\""
+  },
+  "body": {
+    "check_runs": [],
+    "total_count": 0
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/pulls/1/files",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"064d5461de6d48246a841d613f14bad86b82c8fd2b099a5dce26f50ccb019df5\""
+  },
+  "body": [
+    {
+      "additions": 0,
+      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/f41b5837146e657837182428a3229ac32f3e458a/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FLegacySessionStore.kt",
+      "changes": 27,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FLegacySessionStore.kt?ref=f41b5837146e657837182428a3229ac32f3e458a",
+      "deletions": 27,
+      "filename": "src/main/java/com/example/core/session/LegacySessionStore.kt",
+      "patch": "@@ -1,27 +0,0 @@\n-package com.example.core.session\n-\n-import android.content.SharedPreferences\n-\n-@Deprecated(\"Sessions are no longer persisted in SharedPreferences.\")\n-internal class LegacySessionStore(private val prefs: SharedPreferences) : SessionStore {\n-    override fun load(): Session? {\n-        val token = prefs.getString(\"token\", null) ?: return null\n-        return Session(\n-            userName = prefs.getString(\"user\", \"\").orEmpty(),\n-            token = TokenCodec.decode(token),\n-            expiresAtMillis = prefs.getLong(\"expires_at\", 0L),\n-        )\n-    }\n-\n-    override fun save(session: Session) {\n-        prefs.edit()\n-            .putString(\"user\", session.userName)\n-            .putString(\"token\", TokenCodec.encode(session.token))\n-            .putLong(\"expires_at\", session.expiresAtMillis)\n-            .apply()\n-    }\n-\n-    override fun clear() {\n-        prefs.edit().clear().apply()\n-    }\n-}",
+      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/f41b5837146e657837182428a3229ac32f3e458a/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FLegacySessionStore.kt",
+      "sha": "30e3838bbeebde4ac8389b81dd9dd9c2277633ed",
+      "status": "removed"
+    },
+    {
+      "additions": 11,
+      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionExpiry.kt",
+      "changes": 11,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionExpiry.kt?ref=0a05be290bd0f40d32cb93d1c6685303c50d3920",
+      "deletions": 0,
+      "filename": "src/main/java/com/example/core/session/SessionExpiry.kt",
+      "patch": "@@ -0,0 +1,11 @@\n+package com.example.core.session\n+\n+internal object SessionExpiry {\n+    fun isExpired(session: Session, nowMillis: Long): Boolean {\n+        if (session.expiresAtMillis <= nowMillis) {\n+            return true\n+        } else {\n+            return false\n+        }\n+    }\n+}",
+      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionExpiry.kt",
+      "sha": "b1968c5b60618368086111968f96407a51edc9c1",
+      "status": "added"
+    },
+    {
+      "additions": 4,
+      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt",
+      "changes": 4,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt?ref=0a05be290bd0f40d32cb93d1c6685303c50d3920",
+      "deletions": 0,
+      "filename": "src/main/java/com/example/core/session/SessionManager.kt",
+      "patch": "@@ -1,5 +1,6 @@\n package com.example.core.session\n \n+import android.os.SystemClock\n import kotlinx.coroutines.Dispatchers\n import kotlinx.coroutines.withContext\n \n@@ -11,6 +12,8 @@ class SessionManager internal constructor(private val store: SessionStore) {\n     @Volatile\n     private var session: Session? = null\n \n+    private var lastRefreshUptime = 0L\n+\n     fun current(): Session? = session\n \n     fun addListener(listener: SessionListener) {\n@@ -30,6 +33,7 @@ class SessionManager internal constructor(private val store: SessionStore) {\n \n     fun signOut() {\n         session = null\n+        lastRefreshUptime = SystemClock.uptimeMillis()\n         store.clear()\n         listeners.forEach { it.onSessionChanged(null) }\n     }",
+      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt",
+      "sha": "bbb8e32956b41546dd526584b2d8d8e4aa4f6165",
+      "status": "modified"
+    },
+    {
+      "additions": 1,
+      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2Fcodec%2FTokenCodec.kt",
+      "changes": 3,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2Fcodec%2FTokenCodec.kt?ref=0a05be290bd0f40d32cb93d1c6685303c50d3920",
+      "deletions": 2,
+      "filename": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
+      "patch": "@@ -1,10 +1,9 @@\n-package com.example.core.session\n+package com.example.core.session.codec\n \n import android.util.Base64\n \n internal object TokenCodec {\n     fun encode(token: String): String {\n-        require(token.isNotBlank()) { \"token must not be blank\" }\n         return Base64.encodeToString(token.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)\n     }\n ",
+      "previous_filename": "src/main/java/com/example/core/session/TokenCodec.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2Fcodec%2FTokenCodec.kt",
+      "sha": "3c1cc02ed8d406a8ca4a07b9c5f000696ff6a67f",
+      "status": "renamed"
+    },
+    {
+      "additions": 0,
+      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fui%2Fbadge%2FStatusBadgeView.kt",
+      "changes": 0,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fui%2Fbadge%2FStatusBadgeView.kt?ref=0a05be290bd0f40d32cb93d1c6685303c50d3920",
+      "deletions": 0,
+      "filename": "src/main/java/com/example/core/ui/badge/StatusBadgeView.kt",
+      "previous_filename": "src/main/java/com/example/core/ui/StatusBadgeView.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fui%2Fbadge%2FStatusBadgeView.kt",
+      "sha": "c7cb3170b9ff1006153f9dab665a480b3f2263d8",
+      "status": "renamed"
+    },
+    {
+      "additions": 0,
+      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fres%2Fdrawable-nodpi%2Fbadge_background.png",
+      "changes": 0,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fres%2Fdrawable-nodpi%2Fbadge_background.png?ref=0a05be290bd0f40d32cb93d1c6685303c50d3920",
+      "deletions": 0,
+      "filename": "src/main/res/drawable-nodpi/badge_background.png",
+      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/0a05be290bd0f40d32cb93d1c6685303c50d3920/src%2Fmain%2Fres%2Fdrawable-nodpi%2Fbadge_background.png",
+      "sha": "4fb28c60141c448db9d4ea7c6ad2d0c11002cbee",
+      "status": "added"
+    }
+  ]
+}

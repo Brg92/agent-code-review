@@ -1,0 +1,25 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/pulls/3/files",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"d2ac65dc9330be0db89a7d8339b7da5f3692c27f59032cb0f76ef58b2eb2fdb3\""
+  },
+  "body": [
+    {
+      "additions": 2,
+      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/e5de4506e4ca4653f33ff5a12f08587e8e32f16d/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt",
+      "changes": 5,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt?ref=e5de4506e4ca4653f33ff5a12f08587e8e32f16d",
+      "deletions": 3,
+      "filename": "src/main/java/com/example/core/session/SessionManager.kt",
+      "patch": "@@ -34,9 +34,8 @@ class SessionManager internal constructor(private val store: SessionStore) {\n         listeners.forEach { it.onSessionChanged(null) }\n     }\n \n-    /** Raw token for clients that still build their own headers. */\n-    @Deprecated(\"Use an authenticated client instead.\")\n-    fun legacyToken(): String? = session?.token\n+    /** When the current session expires, in epoch milliseconds. */\n+    fun expiresAt(): Long? = session?.expiresAtMillis\n \n     companion object {\n         val instance: SessionManager by lazy { SessionManager(InMemorySessionStore()) }",
+      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/e5de4506e4ca4653f33ff5a12f08587e8e32f16d/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt",
+      "sha": "45630da661388bd865b95ea1e9607c9270f82904",
+      "status": "modified"
+    }
+  ]
+}

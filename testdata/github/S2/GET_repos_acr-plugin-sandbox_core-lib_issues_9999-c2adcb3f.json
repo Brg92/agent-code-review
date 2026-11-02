@@ -1,0 +1,12 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/issues/9999",
+  "query": {},
+  "status": 404,
+  "headers": {},
+  "body": {
+    "documentation_url": "https://docs.github.com/rest/issues/issues#get-an-issue",
+    "message": "Not Found",
+    "status": "404"
+  }
+}

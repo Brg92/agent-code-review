@@ -1,0 +1,95 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/core-lib/pulls/2/commits",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"72e8ab58e8f486ea68fc2dbf9c5f8d1492f95bbd3ef6cc3563544b63fa0ad005\""
+  },
+  "body": [
+    {
+      "author": {
+        "avatar_url": "https://avatars.githubusercontent.com/u/1101?v=4",
+        "events_url": "https://api.github.com/users/sandbox-user-1/events{/privacy}",
+        "followers_url": "https://api.github.com/users/sandbox-user-1/followers",
+        "following_url": "https://api.github.com/users/sandbox-user-1/following{/other_user}",
+        "gists_url": "https://api.github.com/users/sandbox-user-1/gists{/gist_id}",
+        "gravatar_id": "",
+        "html_url": "https://github.com/sandbox-user-1",
+        "id": 1101,
+        "login": "sandbox-user-1",
+        "node_id": "U_sandbox_1101",
+        "organizations_url": "https://api.github.com/users/sandbox-user-1/orgs",
+        "received_events_url": "https://api.github.com/users/sandbox-user-1/received_events",
+        "repos_url": "https://api.github.com/users/sandbox-user-1/repos",
+        "site_admin": false,
+        "starred_url": "https://api.github.com/users/sandbox-user-1/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/sandbox-user-1/subscriptions",
+        "type": "User",
+        "url": "https://api.github.com/users/sandbox-user-1",
+        "user_view_type": "public"
+      },
+      "comments_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/commits/2ea26058522839e5a317f5dd5d86f5c9bf53d45f/comments",
+      "commit": {
+        "author": {
+          "date": "2026-11-02T09:00:16Z",
+          "email": "author@example.com",
+          "name": "ACR Sandbox Author"
+        },
+        "comment_count": 0,
+        "committer": {
+          "date": "2026-11-02T09:00:16Z",
+          "email": "author@example.com",
+          "name": "ACR Sandbox Author"
+        },
+        "message": "Add isSignedIn",
+        "tree": {
+          "sha": "887695b39b73619683b0f0bc0855dd9d4173c215",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/trees/887695b39b73619683b0f0bc0855dd9d4173c215"
+        },
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/git/commits/2ea26058522839e5a317f5dd5d86f5c9bf53d45f",
+        "verification": {
+          "payload": null,
+          "reason": "unsigned",
+          "signature": null,
+          "verified": false,
+          "verified_at": null
+        }
+      },
+      "committer": {
+        "avatar_url": "https://avatars.githubusercontent.com/u/1101?v=4",
+        "events_url": "https://api.github.com/users/sandbox-user-1/events{/privacy}",
+        "followers_url": "https://api.github.com/users/sandbox-user-1/followers",
+        "following_url": "https://api.github.com/users/sandbox-user-1/following{/other_user}",
+        "gists_url": "https://api.github.com/users/sandbox-user-1/gists{/gist_id}",
+        "gravatar_id": "",
+        "html_url": "https://github.com/sandbox-user-1",
+        "id": 1101,
+        "login": "sandbox-user-1",
+        "node_id": "U_sandbox_1101",
+        "organizations_url": "https://api.github.com/users/sandbox-user-1/orgs",
+        "received_events_url": "https://api.github.com/users/sandbox-user-1/received_events",
+        "repos_url": "https://api.github.com/users/sandbox-user-1/repos",
+        "site_admin": false,
+        "starred_url": "https://api.github.com/users/sandbox-user-1/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/sandbox-user-1/subscriptions",
+        "type": "User",
+        "url": "https://api.github.com/users/sandbox-user-1",
+        "user_view_type": "public"
+      },
+      "html_url": "https://github.com/acr-plugin-sandbox/core-lib/commit/2ea26058522839e5a317f5dd5d86f5c9bf53d45f",
+      "node_id": "C_kwDOVgMp89oAKDJlYTI2MDU4NTIyODM5ZTVhMzE3ZjVkZDVkODZmNWM5YmY1M2Q0NWY",
+      "parents": [
+        {
+          "html_url": "https://github.com/acr-plugin-sandbox/core-lib/commit/f41b5837146e657837182428a3229ac32f3e458a",
+          "sha": "f41b5837146e657837182428a3229ac32f3e458a",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/commits/f41b5837146e657837182428a3229ac32f3e458a"
+        }
+      ],
+      "sha": "2ea26058522839e5a317f5dd5d86f5c9bf53d45f",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/commits/2ea26058522839e5a317f5dd5d86f5c9bf53d45f"
+    }
+  ]
+}

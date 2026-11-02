@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/feature-lib/contents/gradle/verification-metadata.xml",
+  "query": {
+    "ref": "2ed0529eb4ef4db0895e0204916b75edb3f5b82f"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"4a780945829d5cd7b32d4d9230f74688cb981823\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/git/blobs/4a780945829d5cd7b32d4d9230f74688cb981823",
+      "html": "https://github.com/acr-plugin-sandbox/feature-lib/blob/2ed0529eb4ef4db0895e0204916b75edb3f5b82f/gradle/verification-metadata.xml",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/contents/gradle/verification-metadata.xml?ref=2ed0529eb4ef4db0895e0204916b75edb3f5b82f"
+    },
+    "content": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHZlcmlm\naWNhdGlvbi1tZXRhZGF0YSB4bWxucz0iaHR0cHM6Ly9zY2hlbWEuZ3JhZGxl\nLm9yZy9kZXBlbmRlbmN5LXZlcmlmaWNhdGlvbiI+CiAgIDxjb25maWd1cmF0\naW9uPgogICAgICA8dmVyaWZ5LW1ldGFkYXRhPnRydWU8L3ZlcmlmeS1tZXRh\nZGF0YT4KICAgICAgPHZlcmlmeS1zaWduYXR1cmVzPmZhbHNlPC92ZXJpZnkt\nc2lnbmF0dXJlcz4KICAgPC9jb25maWd1cmF0aW9uPgogICA8Y29tcG9uZW50\ncz4KICAgICAgPGNvbXBvbmVudCBncm91cD0ianVuaXQiIG5hbWU9Imp1bml0\nIiB2ZXJzaW9uPSI0LjEzLjIiPgogICAgICAgICA8YXJ0aWZhY3QgbmFtZT0i\nanVuaXQtNC4xMy4yLmphciI+CiAgICAgICAgICAgIDxzaGEyNTYgdmFsdWU9\nIjhlNDk1YjYzNDQ2OWQ2NGZiOGFjZmEzNDk1YTA2NWNiYWNjOGEwZmZmNTVj\nZTFlMzEwMDdiZTRjMTZkYzU3ZDMiIG9yaWdpbj0iR2VuZXJhdGVkIGJ5IEdy\nYWRsZSIvPgogICAgICAgICA8L2FydGlmYWN0PgogICAgICA8L2NvbXBvbmVu\ndD4KICAgPC9jb21wb25lbnRzPgo8L3ZlcmlmaWNhdGlvbi1tZXRhZGF0YT4K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/feature-lib/2ed0529eb4ef4db0895e0204916b75edb3f5b82f/gradle/verification-metadata.xml",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/git/blobs/4a780945829d5cd7b32d4d9230f74688cb981823",
+    "html_url": "https://github.com/acr-plugin-sandbox/feature-lib/blob/2ed0529eb4ef4db0895e0204916b75edb3f5b82f/gradle/verification-metadata.xml",
+    "name": "verification-metadata.xml",
+    "path": "gradle/verification-metadata.xml",
+    "sha": "4a780945829d5cd7b32d4d9230f74688cb981823",
+    "size": 585,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/contents/gradle/verification-metadata.xml?ref=2ed0529eb4ef4db0895e0204916b75edb3f5b82f"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/SessionRepository.kt",
+  "query": {
+    "ref": "a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"cdaeb653324b5fc6e31b68e285a04ef276b41b57\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/cdaeb653324b5fc6e31b68e285a04ef276b41b57",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501/app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/SessionRepository.kt?ref=a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zYW1wbGUuZGF0YQoKaW1wb3J0IGNvbS5l\neGFtcGxlLmNvcmUuc2Vzc2lvbi5TZXNzaW9uTWFuYWdlcgppbXBvcnQga290\nbGlueC5jb3JvdXRpbmVzLkdsb2JhbFNjb3BlCmltcG9ydCBrb3RsaW54LmNv\ncm91dGluZXMubGF1bmNoCgpjbGFzcyBTZXNzaW9uUmVwb3NpdG9yeSgKICAg\nIHByaXZhdGUgdmFsIHNlc3Npb25NYW5hZ2VyOiBTZXNzaW9uTWFuYWdlciA9\nIFNlc3Npb25NYW5hZ2VyLmluc3RhbmNlLAopIHsKICAgIHByaXZhdGUgdmFy\nIGNhY2hlZFVzZXI6IFN0cmluZz8gPSBudWxsCgogICAgZnVuIHdhcm1VcCgp\nIHsKICAgICAgICBHbG9iYWxTY29wZS5sYXVuY2ggewogICAgICAgICAgICBj\nYWNoZWRVc2VyID0gc2Vzc2lvbk1hbmFnZXIucmVmcmVzaCgpPy51c2VyTmFt\nZQogICAgICAgIH0KICAgIH0KCiAgICBmdW4gcmVxdWlyZVVzZXIoKTogU3Ry\naW5nID0gY2hlY2tOb3ROdWxsKGNhY2hlZFVzZXIpIHsgIndhcm1VcCgpIG11\nc3QgcnVuIGZpcnN0IiB9CgogICAgZnVuIGV4cGlyZXNBdCgpOiBMb25nPyA9\nIHNlc3Npb25NYW5hZ2VyLmV4cGlyZXNBdCgpCgogICAgZnVuIGF1dGhIZWFk\nZXIoKTogU3RyaW5nID0gIkJlYXJlciAke3Nlc3Npb25NYW5hZ2VyLmxlZ2Fj\neVRva2VuKCl9Igp9Cg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501/app/src/main/java/com/example/sample/data/SessionRepository.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/cdaeb653324b5fc6e31b68e285a04ef276b41b57",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501/app/src/main/java/com/example/sample/data/SessionRepository.kt",
+    "name": "SessionRepository.kt",
+    "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+    "sha": "cdaeb653324b5fc6e31b68e285a04ef276b41b57",
+    "size": 643,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/SessionRepository.kt?ref=a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501"
+  }
+}

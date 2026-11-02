@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json",
+  "query": {
+    "ref": "d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"5ebdb48235531ac5c09790ff976e1f6384bf9b56\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/5ebdb48235531ac5c09790ff976e1f6384bf9b56",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5/.agent-code-review/config.json",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json?ref=d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5"
+    },
+    "content": "ewogICJzY2hlbWEiOiAxLAogICJwcm9maWxlIjogImFwcCIsCiAgInBhY2tz\nIjogWyJhbmRyb2lkIl0sCiAgInZhcmlhbnRzIjogWyJmcmVlIiwgInBhaWQi\nXSwKICAiZGlzYWJsZWRSdWxlcyI6IFsia290bGluLm5vdC1udWxsLWFzc2Vy\ndGlvbiJdCn0K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5/.agent-code-review/config.json",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/5ebdb48235531ac5c09790ff976e1f6384bf9b56",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5/.agent-code-review/config.json",
+    "name": "config.json",
+    "path": ".agent-code-review/config.json",
+    "sha": "5ebdb48235531ac5c09790ff976e1f6384bf9b56",
+    "size": 144,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json?ref=d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5"
+  }
+}
