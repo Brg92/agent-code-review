@@ -6,18 +6,18 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"8cef48b1b8ae6ed27b1742f943d1fa2c1cc12dd71f35257a6ae8f4d2173820a6\""
+    "ETag": "W/\"30cf6ad0a8e6024817c1ba1ff2781cf905445473ec8e2944cc08887bd035efa1\""
   },
   "body": [
     {
       "additions": 2,
-      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/2ea26058522839e5a317f5dd5d86f5c9bf53d45f/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/core-lib/blob/cf8b045f0b98cb84fc91415adb4b6753cc431896/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt",
       "changes": 2,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt?ref=2ea26058522839e5a317f5dd5d86f5c9bf53d45f",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/contents/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt?ref=cf8b045f0b98cb84fc91415adb4b6753cc431896",
       "deletions": 0,
       "filename": "src/main/java/com/example/core/session/SessionManager.kt",
       "patch": "@@ -13,6 +13,8 @@ class SessionManager internal constructor(private val store: SessionStore) {\n \n     fun current(): Session? = session\n \n+    fun isSignedIn(): Boolean = session != null\n+\n     fun addListener(listener: SessionListener) {\n         listeners += listener\n     }",
-      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/2ea26058522839e5a317f5dd5d86f5c9bf53d45f/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/core-lib/raw/cf8b045f0b98cb84fc91415adb4b6753cc431896/src%2Fmain%2Fjava%2Fcom%2Fexample%2Fcore%2Fsession%2FSessionManager.kt",
       "sha": "34fa021925c90a003cf01329c955c0993002d77f",
       "status": "modified"
     }

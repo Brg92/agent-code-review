@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/MainActivity.kt",
+  "query": {
+    "ref": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"3d3d49801294afba619d00804f150fe6467d73d5\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/3d3d49801294afba619d00804f150fe6467d73d5",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/fdd842c45ac32e215b8c8bbf97ecf19e31fee79f/app/src/main/java/com/example/sample/MainActivity.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/MainActivity.kt?ref=fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zYW1wbGUKCmltcG9ydCBhbmRyb2lkLm9z\nLkJ1bmRsZQppbXBvcnQgYW5kcm9pZHguYWN0aXZpdHkuQ29tcG9uZW50QWN0\naXZpdHkKaW1wb3J0IGFuZHJvaWR4LmFjdGl2aXR5LmNvbXBvc2Uuc2V0Q29u\ndGVudAppbXBvcnQgY29tLmV4YW1wbGUuc2FtcGxlLnVpLkhvbWVTY3JlZW4K\nCmNsYXNzIE1haW5BY3Rpdml0eSA6IENvbXBvbmVudEFjdGl2aXR5KCkgewog\nICAgb3ZlcnJpZGUgZnVuIG9uQ3JlYXRlKHNhdmVkSW5zdGFuY2VTdGF0ZTog\nQnVuZGxlPykgewogICAgICAgIHN1cGVyLm9uQ3JlYXRlKHNhdmVkSW5zdGFu\nY2VTdGF0ZSkKICAgICAgICBzZXRDb250ZW50IHsgSG9tZVNjcmVlbigpIH0K\nICAgIH0KfQo=\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/fdd842c45ac32e215b8c8bbf97ecf19e31fee79f/app/src/main/java/com/example/sample/MainActivity.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/3d3d49801294afba619d00804f150fe6467d73d5",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/fdd842c45ac32e215b8c8bbf97ecf19e31fee79f/app/src/main/java/com/example/sample/MainActivity.kt",
+    "name": "MainActivity.kt",
+    "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+    "sha": "3d3d49801294afba619d00804f150fe6467d73d5",
+    "size": 368,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/MainActivity.kt?ref=fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
+  }
+}

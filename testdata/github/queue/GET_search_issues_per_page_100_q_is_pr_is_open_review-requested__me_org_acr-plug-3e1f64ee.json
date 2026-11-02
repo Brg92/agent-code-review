@@ -58,7 +58,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/7/timeline",
         "title": "Show when the session expires",
         "type": null,
-        "updated_at": "2026-11-02T14:35:51Z",
+        "updated_at": "2026-11-02T18:23:44Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/7",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -130,7 +130,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/6/timeline",
         "title": "Mention sync in the upgrade banner",
         "type": null,
-        "updated_at": "2026-11-02T14:35:44Z",
+        "updated_at": "2026-11-02T18:23:45Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/6",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -202,7 +202,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/5/timeline",
         "title": "Show profile initials",
         "type": null,
-        "updated_at": "2026-11-02T14:35:39Z",
+        "updated_at": "2026-11-02T18:23:44Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/5",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -274,7 +274,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/4/timeline",
         "title": "Describe the product flavors",
         "type": null,
-        "updated_at": "2026-11-02T14:35:36Z",
+        "updated_at": "2026-11-02T18:23:43Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/4",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -346,7 +346,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/3/timeline",
         "title": "Increase home screen padding",
         "type": null,
-        "updated_at": "2026-11-02T14:35:33Z",
+        "updated_at": "2026-11-02T18:23:44Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/3",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -418,7 +418,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/2/timeline",
         "title": "Prefetch the session on startup",
         "type": null,
-        "updated_at": "2026-11-02T14:35:28Z",
+        "updated_at": "2026-11-02T18:23:44Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/2",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -490,7 +490,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/issues/3/timeline",
         "title": "Replace legacyToken with expiresAt",
         "type": null,
-        "updated_at": "2026-11-02T14:35:49Z",
+        "updated_at": "2026-11-02T18:23:46Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/issues/3",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -562,7 +562,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/issues/2/timeline",
         "title": "Add SessionManager.isSignedIn",
         "type": null,
-        "updated_at": "2026-11-02T14:35:22Z",
+        "updated_at": "2026-11-02T18:23:46Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/issues/2",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -634,7 +634,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/issues/1/timeline",
         "title": "Reorganize session files",
         "type": null,
-        "updated_at": "2026-11-02T14:35:17Z",
+        "updated_at": "2026-11-02T18:23:46Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/core-lib/issues/1",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -706,7 +706,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/issues/2/timeline",
         "title": "Add a session countdown",
         "type": null,
-        "updated_at": "2026-11-02T14:35:14Z",
+        "updated_at": "2026-11-02T18:23:47Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/issues/2",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -778,7 +778,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/issues/1/timeline",
         "title": "Greet the user by name on iOS",
         "type": null,
-        "updated_at": "2026-11-02T14:35:10Z",
+        "updated_at": "2026-11-02T18:23:48Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/issues/1",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -850,7 +850,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/issues/2/timeline",
         "title": "Allow resetting a feature override",
         "type": null,
-        "updated_at": "2026-11-02T14:35:06Z",
+        "updated_at": "2026-11-02T18:23:50Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/issues/2",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
@@ -922,7 +922,7 @@
         "timeline_url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/issues/1/timeline",
         "title": "Regenerate the icon catalog",
         "type": null,
-        "updated_at": "2026-11-02T14:35:02Z",
+        "updated_at": "2026-11-02T18:23:50Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/feature-lib/issues/1",
         "user": {
           "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

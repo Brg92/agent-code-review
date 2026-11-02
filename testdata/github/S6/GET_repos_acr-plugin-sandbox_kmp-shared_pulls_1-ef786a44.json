@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"32bf9fcf8c696ab143874eb0f9bcf6b07fa03e3d93c784c08fac5e82deb7dfaa\""
+    "ETag": "\"f7e1138240c757a6be64385cd439e05d723354dcbff4eca1ef65eaee47d069a4\""
   },
   "body": {
     "_links": {
@@ -30,7 +30,7 @@
         "href": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/pulls/1"
       },
       "statuses": {
-        "href": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/statuses/8f3a09d2a07ea7d312a743c889796b024dbadcbd"
+        "href": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/statuses/915c4dd07f7847183fc8b976497a755b48df03a9"
       }
     },
     "active_lock_reason": null,
@@ -124,7 +124,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:44Z",
+        "pushed_at": "2026-11-02T18:23:46Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/releases{/id}",
         "size": 5,
         "ssh_url": "git@github.com:acr-plugin-sandbox/kmp-shared.git",
@@ -138,14 +138,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:49Z",
+        "updated_at": "2026-11-02T18:23:50Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "45146f1052d51162bf3b805dd7d9f16259b17b78",
+      "sha": "f00f8b2d30bf64d8619db447a93fd9781267bbd4",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -264,7 +264,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/pulls{/number}",
-        "pushed_at": "2026-11-02T14:10:44Z",
+        "pushed_at": "2026-11-02T18:23:46Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/releases{/id}",
         "size": 5,
         "ssh_url": "git@github.com:acr-plugin-sandbox/kmp-shared.git",
@@ -278,14 +278,14 @@
         "teams_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/teams",
         "topics": [],
         "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees{/sha}",
-        "updated_at": "2026-11-02T14:10:49Z",
+        "updated_at": "2026-11-02T18:23:50Z",
         "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared",
         "visibility": "public",
         "watchers": 0,
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "8f3a09d2a07ea7d312a743c889796b024dbadcbd",
+      "sha": "915c4dd07f7847183fc8b976497a755b48df03a9",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -315,8 +315,8 @@
     "locked": false,
     "maintainer_can_modify": false,
     "merge_commit_sha": "9e10b4d8c9b3d497b8a3524996f75c7d5fc4d49b",
-    "mergeable": true,
-    "mergeable_state": "clean",
+    "mergeable": null,
+    "mergeable_state": "unknown",
     "merged": false,
     "merged_at": null,
     "merged_by": null,
@@ -324,7 +324,7 @@
     "node_id": "PR_kwDOVgMqkM8AAAABMUxE4w",
     "number": 1,
     "patch_url": "https://github.com/acr-plugin-sandbox/kmp-shared/pull/1.patch",
-    "rebaseable": true,
+    "rebaseable": null,
     "requested_reviewers": [
       {
         "avatar_url": "https://avatars.githubusercontent.com/u/1001?v=4",
@@ -353,9 +353,9 @@
     "review_comments": 0,
     "review_comments_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/pulls/1/comments",
     "state": "open",
-    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/statuses/8f3a09d2a07ea7d312a743c889796b024dbadcbd",
+    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/statuses/915c4dd07f7847183fc8b976497a755b48df03a9",
     "title": "Greet the user by name on iOS",
-    "updated_at": "2026-11-02T14:35:10Z",
+    "updated_at": "2026-11-02T18:23:48Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/pulls/1",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

@@ -6,30 +6,30 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"ca3411429cd882da66588017eb04d49bb6966fd905e97447f65de6a0d37ade1e\""
+    "ETag": "W/\"40a126f508d57af4aa7bc96cb71398e502d08de6047ddbe80653a0eb9cdd1d41\""
   },
   "body": [
     {
       "additions": 3,
-      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/8f3a09d2a07ea7d312a743c889796b024dbadcbd/iosApp%2FiosApp%2FContentView.swift",
+      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/915c4dd07f7847183fc8b976497a755b48df03a9/iosApp%2FiosApp%2FContentView.swift",
       "changes": 4,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/iosApp%2FiosApp%2FContentView.swift?ref=8f3a09d2a07ea7d312a743c889796b024dbadcbd",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/iosApp%2FiosApp%2FContentView.swift?ref=915c4dd07f7847183fc8b976497a755b48df03a9",
       "deletions": 1,
       "filename": "iosApp/iosApp/ContentView.swift",
       "patch": "@@ -2,7 +2,9 @@ import SwiftUI\n import Shared\n \n struct ContentView: View {\n-    let greeting = Greeting().greet()\n+    let name: String? = UserDefaults.standard.string(forKey: \"name\")\n+\n+    var greeting: String { Greeting().greet(name: name) }\n \n     var body: some View {\n         Text(greeting)",
-      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/8f3a09d2a07ea7d312a743c889796b024dbadcbd/iosApp%2FiosApp%2FContentView.swift",
+      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/915c4dd07f7847183fc8b976497a755b48df03a9/iosApp%2FiosApp%2FContentView.swift",
       "sha": "ebb80578a5fabf4ac04645185967ac58d0e1db71",
       "status": "modified"
     },
     {
       "additions": 2,
-      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/8f3a09d2a07ea7d312a743c889796b024dbadcbd/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FGreeting.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/915c4dd07f7847183fc8b976497a755b48df03a9/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FGreeting.kt",
       "changes": 3,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FGreeting.kt?ref=8f3a09d2a07ea7d312a743c889796b024dbadcbd",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FGreeting.kt?ref=915c4dd07f7847183fc8b976497a755b48df03a9",
       "deletions": 1,
       "filename": "shared/src/commonMain/kotlin/com/example/shared/Greeting.kt",
       "patch": "@@ -1,5 +1,6 @@\n package com.example.shared\n \n class Greeting {\n-    fun greet(): String = \"Hello from ${platformName()}\"\n+    fun greet(name: String? = null): String =\n+        if (name == null) \"Hello from ${platformName()}\" else \"Hello $name, from ${platformName()}\"\n }",
-      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/8f3a09d2a07ea7d312a743c889796b024dbadcbd/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FGreeting.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/915c4dd07f7847183fc8b976497a755b48df03a9/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FGreeting.kt",
       "sha": "e799c7c872e144a6ff8dfd0be83f28d80a1f7ef5",
       "status": "modified"
     }

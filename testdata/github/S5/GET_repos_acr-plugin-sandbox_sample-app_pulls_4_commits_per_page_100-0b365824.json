@@ -6,42 +6,22 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"3db959b97953325f44ba4d480d2fc4feee82f8d77f879e5989b82c6c4fe312fb\""
+    "ETag": "W/\"63be4537f0d387567bd2c4b8f3908f50f896c65e51fc13b40f651f84e30f298e\""
   },
   "body": [
     {
-      "author": {
-        "avatar_url": "https://avatars.githubusercontent.com/u/1101?v=4",
-        "events_url": "https://api.github.com/users/sandbox-user-1/events{/privacy}",
-        "followers_url": "https://api.github.com/users/sandbox-user-1/followers",
-        "following_url": "https://api.github.com/users/sandbox-user-1/following{/other_user}",
-        "gists_url": "https://api.github.com/users/sandbox-user-1/gists{/gist_id}",
-        "gravatar_id": "",
-        "html_url": "https://github.com/sandbox-user-1",
-        "id": 1101,
-        "login": "sandbox-user-1",
-        "node_id": "U_sandbox_1101",
-        "organizations_url": "https://api.github.com/users/sandbox-user-1/orgs",
-        "received_events_url": "https://api.github.com/users/sandbox-user-1/received_events",
-        "repos_url": "https://api.github.com/users/sandbox-user-1/repos",
-        "site_admin": false,
-        "starred_url": "https://api.github.com/users/sandbox-user-1/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/sandbox-user-1/subscriptions",
-        "type": "User",
-        "url": "https://api.github.com/users/sandbox-user-1",
-        "user_view_type": "public"
-      },
-      "comments_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/5abd6a157c93c4881b0778092972b71733ef464d/comments",
+      "author": null,
+      "comments_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/5a2134959be81633c60752848c6eb98fbec02cb3/comments",
       "commit": {
         "author": {
           "date": "2026-11-02T09:00:16Z",
-          "email": "author@example.com",
+          "email": "author@acr-sandbox.invalid",
           "name": "ACR Sandbox Author"
         },
         "comment_count": 0,
         "committer": {
           "date": "2026-11-02T09:00:16Z",
-          "email": "author@example.com",
+          "email": "author@acr-sandbox.invalid",
           "name": "ACR Sandbox Author"
         },
         "message": "Describe the product flavors [skip ci]",
@@ -49,7 +29,7 @@
           "sha": "69e4746ed958db9c35aafe275633e963559915f7",
           "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/69e4746ed958db9c35aafe275633e963559915f7"
         },
-        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/commits/5abd6a157c93c4881b0778092972b71733ef464d",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/commits/5a2134959be81633c60752848c6eb98fbec02cb3",
         "verification": {
           "payload": null,
           "reason": "unsigned",
@@ -58,38 +38,18 @@
           "verified_at": null
         }
       },
-      "committer": {
-        "avatar_url": "https://avatars.githubusercontent.com/u/1101?v=4",
-        "events_url": "https://api.github.com/users/sandbox-user-1/events{/privacy}",
-        "followers_url": "https://api.github.com/users/sandbox-user-1/followers",
-        "following_url": "https://api.github.com/users/sandbox-user-1/following{/other_user}",
-        "gists_url": "https://api.github.com/users/sandbox-user-1/gists{/gist_id}",
-        "gravatar_id": "",
-        "html_url": "https://github.com/sandbox-user-1",
-        "id": 1101,
-        "login": "sandbox-user-1",
-        "node_id": "U_sandbox_1101",
-        "organizations_url": "https://api.github.com/users/sandbox-user-1/orgs",
-        "received_events_url": "https://api.github.com/users/sandbox-user-1/received_events",
-        "repos_url": "https://api.github.com/users/sandbox-user-1/repos",
-        "site_admin": false,
-        "starred_url": "https://api.github.com/users/sandbox-user-1/starred{/owner}{/repo}",
-        "subscriptions_url": "https://api.github.com/users/sandbox-user-1/subscriptions",
-        "type": "User",
-        "url": "https://api.github.com/users/sandbox-user-1",
-        "user_view_type": "public"
-      },
-      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/commit/5abd6a157c93c4881b0778092972b71733ef464d",
-      "node_id": "C_kwDOVgMpdNoAKDVhYmQ2YTE1N2M5M2M0ODgxYjA3NzgwOTI5NzJiNzE3MzNlZjQ2NGQ",
+      "committer": null,
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/commit/5a2134959be81633c60752848c6eb98fbec02cb3",
+      "node_id": "C_kwDOVgMpdNoAKDVhMjEzNDk1OWJlODE2MzNjNjA3NTI4NDhjNmViOThmYmVjMDJjYjM",
       "parents": [
         {
-          "html_url": "https://github.com/acr-plugin-sandbox/sample-app/commit/2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f",
-          "sha": "2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f",
-          "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/2b8c50a62bf794b2152ca4fe6b7560a2cc50a90f"
+          "html_url": "https://github.com/acr-plugin-sandbox/sample-app/commit/fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
+          "sha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/fdd842c45ac32e215b8c8bbf97ecf19e31fee79f"
         }
       ],
-      "sha": "5abd6a157c93c4881b0778092972b71733ef464d",
-      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/5abd6a157c93c4881b0778092972b71733ef464d"
+      "sha": "5a2134959be81633c60752848c6eb98fbec02cb3",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/5a2134959be81633c60752848c6eb98fbec02cb3"
     }
   ]
 }

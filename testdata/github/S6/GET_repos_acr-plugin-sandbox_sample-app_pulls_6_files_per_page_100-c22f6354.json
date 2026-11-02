@@ -6,18 +6,18 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"a8421beaa9b04594c61d3d22db245cdd5b9d67b5b343e55bf9e7dc77556a1de7\""
+    "ETag": "W/\"d58f3b1954a4ba67202fb9868d8445082d78687357b88a334e29b43fa112eb55\""
   },
   "body": [
     {
       "additions": 1,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/b1430ec78c748083f1c66af7f6250dce5d4f8b30/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/beeb478133de722e37fc0e6a51cbbbd254a66104/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt",
       "changes": 2,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt?ref=b1430ec78c748083f1c66af7f6250dce5d4f8b30",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt?ref=beeb478133de722e37fc0e6a51cbbbd254a66104",
       "deletions": 1,
       "filename": "app/src/main/java/com/example/sample/ui/HomeScreen.kt",
       "patch": "@@ -18,7 +18,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {\n     Column(modifier = Modifier.padding(16.dp)) {\n         Text(text = state.title, style = MaterialTheme.typography.headlineSmall)\n         if (FeatureFlags.SHOW_UPGRADE_BANNER) {\n-            Text(text = \"Upgrade to unlock offline mode\")\n+            Text(text = \"Upgrade to unlock offline mode and sync\")\n         }\n     }\n }",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/b1430ec78c748083f1c66af7f6250dce5d4f8b30/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/beeb478133de722e37fc0e6a51cbbbd254a66104/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeScreen.kt",
       "sha": "c24e7eeb2232d487aa7285e6f3eee458e410bc9d",
       "status": "modified"
     }

@@ -6,30 +6,30 @@
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"de9a81871f653af94995df2443656771042f60055f641f788b36014fe4778859\""
+    "ETag": "W/\"662af1ac2ac027bf3c34c39bbd9e792afcd1a17e1c610c18fc9c46b1418c156a\""
   },
   "body": [
     {
       "additions": 2,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/e9009ec0098be0aa6733ce77c43bc53161ad9c5f/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt",
       "changes": 2,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt?ref=a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt?ref=e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
       "deletions": 0,
       "filename": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "patch": "@@ -17,5 +17,7 @@ class SessionRepository(\n \n     fun requireUser(): String = checkNotNull(cachedUser) { \"warmUp() must run first\" }\n \n+    fun expiresAt(): Long? = sessionManager.expiresAt()\n+\n     fun authHeader(): String = \"Bearer ${sessionManager.legacyToken()}\"\n }",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/e9009ec0098be0aa6733ce77c43bc53161ad9c5f/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FSessionRepository.kt",
       "sha": "cdaeb653324b5fc6e31b68e285a04ef276b41b57",
       "status": "modified"
     },
     {
       "additions": 1,
-      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt",
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/e9009ec0098be0aa6733ce77c43bc53161ad9c5f/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt",
       "changes": 2,
-      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt?ref=a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501",
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt?ref=e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
       "deletions": 1,
       "filename": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
       "patch": "@@ -33,4 +33,4 @@ class HomeViewModel(\n     }\n }\n \n-data class HomeState(val title: String)\n+data class HomeState(val title: String, val expiresAtMillis: Long? = null)",
-      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/a9d147f0ebbd9f0c82ee50ae304155eb9e5e6501/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/e9009ec0098be0aa6733ce77c43bc53161ad9c5f/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fui%2FHomeViewModel.kt",
       "sha": "a81ebfd0f9eb40c5fc91fb0bc10e5b90554bd203",
       "status": "modified"
     }
