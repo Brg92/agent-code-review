@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#5",
+  "headSha": "d5dfd6935c8bd4bd9abf20997a3dafd3f7b93de5",
+  "findings": [
+    {
+      "rule": "kotlin.not-null-assertion",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "side": "RIGHT",
+      "line": 10,
+      "message": "getString returns null when no name has been stored, so !! throws a NullPointerException. Return an empty string or make initials() nullable.",
+      "references": []
+    }
+  ],
+  "preExisting": []
+}
