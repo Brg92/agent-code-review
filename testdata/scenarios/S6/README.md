@@ -4,10 +4,10 @@ Review criteria are always read from the **target branch**, never from the branc
 
 | Case | Repository | Branch → base | Pull request |
 | --- | --- | --- | --- |
-| A | `sample-app` | `chore/criteria-s6-relax-overlay` → `main` | `{{PR:sample-app:S6A}}` |
-| B | `sample-app` | `feat/home-s6-invalid-criteria` → `chore/criteria-s6-invalid-overlay-base` | `{{PR:sample-app:S6B}}` |
-| C | `core-lib` | `feat/session-s6-legacy-criteria` → `main` | `{{PR:core-lib:S6}}` |
-| D | `kmp-shared` | `feat/shared-s6-ios-greeting` → `main` | `{{PR:kmp-shared:S6}}` |
+| A | `sample-app` | `chore/criteria-s6-relax-overlay` → `main` | [sample-app#5](https://github.com/acr-plugin-sandbox/sample-app/pull/5) |
+| B | `sample-app` | `feat/home-s6-invalid-criteria` → `chore/criteria-s6-invalid-overlay-base` | [sample-app#6](https://github.com/acr-plugin-sandbox/sample-app/pull/6) |
+| C | `core-lib` | `feat/session-s6-legacy-criteria` → `main` | [core-lib#2](https://github.com/acr-plugin-sandbox/core-lib/pull/2) |
+| D | `kmp-shared` | `feat/shared-s6-ios-greeting` → `main` | [kmp-shared#1](https://github.com/acr-plugin-sandbox/kmp-shared/pull/1) |
 
 ## A: valid overlay, changed only in the pull request
 

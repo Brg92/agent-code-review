@@ -4,7 +4,7 @@
 | --- | --- |
 | Repository | `acr-plugin-sandbox/sample-app` |
 | Branch | `feat/home-s1-session-prefetch` → `main` |
-| Pull request | `{{PR:sample-app:S1}}` |
+| Pull request | [sample-app#2](https://github.com/acr-plugin-sandbox/sample-app/pull/2) |
 | Criteria | `.agent-code-review/` overlay on `main` (profile `app`) |
 
 The change refreshes the session in `MainActivity.onCreate`, adds `SessionRepository.prefetch()` and `ProfileStore.hasDisplayName()`, and removes the `warmUp()` call from `HomeViewModel`.

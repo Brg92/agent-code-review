@@ -4,7 +4,7 @@
 | --- | --- |
 | Repository | `acr-plugin-sandbox/feature-lib` |
 | Branch | `chore/catalog-s4-regenerate-icons` → `main` |
-| Pull request | `{{PR:feature-lib:S4}}` |
+| Pull request | [feature-lib#1](https://github.com/acr-plugin-sandbox/feature-lib/pull/1) |
 | Criteria | none |
 
 ## File changes

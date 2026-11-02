@@ -7,7 +7,7 @@ Two pull requests in `acr-plugin-sandbox/sample-app`, both targeting `main`. Cri
 | | |
 | --- | --- |
 | Branch | `ci/build-s5-lint-failure` |
-| Pull request | `{{PR:sample-app:S5A}}` |
+| Pull request | [sample-app#3](https://github.com/acr-plugin-sandbox/sample-app/pull/3) |
 
 The change adds trailing whitespace in `app/src/main/java/com/example/sample/ui/HomeScreen.kt`. It also adds an `instrumented` job to `.github/workflows/checks.yml` that runs `sleep 2700`.
 
@@ -29,7 +29,7 @@ Expected:
 | | |
 | --- | --- |
 | Branch | `docs/readme-s5-no-checks` |
-| Pull request | `{{PR:sample-app:S5B}}` |
+| Pull request | [sample-app#4](https://github.com/acr-plugin-sandbox/sample-app/pull/4) |
 
 The head commit message ends with `[skip ci]`, so the head has no check runs and the combined status is empty.
 

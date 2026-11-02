@@ -2,10 +2,10 @@
 
 | | |
 | --- | --- |
-| Root | `acr-plugin-sandbox/sample-app` `feat/home-s2-session-expiry` → `main`, `{{PR:sample-app:S2}}` |
-| Depth 1 | `acr-plugin-sandbox/core-lib` `refactor/session-s2-remove-legacy-token` → `main`, `{{PR:core-lib:S2}}` |
-| Depth 2 | `acr-plugin-sandbox/kmp-shared` `feat/shared-s2-session-countdown` → `main`, `{{PR:kmp-shared:S2}}` |
-| Ticked | `acr-plugin-sandbox/feature-lib` `feat/toggle-s2-remote-defaults` → `main`, `{{PR:feature-lib:S2}}` |
+| Root | `acr-plugin-sandbox/sample-app` `feat/home-s2-session-expiry` → `main`, [sample-app#7](https://github.com/acr-plugin-sandbox/sample-app/pull/7) |
+| Depth 1 | `acr-plugin-sandbox/core-lib` `refactor/session-s2-remove-legacy-token` → `main`, [core-lib#3](https://github.com/acr-plugin-sandbox/core-lib/pull/3) |
+| Depth 2 | `acr-plugin-sandbox/kmp-shared` `feat/shared-s2-session-countdown` → `main`, [kmp-shared#2](https://github.com/acr-plugin-sandbox/kmp-shared/pull/2) |
+| Ticked | `acr-plugin-sandbox/feature-lib` `feat/toggle-s2-remote-defaults` → `main`, [feature-lib#2](https://github.com/acr-plugin-sandbox/feature-lib/pull/2) |
 
 Each change request in the cascade is reviewed with the criteria from its own repository's target branch. The exact descriptions are in `../acr-plugin-sandbox/PR_PLAN.md`.
 

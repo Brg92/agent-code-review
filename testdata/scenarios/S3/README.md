@@ -4,7 +4,7 @@
 | --- | --- |
 | Repository | `acr-plugin-sandbox/core-lib` |
 | Branch | `refactor/session-s3-reorganize-files` → `main` |
-| Pull request | `{{PR:core-lib:S3}}` |
+| Pull request | [core-lib#1](https://github.com/acr-plugin-sandbox/core-lib/pull/1) |
 | Criteria | legacy `.github/skills/core-lib-code-review/SKILL.md` on `main` (profile `library`) |
 
 All paths below are under `src/main/`.
