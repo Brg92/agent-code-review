@@ -30,6 +30,8 @@ Each repository has a `checks` workflow made of fast shell steps:
 
 S5 adds a long-running job on its own branch.
 
+In a newly published repository GitHub may never start the workflow, even though Actions is enabled and the workflow is listed as active. Closing and reopening a pull request starts it without changing any commit. Before recording, check that every head that should have checks has a completed run.
+
 The repositories are built locally in `../acr-plugin-sandbox/` next to this checkout. `../acr-plugin-sandbox/PR_PLAN.md` describes how to publish them and in which order to open the pull requests. The scenarios themselves are described in `testdata/scenarios/S1` to `S6`.
 
 ## Tokens
