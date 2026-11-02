@@ -20,7 +20,7 @@ These invariants describe the product. They do not restrict the development agen
 - **Agent-agnostic**: the CLI is the product, used via shell. Skills and agents are thin; host differences live only in manifests (Agent Plugins 1.0 + `.claude-plugin/`). MCP is an optional adapter, never required.
 - **Stack-extensible**: the core never knows Android, KMP, iOS or web. Stack knowledge lives in data packs `packs/<stack>/` (manifest, rules catalog, lexer table, checklists, templates) loaded at runtime. Packs for the first stable release: `android`, `kotlin-multiplatform`.
 - **Fat CLI, thin agent**: commands `queue`, `review`, `next`, `finalize`, `show`, `publish --plan|--apply`, `auth`, `doctor`, `check-criteria`, `version`. A state machine (`resolved → collected → judged → finalized → planned → published`) drives the flow; the agent only fills a `judgement` file.
-- Only binaries, launchers, packs, skills, agents, hooks and manifests reach users, via the `release` branch (see `docs/release-allowlist.txt`). Tests and fixtures never ship.
+- Only binaries, launchers, packs, JSON schemas, skills, agents, hooks and manifests reach users, via the `release` branch (see `docs/release-allowlist.txt`). Tests and fixtures never ship.
 
 Target repository layout (directories appear only when their first real file is added; this section is the single description of the structure):
 

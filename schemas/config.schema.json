@@ -47,7 +47,7 @@
       }
     },
     "cascadeLimit": {
-      "description": "Deepest level of Related Changes to review from this repository.",
+      "description": "Deepest level of Related Changes to review from this repository; the root is level 0. The default is 2.",
       "type": "integer",
       "minimum": 0
     }

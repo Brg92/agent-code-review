@@ -64,6 +64,7 @@ func TestReleaseAllowlist(t *testing.T) {
 		"agents/reviewer.md",
 		"hooks/hooks.json",
 		"packs/android/manifest.json",
+		"schemas/judgement.schema.json",
 		"bin/agent-code-review",
 		"LICENSE",
 		"README.md",
