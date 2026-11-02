@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/config.schema.json",
+  "title": "Repository configuration",
+  "description": "The overlay file .agent-code-review/config.json of a reviewed repository. It is always read from the target branch; a copy changed in the change request is ignored.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "profile": {
+      "description": "Kind of repository. When absent, it is detected from the files.",
+      "$ref": "#/$defs/profile"
+    },
+    "packs": {
+      "description": "Stack packs to use. When absent, they are detected from the files.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/packId"
+      }
+    },
+    "variants": {
+      "description": "Build variants or flavors, for example free and paid.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][A-Za-z0-9]*$"
+      }
+    },
+    "disabledRules": {
+      "description": "Rules that are not applied in this repository.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ruleId"
+      }
+    },
+    "noise": {
+      "description": "Extra globs of changed files that are listed as noise and not reviewed.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/glob"
+      }
+    },
+    "cascadeLimit": {
+      "description": "Deepest level of Related Changes to review from this repository.",
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "$defs": {
+    "glob": {
+      "description": "Path glob with forward slashes: '*' matches within a segment, '**' matches any number of segments.",
+      "type": "string",
+      "pattern": "^[^/\\\\]+(?:/[^/\\\\]+)*$"
+    },
+    "packId": {
+      "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "profile": {
+      "description": "Kind of repository, which selects the default criteria.",
+      "enum": [
+        "app",
+        "library",
+        "kmp"
+      ]
+    },
+    "ruleId": {
+      "description": "Rule identifier: lowercase dot-separated words, for example kotlin.not-null-assertion.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
+    }
+  }
+}

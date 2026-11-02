@@ -187,3 +187,25 @@ func TestContractExamples(t *testing.T) {
 		}
 	}
 }
+
+// TestInvalidOverlayNamesEveryField checks scenario S6 B: the error names
+// each invalid field of the overlay, not only the first one.
+func TestInvalidOverlayNamesEveryField(t *testing.T) {
+	s := compileSchema(t, filepath.Join(repoRoot, "schemas", "config.schema.json"))
+	data, err := os.ReadFile(filepath.Join(repoRoot, "testdata", "contracts", "config", "invalid", "s6-invalid-overlay.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	issues, err := s.Validate(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, i := range issues {
+		got = append(got, i.Path+" "+i.Keyword)
+	}
+	want := []string{"/profile enum", "/schema const", "/variants type"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("issues = %q, want %q", got, want)
+	}
+}
