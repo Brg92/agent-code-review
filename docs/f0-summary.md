@@ -63,7 +63,6 @@ ACR_SANDBOX_LOGINS=<reviewer>,<author> go test ./internal/guards/
 
 ## Open items
 
-- **Required checks:** add the 14 checks listed in [ci.md](ci.md) to the `protect-main` ruleset.
 - **Exit codes:** [exit-codes.md](exit-codes.md) stays a proposal until the first command returns them.
 - **Sandbox checks:** `core-lib`, `kmp-shared` and `feature-lib` have no check runs on their pull requests, although their `checks` workflow exists. S5 only needs `sample-app`, but the cause is unknown.
 - **Recorder token:** the recordings were made with the reviewer's `gh` token. The fine-grained, read-only token described in [sandbox.md](sandbox.md) is not tested yet, in particular whether it can read check runs.
