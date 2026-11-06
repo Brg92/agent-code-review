@@ -15,7 +15,7 @@ The test matrix covers `ubuntu-latest`, `macos-latest` and `windows-latest` with
 
 ## Required checks
 
-These are the check names to require on `main`:
+The `protect-main` ruleset requires these checks on `main`, each from the GitHub Actions app:
 
 - `lint`
 - `security`
@@ -32,7 +32,7 @@ These are the check names to require on `main`:
 - `build (windows, amd64)`
 - `build (windows, arm64)`
 
-Renaming a job or changing a matrix value changes these names, so the required checks must be updated in the same pull request.
+Renaming a job or changing a matrix value changes these names, so that pull request cannot be merged until the ruleset lists the new names.
 
 ## Extra secret patterns
 
