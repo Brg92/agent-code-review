@@ -69,11 +69,15 @@ docs/                    project docs for humans
 - After the squash merge the branch is deleted: on GitHub automatically (repository setting "Automatically delete head branches"); locally with `git checkout main && git pull && git branch -D <branch>` (`-D` is required because git does not see a squash-merged branch as merged). Sandbox scenario branches are never merged nor deleted.
 - Sandbox repositories (organization `acr-plugin-sandbox`): base content on `main`; scenario branches `<type>/<scope>-s<N>-<short-description>`; scenario PRs are opened by the author account and **never merged**.
 
-## 6. Remote actions need explicit permission
+## 6. Remote actions
 
-Before **any** action that touches a remote — `git push`, opening/merging/closing a PR, creating or changing a repository or its settings, calling GitHub APIs with a token — stop and ask, stating exactly what will happen (command, branch, target). Proceed only after an explicit "yes" for that specific action; a previous yes does not cover the next one. Never force-push, never push to `main`, never delete remote branches. If `gh` is unavailable, give the user the exact commands instead.
+The development agent performs remote actions on its own: pushing its branches, opening and updating pull requests, creating and configuring sandbox repositories, triggering workflows, and calling GitHub APIs. It announces each one in its report (command, branch, target).
+
+**Merging needs explicit permission.** Before any merge (`gh pr merge`, the merge API, or the web UI), stop and ask, stating the PR, its title and the merge method; proceed only after an explicit "yes" for that PR.
+
+**Never**, not even with permission: force-push, push to `main`, delete remote branches, delete repositories, merge or delete sandbox scenario branches or pull requests. Fine-grained tokens are edited by the maintainer only. If `gh` is unavailable, give the exact commands instead.
 
 ## 7. Working style
 
-- Work in milestones; at the end of each one report: branch, commits (one line each), changed files, test evidence (red → green for TDD), proposed remote actions, open questions. Then stop and wait.
+- Work in milestones; at the end of each one report: branch, commits (one line each), changed files, test evidence (red → green for TDD), remote actions performed and merges awaiting permission, open questions. Then stop and wait.
 - If a request conflicts with these rules, say so before acting.

@@ -1,13 +1,22 @@
 {
   "permissions": {
-    "ask": [
+    "allow": [
       "Bash(git push:*)",
       "Bash(gh pr create:*)",
-      "Bash(gh pr merge:*)",
-      "Bash(gh pr close:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr checks:*)",
       "Bash(gh repo create:*)",
       "Bash(gh repo edit:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
       "Bash(gh api:*)"
+    ],
+    "ask": [
+      "Bash(gh pr merge:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
@@ -15,7 +24,14 @@
       "Bash(git push --force-with-lease:*)",
       "Bash(git push origin main:*)",
       "Bash(git push origin --delete:*)",
-      "Bash(gh repo delete:*)"
+      "Bash(gh repo delete:*)",
+      "Bash(git push --delete:*)",
+      "Bash(git push -d:*)",
+      "Bash(git push --mirror:*)",
+      "Bash(git push origin HEAD:main:*)",
+      "Bash(gh api -X DELETE:*)",
+      "Bash(gh api --method DELETE:*)",
+      "Bash(gh pr close:*)"
     ]
   }
 }
