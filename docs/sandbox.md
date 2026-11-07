@@ -22,8 +22,11 @@ Scenario pull requests are never merged, and their branches are never deleted.
 | `core-lib` | Android library with Views and `maven-publish`; public API `SessionManager` | S2, S3, S6 |
 | `kmp-shared` | Kotlin Multiplatform library (`commonMain`, `androidMain`, `iosMain`, `expect`/`actual`) and a SwiftUI app in `iosApp/` | S2, S6 |
 | `feature-lib` | Android library for edge cases | S2, S4 |
+| `token-probe` | Private repository with a single `probe` job on `main`, used only to check the recorder token permissions; never recorded | none |
 
-Each repository has a `checks` workflow made of fast shell steps:
+The four scenario repositories are public. A public repository does not prove read permissions, because its data can be read without them, so permission checks run against the private `token-probe`.
+
+Each scenario repository has a `checks` workflow made of fast shell steps:
 
 - **`lint`**: fails on trailing whitespace.
 - **`test`**: checks that sources exist.
@@ -36,21 +39,21 @@ The repositories are built locally in `../acr-plugin-sandbox/` next to this chec
 
 ## Tokens
 
-Use fine-grained personal access tokens, limited to the organization and the four repositories, with a short expiration (30 days or less).
+Use fine-grained personal access tokens, limited to the organization and to the sandbox repositories they need, with a short expiration (30 days or less).
 
 ### Reviewer: recorder token (`ACR_GITHUB_TOKEN`)
 
 Read-only. Settings:
 
 - **Resource owner:** `acr-plugin-sandbox`. The organization must allow fine-grained tokens.
-- **Repository access:** only select repositories, the four sandbox repositories.
+- **Repository access:** only select repositories: the four scenario repositories and `token-probe`.
 - **Repository permissions, all read-only:**
   - Metadata (mandatory)
   - Contents
   - Pull requests
   - Issues
   - Commit statuses
-  - Checks, if the form offers it. Otherwise confirm, the first time you record, that check runs can still be read.
+  - Actions. Fine-grained tokens do not offer a Checks permission; Actions read makes the check runs created by GitHub Actions readable, as verified on `token-probe`. Check runs created by other GitHub Apps are not verified.
 - **No write permission and no account permissions.** The review-requested search runs as the token's user.
 
 Set `ACR_SANDBOX_LOGINS` to the logins of the two accounts, reviewer first: `<reviewer>,<author>`. The recorder requires it. The test that keeps real logins out of `testdata/` also uses it, and skips itself when the variable is unset.
@@ -60,7 +63,7 @@ Set `ACR_SANDBOX_LOGINS` to the logins of the two accounts, reviewer first: `<re
 Only needed when the author account does not use `gh auth login`. Settings:
 
 - **Resource owner:** `acr-plugin-sandbox`.
-- **Repository access:** the four sandbox repositories.
+- **Repository access:** the four scenario repositories.
 - **Repository permissions:**
   - Contents: read and write
   - Pull requests: read and write
