@@ -354,7 +354,7 @@
           }
         },
         "crash": {
-          "description": "True when the defect makes the app crash. Meaningful only in preExisting, where it makes the change request BLOCKED (legacy §3.5); on findings of the change request it is rejected later by the judgement validation.",
+          "description": "True when the defect makes the app crash. Meaningful only in preExisting: an existing defect that crashes the app makes the change request BLOCKED. On findings of the change request it is rejected later by the judgement validation.",
           "type": "boolean",
           "default": false
         },
