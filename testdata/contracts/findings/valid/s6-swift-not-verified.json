@@ -28,7 +28,7 @@
   },
   "criteria": {
     "source": "default",
-    "profile": "kmp",
+    "profile": "library",
     "packs": [
       "kotlin-multiplatform"
     ],

@@ -48,7 +48,8 @@ Expected: the legacy files are loaded and used as the criteria, the profile is `
 `kmp-shared` `main` has no criteria files at all.
 
 Expected:
-- **Profile:** KMP, detected from `commonMain`/`androidMain`/`iosMain`, with the default criteria.
+- **Profile:** `library`, with the default criteria. No configuration, no dependent change request and no `maven-publish` sign decide it, so it is the default profile of the `kotlin-multiplatform` pack (`pack-default`), which wins over `android` by priority. KMP is the stack, not a profile.
+- **Stack:** `kotlin-multiplatform`, detected from `commonMain`, together with `android` (the module applies `com.android.library`).
 - **`Greeting.kt` (common):** reviewed.
 - **`iosApp/iosApp/ContentView.swift`:** listed as **Not verified**, because no pack covers Swift.
 - **Findings:** none.

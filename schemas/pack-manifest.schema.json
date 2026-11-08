@@ -198,6 +198,69 @@
         }
       }
     },
+    "fileDimensions": {
+      "description": "Axes along which the changed files vary, for example the platform of a source set. Each changed file has one value per file dimension: that of the first map entry whose glob matches it, else the default. Rules depend on it like on a dimension, evaluated per file. When several active packs declare the same file dimension, the one with the highest priority decides; equal priorities with different mappings are an error.",
+      "default": [],
+      "type": "array",
+      "items": {
+        "description": "One file dimension.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "values",
+          "map",
+          "default"
+        ],
+        "properties": {
+          "id": {
+            "description": "Dimension identifier, the key of the conditions of rules. It cannot be profile nor the id of a dimension of the pack.",
+            "$ref": "#/$defs/dimensionId"
+          },
+          "values": {
+            "description": "Values the dimension can take.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/dimensionId"
+            }
+          },
+          "map": {
+            "description": "Entries tried in order; the first whose path matches the file gives its value.",
+            "type": "array",
+            "items": {
+              "description": "One entry.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "value"
+              ],
+              "properties": {
+                "path": {
+                  "description": "Glob of the files.",
+                  "$ref": "#/$defs/glob"
+                },
+                "value": {
+                  "description": "Value of the files; it must be in values.",
+                  "$ref": "#/$defs/dimensionId"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Value of the files no entry matches; it must be in values.",
+            "$ref": "#/$defs/dimensionId"
+          }
+        }
+      }
+    },
+    "priority": {
+      "description": "Order of the active packs: the higher wins a file dimension several packs declare.",
+      "default": 0,
+      "type": "integer"
+    },
     "rules": {
       "description": "Rules catalog file, relative to the pack directory.",
       "$ref": "#/$defs/relativePath"
@@ -253,8 +316,7 @@
       "description": "Kind of repository, which selects the default criteria.",
       "enum": [
         "app",
-        "library",
-        "kmp"
+        "library"
       ]
     },
     "relativePath": {

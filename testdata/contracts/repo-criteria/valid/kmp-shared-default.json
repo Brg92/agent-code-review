@@ -3,7 +3,7 @@
   "project": "github:github.com/acr-plugin-sandbox/kmp-shared",
   "ref": "main",
   "source": "default",
-  "profile": "kmp",
+  "profile": "library",
   "packs": [
     "kotlin-multiplatform"
   ],
@@ -15,6 +15,6 @@
   "cascade": {},
   "files": [],
   "notes": [
-    "No criteria files: the profile was detected from commonMain, androidMain and iosMain."
+    "No criteria files: the profile is the default of the kotlin-multiplatform pack."
   ]
 }
