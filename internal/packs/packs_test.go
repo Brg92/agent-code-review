@@ -180,7 +180,7 @@ func TestLoadPackDimensions(t *testing.T) {
 	if len(d.Detect) != 2 || d.Detect[0].Value != "compose" || d.Detect[0].Path.String() != "**/build.gradle.kts" || d.Detect[0].Contains != "androidx.compose" {
 		t.Errorf("signs %+v", d.Detect)
 	}
-	if p, err = LoadPack(copyPack(t, "mobile", "mobile", nil)); err != nil || len(p.Dimensions) != 0 {
+	if p, err = LoadPack(filepath.Join(testPacks, "web")); err != nil || len(p.Dimensions) != 0 {
 		t.Errorf("a pack without dimensions: %+v, %v", p.Dimensions, err)
 	}
 }

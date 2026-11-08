@@ -50,6 +50,40 @@
     }
   ],
   "defaultProfile": "app",
+  "dimensions": [
+    {
+      "id": "ui-toolkit",
+      "values": [
+        "views",
+        "compose",
+        "both"
+      ],
+      "detect": [
+        {
+          "value": "compose",
+          "path": "**/build.gradle.kts",
+          "contains": "androidx.compose"
+        },
+        {
+          "value": "compose",
+          "path": "**/build.gradle.kts",
+          "contains": "compose = true"
+        },
+        {
+          "value": "views",
+          "path": "**/build.gradle.kts",
+          "contains": "viewBinding = true"
+        },
+        {
+          "value": "views",
+          "path": "**/build.gradle.kts",
+          "contains": "dataBinding = true"
+        }
+      ],
+      "default": "both",
+      "combined": "both"
+    }
+  ],
   "rules": "rules.json",
   "templates": [
     "templates/summary.md"
