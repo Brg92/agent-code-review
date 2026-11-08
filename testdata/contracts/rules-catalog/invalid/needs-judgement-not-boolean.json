@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "rules": [
+    {
+      "id": "logic.removed-validation",
+      "title": "A change removes input validation",
+      "severity": "MAJOR",
+      "needsJudgement": "yes",
+      "description": "Removing a `require` or `check` lets invalid input through.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "logic"
+      ]
+    }
+  ]
+}

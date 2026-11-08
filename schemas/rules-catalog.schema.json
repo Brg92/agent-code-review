@@ -45,8 +45,13 @@
             "pattern": "\\S"
           },
           "severity": {
-            "description": "Default severity; criteria may say more.",
+            "description": "Default severity; criteria may say more. A rule that needs judgement still declares it, as the severity the judgement starts from.",
             "$ref": "#/$defs/severity"
+          },
+          "needsJudgement": {
+            "description": "True if the rule only points at code to look at: its signals carry no severity, and the judgement decides whether there is a finding and how serious it is.",
+            "default": false,
+            "type": "boolean"
           },
           "description": {
             "description": "What the rule checks and why, in Markdown.",

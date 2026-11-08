@@ -54,6 +54,7 @@
       "id": "logic.removed-validation",
       "title": "A change removes input validation",
       "severity": "MAJOR",
+      "needsJudgement": true,
       "description": "Removing a `require` or `check` lets invalid input through.",
       "languages": [
         "kotlin"
@@ -66,6 +67,7 @@
       "id": "style.redundant-if",
       "title": "An if/else only returns its condition",
       "severity": "MINOR",
+      "needsJudgement": false,
       "description": "Return the condition instead of branching on it.",
       "languages": [
         "kotlin"
