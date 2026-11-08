@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "profile": "kmp",
+  "profile": "library",
   "packs": [
     "kotlin-multiplatform"
   ],

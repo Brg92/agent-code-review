@@ -112,3 +112,29 @@ func TestSignMatchesDirectories(t *testing.T) {
 		t.Errorf("a directory has no contents to contain text: %v, %v", ok, err)
 	}
 }
+
+func TestActivateOrdersByPriorityAndChecksFileDimensions(t *testing.T) {
+	low := &Pack{ID: "low", Detect: []Sign{{Path: mustGlob(t, "**/a")}}}
+	high := &Pack{ID: "high", Priority: 10, Detect: []Sign{{Path: mustGlob(t, "**/a")}}}
+	mid := &Pack{ID: "mid", Priority: 5, Detect: []Sign{{Path: mustGlob(t, "**/a")}}}
+	repo := &fakeRepo{files: map[string]string{"x/a": ""}}
+	set := &Set{Packs: []*Pack{low, mid, high}}
+	active, err := set.Activate(repo.paths(), repo)
+	if err != nil || ids(active) != "high mid low" {
+		t.Errorf("active %q, %v; want the highest priority first", ids(active), err)
+	}
+	set = &Set{Packs: []*Pack{
+		withDim(platformPack(t, "p", 5, "common"), mustGlob(t, "**/a")),
+		withDim(platformPack(t, "q", 5, "android"), mustGlob(t, "**/a")),
+	}}
+	if _, err := set.Activate(repo.paths(), repo); err == nil || !strings.Contains(err.Error(), "platform") {
+		t.Errorf("conflicting packs of equal priority: error %v", err)
+	}
+}
+
+func mustGlob(t *testing.T, s string) rules.Glob { return glob(t, s) }
+
+func withDim(p *Pack, g rules.Glob) *Pack {
+	p.Detect = []Sign{{Path: g}}
+	return p
+}

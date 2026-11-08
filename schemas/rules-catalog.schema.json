@@ -595,8 +595,7 @@
       "description": "Kind of repository, which selects the default criteria.",
       "enum": [
         "app",
-        "library",
-        "kmp"
+        "library"
       ]
     },
     "ruleId": {

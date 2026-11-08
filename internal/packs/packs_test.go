@@ -126,6 +126,7 @@ func TestLoadPackRejects(t *testing.T) {
 		{"profile detection of another profile", "mobile", set("profileDetect", []any{map[string]any{"profile": "kmp", "path": "x"}}), nil, "kmp"},
 		{"default profile not supported", "mobile", set("defaultProfile", "kmp"), nil, "kmp"},
 		{"unknown profile", "mobile", set("profiles", []any{"app", "service"}), nil, "service"},
+		{"kmp is a stack, not a profile", "mobile", set("profiles", []any{"app", "kmp"}), nil, "unknown profile \"kmp\""},
 		{"bad glob", "mobile", set("noise", []any{"/build"}), nil, "glob"},
 		{"catalog of another pack", "mobile", nil, map[string]string{"rules.json": `{"schema":1,"pack":"web","rules":[]}`}, "pack"},
 		{"rule of a language the pack lacks", "mobile", nil, map[string]string{"rules.json": `{"schema":1,"pack":"mobile","rules":[` +
@@ -219,5 +220,97 @@ func TestLoadPackRejectsDimensions(t *testing.T) {
 	})
 	if _, err := LoadPack(dir); err == nil || !strings.Contains(err.Error(), "twice") {
 		t.Errorf("a dimension listed twice: error %v", err)
+	}
+}
+
+// platformDim is a per-file dimension of a test pack.
+func platformDim(edit func(d map[string]any)) any {
+	d := map[string]any{
+		"id": "platform", "values": []any{"common", "android", "ios"}, "default": "common",
+		"map": []any{
+			map[string]any{"path": "**/src/androidMain/**", "value": "android"},
+			map[string]any{"path": "**/src/ios*Main/**", "value": "ios"},
+		},
+	}
+	if edit != nil {
+		edit(d)
+	}
+	return []any{d}
+}
+
+func TestLoadPackFileDimensionsAndPriority(t *testing.T) {
+	dir := copyPack(t, "mobile", "mobile", func(m map[string]any) {
+		m["fileDimensions"] = platformDim(nil)
+		m["priority"] = 10
+	})
+	p, err := LoadPack(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Priority != 10 || len(p.FileDimensions) != 1 {
+		t.Fatalf("priority %d, file dimensions %+v", p.Priority, p.FileDimensions)
+	}
+	d := p.FileDimensions[0]
+	if d.ID != "platform" || !reflect.DeepEqual(d.Values, []string{"common", "android", "ios"}) || d.Default != "common" {
+		t.Errorf("file dimension %+v", d)
+	}
+	if len(d.Map) != 2 || d.Map[1].Path.String() != "**/src/ios*Main/**" || d.Map[1].Value != "ios" {
+		t.Errorf("map %+v", d.Map)
+	}
+	if p, err = LoadPack(filepath.Join(testPacks, "web")); err != nil || p.Priority != 0 || len(p.FileDimensions) != 0 {
+		t.Errorf("a pack without them: %d %+v, %v", p.Priority, p.FileDimensions, err)
+	}
+}
+
+func TestLoadPackRejectsFileDimensions(t *testing.T) {
+	entry := func(d map[string]any, i int) map[string]any { return d["map"].([]any)[i].(map[string]any) }
+	tests := []struct {
+		name string
+		edit func(d map[string]any)
+		want string
+	}{
+		{"profile is reserved", func(d map[string]any) { d["id"] = "profile" }, "profile"},
+		{"id not lowercase", func(d map[string]any) { d["id"] = "Platform" }, "Platform"},
+		{"no values", func(d map[string]any) { d["values"] = []any{} }, "values"},
+		{"repeated value", func(d map[string]any) { d["values"] = []any{"common", "common"} }, "common"},
+		{"default not a value", func(d map[string]any) { d["default"] = "web" }, "default"},
+		{"missing default", func(d map[string]any) { delete(d, "default") }, "default"},
+		{"entry of another value", func(d map[string]any) { entry(d, 0)["value"] = "web" }, "web"},
+		{"entry without path", func(d map[string]any) { delete(entry(d, 0), "path") }, "path"},
+		{"entry without value", func(d map[string]any) { delete(entry(d, 0), "value") }, "value"},
+		{"bad glob", func(d map[string]any) { entry(d, 0)["path"] = "/a" }, "glob"},
+		{"unknown field", func(d map[string]any) { d["detect"] = []any{} }, "unknown field"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := copyPack(t, "mobile", "mobile", func(m map[string]any) { m["fileDimensions"] = platformDim(tt.edit) })
+			_, err := LoadPack(dir)
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("error = %v, want one that mentions %q", err, tt.want)
+			}
+		})
+	}
+	other := []struct {
+		name string
+		edit func(m map[string]any)
+		want string
+	}{
+		{"listed twice", func(m map[string]any) {
+			m["fileDimensions"] = append(platformDim(nil).([]any), platformDim(nil).([]any)...)
+		}, "twice"},
+		{"same id as a repository dimension", func(m map[string]any) {
+			m["fileDimensions"] = platformDim(func(d map[string]any) { d["id"] = "ui-toolkit" })
+			m["dimensions"] = toolkit(nil)
+		}, "ui-toolkit"},
+		{"priority is not an integer", func(m map[string]any) { m["priority"] = 1.5 }, "priority"},
+	}
+	for _, tt := range other {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := copyPack(t, "mobile", "mobile", tt.edit)
+			_, err := LoadPack(dir)
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("error = %v, want one that mentions %q", err, tt.want)
+			}
+		})
 	}
 }

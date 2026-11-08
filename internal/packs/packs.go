@@ -34,10 +34,15 @@ type Pack struct {
 	ProfileDetect  []ProfileSign
 	DefaultProfile string
 	Dimensions     []Dimension
-	Rules          *rules.Catalog
-	Templates      []string
-	Noise          []rules.Glob
-	TestFiles      []rules.Glob
+	// FileDimensions vary per changed file, not per repository.
+	FileDimensions []FileDimension
+	// Priority orders the active packs: the higher wins a file dimension
+	// several packs declare. Default 0.
+	Priority  int
+	Rules     *rules.Catalog
+	Templates []string
+	Noise     []rules.Glob
+	TestFiles []rules.Glob
 	// GeneratedMarkers mark a file as generated in its first lines.
 	GeneratedMarkers []string
 }
@@ -89,7 +94,7 @@ var (
 	relativePath = regexp.MustCompile(`^(?:[^/\\.][^/\\]*|\.[^/\\.][^/\\]*)(?:/(?:[^/\\.][^/\\]*|\.[^/\\.][^/\\]*))*$`)
 	nonBlank     = regexp.MustCompile(`\S`)
 	dimensionID  = packID
-	knownProfile = map[string]bool{"app": true, "library": true, "kmp": true}
+	knownProfile = map[string]bool{"app": true, "library": true}
 )
 
 type (
@@ -104,6 +109,8 @@ type (
 		ProfileDetect    []rawProfile   `json:"profileDetect"`
 		DefaultProfile   *string        `json:"defaultProfile"`
 		Dimensions       []rawDimension `json:"dimensions"`
+		FileDimensions   []rawFileDim   `json:"fileDimensions"`
+		Priority         int            `json:"priority"`
 		Rules            *string        `json:"rules"`
 		Templates        *[]string      `json:"templates"`
 		Noise            *[]string      `json:"noise"`
@@ -204,6 +211,10 @@ func loadPack(dir string) (*Pack, error) {
 	if err := p.loadDimensions(raw.Dimensions); err != nil {
 		return nil, err
 	}
+	if err := p.loadFileDimensions(raw.FileDimensions); err != nil {
+		return nil, err
+	}
+	p.Priority = raw.Priority
 	if err := p.loadLanguages(*raw.Languages); err != nil {
 		return nil, err
 	}

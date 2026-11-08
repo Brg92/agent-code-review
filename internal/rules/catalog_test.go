@@ -146,6 +146,7 @@ func TestLoadCatalogRejectsWhen(t *testing.T) {
 		{"empty list", `{"ui-toolkit":[]}`, "ui-toolkit"},
 		{"not a list", `{"ui-toolkit":"views"}`, "when"},
 		{"unknown profile", `{"profile":["desktop"]}`, "desktop"},
+		{"kmp is a stack, not a profile", `{"profile":["kmp"]}`, "kmp"},
 		{"repeated value", `{"ui-toolkit":["views","views"]}`, "views"},
 		{"value not lowercase", `{"ui-toolkit":["Views"]}`, "Views"},
 		{"dimension not lowercase", `{"UiToolkit":["views"]}`, "UiToolkit"},

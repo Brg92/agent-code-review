@@ -56,3 +56,14 @@ func Load(dirs ...string) (*Set, error) {
 	}
 	return set, nil
 }
+
+// ActiveRules returns the rules that can apply to a repository: the core
+// rules, then those of each active pack in order. Their conditions are
+// checked per file with Assignment.Context.
+func (s *Set) ActiveRules(active []*Pack) []*rules.Rule {
+	out := append([]*rules.Rule(nil), rules.Core().Rules...)
+	for _, p := range active {
+		out = append(out, p.Rules.Rules...)
+	}
+	return out
+}

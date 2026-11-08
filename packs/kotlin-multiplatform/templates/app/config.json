@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "profile": "app",
+  "packs": [
+    "kotlin-multiplatform",
+    "android"
+  ],
+  "variants": [],
+  "disabledRules": [],
+  "noise": []
+}

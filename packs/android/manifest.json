@@ -108,6 +108,21 @@
         {
           "value": "compose",
           "path": "**/build.gradle.kts",
+          "contains": "org.jetbrains.compose"
+        },
+        {
+          "value": "compose",
+          "path": "**/build.gradle",
+          "contains": "org.jetbrains.compose"
+        },
+        {
+          "value": "compose",
+          "path": "gradle/libs.versions.toml",
+          "contains": "org.jetbrains.compose"
+        },
+        {
+          "value": "compose",
+          "path": "**/build.gradle.kts",
           "contains": "compose = true"
         },
         {
@@ -153,6 +168,16 @@
       ],
       "default": "both",
       "combined": "both"
+    }
+  ],
+  "fileDimensions": [
+    {
+      "id": "platform",
+      "values": [
+        "android"
+      ],
+      "map": [],
+      "default": "android"
     }
   ],
   "rules": "rules.json",
