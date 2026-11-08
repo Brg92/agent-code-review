@@ -42,6 +42,7 @@ type DismissedSignal struct {
 type Result struct {
 	CR      Key
 	HeadSHA string
+	Verdict Verdict
 	Summary string
 	// Findings are introduced by the change request; PreExisting were
 	// already on the target branch.
@@ -64,7 +65,7 @@ type Result struct {
 // anchored on the diff, or placed in the summary when its file shows no
 // line; a suggestion that does not replace lines of one hunk on the RIGHT
 // side becomes a code block at the end of the fix. Each finding gets its
-// fingerprint as id.
+// fingerprint as id, and the result its verdict.
 func Finalize(r Review, j Judgement) (Result, error) {
 	if err := ValidateJudgement(r, j); err != nil {
 		return Result{}, err
@@ -115,6 +116,7 @@ func Finalize(r Review, j Judgement) (Result, error) {
 		place(f, file.Diff)
 	}
 	fingerprint(r, all)
+	res.Verdict = ChangeRequestVerdict(res.Findings, res.PreExisting)
 	return res, nil
 }
 
