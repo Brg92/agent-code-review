@@ -29,6 +29,7 @@ type Table struct {
 	Keywords         []string          `json:"keywords"`
 	SoftKeywords     []string          `json:"softKeywords"`
 	Operators        []string          `json:"operators,omitempty"`
+	Brackets         []Bracket         `json:"brackets,omitempty"`
 
 	keywords     map[string]bool
 	softKeywords map[string]bool
@@ -76,6 +77,26 @@ type CharForm struct {
 	Escape    string `json:"escape,omitempty"`
 }
 
+// Bracket is a pair of punctuation characters that open and close a
+// nested group, such as ( and ).
+type Bracket struct {
+	Open  string `json:"open"`
+	Close string `json:"close"`
+}
+
+// UnmarshalJSON decodes a bracket pair, rejecting unknown fields.
+func (b *Bracket) UnmarshalJSON(data []byte) error {
+	type plain Bracket
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	var p plain
+	if err := dec.Decode(&p); err != nil {
+		return err
+	}
+	*b = Bracket(p)
+	return nil
+}
+
 // Templates are the markers of template expressions inside strings.
 type Templates struct {
 	Identifier string `json:"identifier"`
@@ -88,6 +109,7 @@ var (
 	word       = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 	operator   = regexp.MustCompile(`^[^\sA-Za-z0-9_]{2,}$`)
 	marker     = regexp.MustCompile(`^\S+$`)
+	bracket    = regexp.MustCompile(`^[^\sA-Za-z0-9_]$`)
 )
 
 // LoadTable decodes and checks a lexer table. Unknown fields are rejected.
@@ -198,6 +220,16 @@ func (t *Table) check() error {
 		}
 	} else if templated {
 		return errors.New("a string form has templates but the table has no templates")
+	}
+	var brackets []string
+	for _, b := range t.Brackets {
+		if b.Open == b.Close {
+			return fmt.Errorf("bracket %q opens and closes itself", b.Open)
+		}
+		brackets = append(brackets, b.Open, b.Close)
+	}
+	if err := distinct("bracket", brackets, bracket); err != nil {
+		return err
 	}
 	for _, r := range t.IdentifierChars {
 		if unicode.IsSpace(r) || r == utf8.RuneError {

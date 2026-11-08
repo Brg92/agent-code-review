@@ -20,7 +20,8 @@ func TestLoadTable(t *testing.T) {
 		`"lineComment":"//","blockComment":{"open":"/*","close":"*/","nested":true},"docComment":"/**",` +
 			`"strings":[{"delimiter":"\"","escape":"\\"},{"delimiter":"\"\"\"","raw":true,"multiline":true,"templates":true,"greedyClose":true}],` +
 			`"char":{"delimiter":"'","escape":"\\"},"quotedIdentifier":"` + "`" + `",` +
-			`"templates":{"identifier":"$","open":"${","close":"}"},"identifierChars":"$","operators":["==","..."]`)))
+			`"templates":{"identifier":"$","open":"${","close":"}"},"identifierChars":"$","operators":["==","..."],` +
+			`"brackets":[{"open":"(","close":")"},{"open":"{","close":"}"}]`)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,6 +30,9 @@ func TestLoadTable(t *testing.T) {
 	}
 	if tab.BlockComment == nil || !tab.BlockComment.Nested || tab.DocComment != "/**" {
 		t.Errorf("block comment %+v, doc comment %q", tab.BlockComment, tab.DocComment)
+	}
+	if want := []Bracket{{"(", ")"}, {"{", "}"}}; !reflect.DeepEqual(tab.Brackets, want) {
+		t.Errorf("brackets = %v, want %v", tab.Brackets, want)
 	}
 	var delims []string
 	for _, s := range tab.Strings {
@@ -75,6 +79,12 @@ func TestLoadTableRejects(t *testing.T) {
 		{"single-character operator", withField(`"operators":["+"]`), "operator"},
 		{"duplicate operator", withField(`"operators":["==","=="]`), "operator"},
 		{"blank identifier char", withField(`"identifierChars":" "`), "identifierChars"},
+		{"bracket without close", withField(`"brackets":[{"open":"("}]`), "bracket"},
+		{"bracket of two characters", withField(`"brackets":[{"open":"((","close":")"}]`), "bracket"},
+		{"bracket is a letter", withField(`"brackets":[{"open":"b","close":"e"}]`), "bracket"},
+		{"bracket closes itself", withField(`"brackets":[{"open":"|","close":"|"}]`), "bracket"},
+		{"bracket listed twice", withField(`"brackets":[{"open":"(","close":")"},{"open":"[","close":")"}]`), "bracket"},
+		{"unknown bracket field", withField(`"brackets":[{"open":"(","close":")","nested":true}]`), "unknown field"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
