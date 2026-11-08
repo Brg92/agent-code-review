@@ -1,12 +1,17 @@
 package cascade
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/Brg92/agent-code-review/internal/core"
+	"github.com/Brg92/agent-code-review/internal/forges/github"
+	"github.com/Brg92/agent-code-review/internal/forges/gitlab"
+	"github.com/Brg92/agent-code-review/internal/refs"
+	"github.com/Brg92/agent-code-review/internal/testutil/scenario"
 )
 
 func causeList(causes []Cause) []string {
@@ -108,4 +113,34 @@ func TestCascadeVerdictNeedsEveryReviewedVerdict(t *testing.T) {
 	if err == nil {
 		t.Error("INCOMPLETE is accepted as the verdict of one change request")
 	}
+}
+
+// TestCascadeVerdictS2 finalizes every change request of the S2 cascade
+// with its scenario judgement: core-lib S2 and S1 are BLOCKED, so the
+// cascade is BLOCKED, and it still reports what made it incomplete.
+func TestCascadeVerdictS2(t *testing.T) {
+	res, err := Resolve(context.Background(), loadRecorded(t, "S2", "S4"), refs.Compose(github.Registry{}, gitlab.Registry{}), k(t, sandbox+"sample-app#7"), core.DefaultLimits())
+	if err != nil {
+		t.Fatal(err)
+	}
+	verdicts := map[core.Key]core.Verdict{}
+	var each []string
+	for _, cr := range res.Order {
+		repo := cr.Project[strings.LastIndex(cr.Project, "/")+1:]
+		fin, err := core.Finalize(scenario.Review(t, repo, cr.Number, "S2", "S4"), scenario.Judgement(t, "S2", repo, cr.Number))
+		if err != nil {
+			t.Fatalf("%s: %v", cr, err)
+		}
+		verdicts[cr] = fin.Verdict
+		each = append(each, short(cr)+" "+string(fin.Verdict))
+	}
+	check(t, "verdicts", each, []string{"feature-lib#1 OK", "kmp-shared#2 OK", "core-lib#3 BLOCKED", "sample-app#2 BLOCKED", "sample-app#7 OK"})
+	got, causes, err := res.Verdict(verdicts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != core.Blocked {
+		t.Errorf("cascade verdict %s, want BLOCKED", got)
+	}
+	check(t, "causes", causeList(causes), []string{"blocked core-lib#3", "blocked sample-app#2", "other-platform sample-app#1", "not-found core-lib#9999"})
 }
