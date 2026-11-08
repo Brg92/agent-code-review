@@ -17,10 +17,11 @@ const (
 	schemaIDs = "https://github.com/Brg92/agent-code-review/schemas/"
 )
 
-// moreValidExamples lists testdata outside testdata/contracts that must
-// match a schema.
+// moreValidExamples lists files outside testdata/contracts that must match
+// a schema.
 var moreValidExamples = map[string][]string{
-	"judgement": {"testdata/scenarios/*/judgements/*.json"},
+	"judgement":   {"testdata/scenarios/*/judgements/*.json"},
+	"lexer-table": {"packs/*/lexer/*.json"},
 }
 
 func schemaFiles(t *testing.T) map[string]string {
