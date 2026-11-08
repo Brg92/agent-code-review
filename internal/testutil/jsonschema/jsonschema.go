@@ -177,7 +177,7 @@ func (sc *Schema) check(schema any, at string) error {
 					return err
 				}
 			}
-		case k == "additionalProperties" || k == "items":
+		case k == "additionalProperties" || k == "items" || k == "if" || k == "then" || k == "else":
 			if err := sc.check(v, here); err != nil {
 				return err
 			}
@@ -272,6 +272,18 @@ func (s *Schema) validate(schema, v any, path string, issues *[]Issue) {
 
 	if ref, ok := sch["$ref"].(string); ok {
 		s.validate(s.refs[ref], v, path, issues)
+	}
+
+	if cond, ok := sch["if"]; ok {
+		var probe []Issue
+		s.validate(cond, v, path, &probe)
+		branch := "then"
+		if len(probe) > 0 {
+			branch = "else"
+		}
+		if next, ok := sch[branch]; ok {
+			s.validate(next, v, path, issues)
+		}
 	}
 
 	if t, ok := sch["type"]; ok && !hasType(t, v) {

@@ -4,7 +4,10 @@
   "forge": "github",
   "root": "github:github.com/acr-plugin-sandbox/sample-app#2",
   "phase": "resolved",
-  "cascadeLimit": 2,
+  "cascade": {
+    "maxDepth": 3,
+    "maxChangeRequests": 10
+  },
   "createdAt": "2026-11-02T09:00:00Z",
   "updatedAt": "2026-11-02T09:00:01Z",
   "changeRequests": [

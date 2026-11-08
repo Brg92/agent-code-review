@@ -17,7 +17,7 @@
     "noise",
     "publicApi",
     "consumers",
-    "cascadeLimit",
+    "cascade",
     "files",
     "notes"
   ],
@@ -86,10 +86,22 @@
         "$ref": "#/$defs/projectKey"
       }
     },
-    "cascadeLimit": {
-      "description": "Deepest level of Related Changes to review.",
-      "type": "integer",
-      "minimum": 0
+    "cascade": {
+      "description": "Cascade limits the repository sets; an absent field takes its default. They are used only when the review starts from this repository.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxDepth": {
+          "description": "Deepest level of Related Changes that is reviewed; the root is level 0. The default is 3.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxChangeRequests": {
+          "description": "Most change requests reviewed in one cascade, the root included, counted in discovery order. The default is 10.",
+          "type": "integer",
+          "minimum": 1
+        }
+      }
     },
     "files": {
       "description": "Criteria files that were read, relative to the repository root.",

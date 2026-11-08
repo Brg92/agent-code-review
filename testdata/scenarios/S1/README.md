@@ -33,8 +33,8 @@ These already exist on `main` and are unchanged by the pull request.
 | `data/ProfileStore.kt` | `prefs.getString("display_name", null)!!` | `kotlin.not-null-assertion` | yes, when no name is stored | context line inside a hunk |
 | `data/SessionRepository.kt` | `GlobalScope.launch {` in `warmUp()` | `coroutines.global-scope` | no | outside the hunks |
 
-Pre-existing defects are reported apart from new findings and do not change the verdict on their own.
+Pre-existing defects are reported apart from new findings. They change the verdict only when they are a crash.
 
 ## Expected verdict
 
-**BLOCKED**, because of the two BLOCKERs.
+**BLOCKED**, because of the two BLOCKERs. The pre-existing crash in `ProfileStore.kt` would block it on its own as well.

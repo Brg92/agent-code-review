@@ -4,7 +4,10 @@
   "forge": "bitbucket",
   "root": "github:github.com/acr-plugin-sandbox/sample-app#7",
   "phase": "finalized",
-  "cascadeLimit": 2,
+  "cascade": {
+    "maxDepth": 2,
+    "maxChangeRequests": 10
+  },
   "createdAt": "2026-11-02T10:15:00Z",
   "updatedAt": "2026-11-02T10:42:07Z",
   "changeRequests": [
@@ -86,7 +89,7 @@
       "depth": 3,
       "parent": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
       "status": "skipped",
-      "skipReason": "over-limit"
+      "skipReason": "over-depth-limit"
     }
   ]
 }

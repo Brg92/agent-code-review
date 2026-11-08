@@ -11,7 +11,7 @@
     "forge",
     "root",
     "phase",
-    "cascadeLimit",
+    "cascade",
     "createdAt",
     "updatedAt",
     "changeRequests"
@@ -47,10 +47,26 @@
         "published"
       ]
     },
-    "cascadeLimit": {
-      "description": "Deepest level of Related Changes that is reviewed; the root is level 0.",
-      "type": "integer",
-      "minimum": 0
+    "cascade": {
+      "description": "Cascade limits actually used in this run, set by the root change request's repository.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxDepth",
+        "maxChangeRequests"
+      ],
+      "properties": {
+        "maxDepth": {
+          "description": "Deepest level of Related Changes that is reviewed; the root is level 0.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxChangeRequests": {
+          "description": "Most change requests reviewed in one cascade, the root included, counted in discovery order.",
+          "type": "integer",
+          "minimum": 1
+        }
+      }
     },
     "createdAt": {
       "description": "When the run started.",
@@ -61,7 +77,7 @@
       "$ref": "#/$defs/timestamp"
     },
     "changeRequests": {
-      "description": "The root and every Related Changes entry found from it, including the ones that are skipped, in discovery order.",
+      "description": "The root and every Related Changes entry found from it, including the ones that are skipped, in discovery order. Related Changes lines that cannot be parsed are not listed here; they are reported in the summary and make the cascade INCOMPLETE.",
       "type": "array",
       "items": {
         "description": "One change request of the cascade.",
@@ -97,13 +113,14 @@
             ]
           },
           "skipReason": {
-            "description": "Why a skipped entry is not reviewed: already-done is a ticked entry, over-limit is deeper than cascadeLimit.",
+            "description": "Why a skipped entry is not reviewed: already-done is a ticked entry; over-depth-limit is deeper than cascade.maxDepth; over-count-limit comes after cascade.maxChangeRequests change requests, the root included, in discovery order. over-depth-limit, over-count-limit, other-platform and not-found make the cascade INCOMPLETE; already-done, cycle, self-reference and not-a-change-request do not.",
             "enum": [
               "already-done",
               "not-a-change-request",
               "not-found",
               "other-platform",
-              "over-limit",
+              "over-depth-limit",
+              "over-count-limit",
               "cycle",
               "self-reference"
             ]

@@ -37,7 +37,7 @@
       }
     },
     "preExisting": {
-      "description": "Defects that already exist on the target branch. They are reported apart and do not change the verdict on their own.",
+      "description": "Defects that already exist on the target branch. They are reported apart and change the verdict only when they are a crash.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/finding"

@@ -14,7 +14,7 @@
   "disabledRules": [],
   "publicApi": [],
   "consumers": [],
-  "cascadeLimit": 2,
+  "cascade": {},
   "files": [
     ".agent-code-review/config.json",
     ".agent-code-review/criteria.md"

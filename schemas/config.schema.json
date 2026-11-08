@@ -46,10 +46,22 @@
         "$ref": "#/$defs/glob"
       }
     },
-    "cascadeLimit": {
-      "description": "Deepest level of Related Changes to review from this repository; the root is level 0. The default is 2.",
-      "type": "integer",
-      "minimum": 0
+    "cascade": {
+      "description": "Limits of the Related Changes cascade. They apply when the review starts from a change request of this repository; the root change request's repository sets the limits for the whole cascade.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxDepth": {
+          "description": "Deepest level of Related Changes that is reviewed; the root is level 0. The default is 3.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxChangeRequests": {
+          "description": "Most change requests reviewed in one cascade, the root included, counted in discovery order. The default is 10.",
+          "type": "integer",
+          "minimum": 1
+        }
+      }
     }
   },
   "$defs": {

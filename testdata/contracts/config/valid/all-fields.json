@@ -11,5 +11,8 @@
   "noise": [
     "iosApp/**/*.xcassets/**"
   ],
-  "cascadeLimit": 1
+  "cascade": {
+    "maxDepth": 1,
+    "maxChangeRequests": 5
+  }
 }
