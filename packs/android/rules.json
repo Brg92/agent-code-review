@@ -1938,6 +1938,382 @@
           "both"
         ]
       }
+    },
+    {
+      "id": "state-without-remember",
+      "title": "State without remember",
+      "severity": "BLOCKER",
+      "description": "State created inside a composable is wrapped in `remember`: without it the value is created again on every recomposition and never changes.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "state"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "remember-missing-key",
+      "title": "remember without a key",
+      "severity": "MAJOR",
+      "description": "A `remember` that derives from a parameter takes that parameter as a key, otherwise it keeps a stale value when the input changes.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "state"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "state-not-hoisted",
+      "title": "State not hoisted",
+      "severity": "MAJOR",
+      "description": "A composable that only displays takes state as a parameter and emits events upward; internal state belongs to the owner. A stateful leaf cannot be reused or previewed.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "state"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "exposed-mutable-state",
+      "title": "MutableState exposed",
+      "severity": "MAJOR",
+      "description": "A ViewModel exposes Compose `State`, never `MutableState`. Exposed flows are covered by `exposed-mutable-flow`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "state"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "unstable-parameter",
+      "title": "Unstable parameter",
+      "severity": "MINOR",
+      "description": "Parameters are stable types (immutable data classes, primitives): an unstable one defeats recomposition skipping.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "performance"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "side-effect-in-composition",
+      "title": "Side effect in the composable body",
+      "severity": "BLOCKER",
+      "description": "No I/O, navigation, analytics or state mutation directly in the body of a composable: it runs on every recomposition, an unknown number of times. Use `LaunchedEffect`, `SideEffect` or an event callback.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose"
+      ],
+      "group": "Compose: Side effects",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "launched-effect-key",
+      "title": "LaunchedEffect with a wrong key",
+      "severity": "MAJOR",
+      "description": "The keys of a `LaunchedEffect` are the values that should restart it. `Unit` where a parameter matters means the effect never runs again on change; a key that changes where it does not matter restarts it all the time.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose"
+      ],
+      "group": "Compose: Side effects",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "missing-disposable-effect",
+      "title": "Registration without DisposableEffect",
+      "severity": "MAJOR",
+      "description": "A subscription, listener or callback registered from a composable is removed in the `onDispose` of a `DisposableEffect`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "memory"
+      ],
+      "group": "Compose: Side effects",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "collect-without-lifecycle",
+      "title": "collectAsState without lifecycle",
+      "severity": "MAJOR",
+      "description": "Collect flows with `collectAsStateWithLifecycle()`, not plain `collectAsState()`: the latter keeps collecting while the screen is in the background.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "lifecycle"
+      ],
+      "group": "Compose: Side effects",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "logic-in-composable",
+      "title": "Business logic in a composable",
+      "severity": "MAJOR",
+      "description": "No business logic in a composable: it belongs in the ViewModel or below.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "architecture"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "viewmodel-passed-down",
+      "title": "ViewModel passed to a leaf composable",
+      "severity": "MAJOR",
+      "description": "A ViewModel is not passed into leaf composables: it couples them to a screen and makes them impossible to preview.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "architecture"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "context-captured",
+      "title": "Context captured in a composable",
+      "severity": "MAJOR",
+      "description": "`LocalContext` is read where it is needed, not captured in a long-lived object or a remembered lambda.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "memory"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "missing-modifier-param",
+      "title": "Public composable without a Modifier",
+      "severity": "MINOR",
+      "description": "A public composable accepts a `Modifier` parameter, with a default, as the first optional one.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "modifier-not-forwarded",
+      "title": "Modifier not applied",
+      "severity": "MINOR",
+      "description": "The `Modifier` parameter is applied to the root of the composable, not dropped.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "heavy-work-in-composition",
+      "title": "Heavy work in the composable body",
+      "severity": "MAJOR",
+      "description": "Sorting, filtering, parsing and formatting go in `remember` or `derivedStateOf`, or upstream, not inline in the body.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "performance"
+      ],
+      "group": "Compose: Performance",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "lazy-list-no-key",
+      "title": "Lazy list items without a key",
+      "severity": "MAJOR",
+      "description": "The items of a `LazyColumn` or `LazyRow` declare a stable `key`, otherwise every insertion recomposes and loses item state.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "performance"
+      ],
+      "group": "Compose: Performance",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "whole-list-in-lazy-item",
+      "title": "Whole list inside one lazy item",
+      "severity": "MAJOR",
+      "description": "A lazy list emits its items with `items(...)`, not a `Column` inside one item: the second form renders everything at once.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "performance"
+      ],
+      "group": "Compose: Performance",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-string",
+      "title": "User-visible text in the code",
+      "severity": "MINOR",
+      "description": "User-visible text comes from resources.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "accessibility"
+      ],
+      "group": "Compose: Accessibility and resources",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "compose-missing-content-description",
+      "title": "Image without content description",
+      "severity": "MINOR",
+      "description": "A meaningful `Image` or `Icon` carries a content description; a decorative one passes `null` explicitly.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "accessibility"
+      ],
+      "group": "Compose: Accessibility and resources",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
     }
   ]
 }
