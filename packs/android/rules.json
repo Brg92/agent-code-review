@@ -1316,6 +1316,342 @@
           }
         ]
       }
+    },
+    {
+      "id": "strict-version-pin",
+      "title": "Strict dependency version",
+      "severity": "BLOCKER",
+      "description": "No strict version on any dependency: the `!!` suffix (`\"group:name:1.2.3!!\"`), `version { strictly(...) }` in a build script, or `{ strictly = \"...\" }` in a version catalog. A strict version overrides every other request for that module in the whole build; another module asking for a different version is silently forced to this one, or the build fails to resolve. Declare the plain version. A `-SNAPSHOT` version is allowed.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "group": "Dependencies",
+      "match": {
+        "files": {
+          "include": [
+            "**/*.gradle",
+            "**/*.gradle.kts",
+            "**/*.toml"
+          ],
+          "tests": "include"
+        },
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": [
+                  "string",
+                  "raw-string"
+                ],
+                "regexp": "!![\"']+$"
+              }
+            ]
+          },
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "strictly"
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  "(",
+                  "="
+                ]
+              }
+            ]
+          },
+          {
+            "languages": [
+              "groovy"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "strictly"
+              },
+              {
+                "kind": [
+                  "string",
+                  "raw-string"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dependency-version-bump",
+      "title": "Dependency version changed",
+      "severity": "MAJOR",
+      "description": "No dependency version change inside a feature branch without prior agreement: it affects every module and, in a library, every consumer, and it is invisible in a diff that is about something else.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "group": "Dependencies"
+    },
+    {
+      "id": "new-dependency",
+      "title": "New third-party dependency",
+      "severity": "MAJOR",
+      "description": "A new third-party dependency needs prior agreement. In a library every consumer inherits it. Using `kapt` instead of KSP is a known exception and is never reported.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "group": "Dependencies"
+    },
+    {
+      "id": "nested-module-import",
+      "title": "Shared library imports another",
+      "severity": "MAJOR",
+      "description": "No shared library imports another shared library without agreement: it multiplies the coupling every consumer inherits.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "group": "Dependencies"
+    },
+    {
+      "id": "naming-convention",
+      "title": "Naming convention broken",
+      "severity": "MINOR",
+      "description": "`PascalCase` for types, `camelCase` for functions and properties, `UPPER_SNAKE_CASE` for constants.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "naming"
+      ],
+      "group": "Naming and documentation"
+    },
+    {
+      "id": "non-descriptive-name",
+      "title": "Name does not say what it is",
+      "severity": "MINOR",
+      "description": "Names say what the thing is, in English.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "naming"
+      ],
+      "group": "Naming and documentation"
+    },
+    {
+      "id": "missing-kdoc",
+      "title": "Declaration without KDoc",
+      "severity": "MINOR",
+      "needsJudgement": true,
+      "description": "MAJOR on a public symbol of a library (profile library) or of a module other modules call; MINOR otherwise. Public types, public functions and non-obvious properties are documented. In a library the documentation states preconditions, threading and what it throws: consumers read the documentation, not the source.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "docs"
+      ],
+      "group": "Naming and documentation",
+      "match": {
+        "detector": "missing-doc",
+        "lines": "added",
+        "declarations": [
+          "fun",
+          "val",
+          "var",
+          "class",
+          "interface",
+          "object"
+        ],
+        "modifiers": [
+          "public",
+          "open",
+          "abstract",
+          "final",
+          "data",
+          "sealed",
+          "inline",
+          "value",
+          "suspend",
+          "operator",
+          "infix",
+          "tailrec",
+          "const",
+          "lateinit",
+          "enum"
+        ],
+        "skipModifiers": [
+          "private",
+          "internal",
+          "protected",
+          "override"
+        ],
+        "types": [
+          "class",
+          "interface",
+          "object"
+        ],
+        "notAfter": [
+          "::"
+        ],
+        "annotation": "@",
+        "skipAnnotations": [
+          "Inject"
+        ],
+        "header": {
+          "open": "(",
+          "close": ")"
+        },
+        "body": {
+          "open": "{",
+          "close": "}"
+        }
+      }
+    },
+    {
+      "id": "over-commenting",
+      "title": "Comment that adds nothing",
+      "severity": "MINOR",
+      "description": "Inline comments only where the logic is not obvious.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "docs"
+      ],
+      "group": "Naming and documentation"
+    },
+    {
+      "id": "hardcoded-secret",
+      "title": "Secret in the source",
+      "severity": "BLOCKER",
+      "description": "No credentials, API keys, tokens or environment URLs in the source: they come from build configuration or a secure store.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "sensitive-logging",
+      "title": "Sensitive data logged",
+      "severity": "BLOCKER",
+      "description": "No logging of credentials, session tokens, personal data or payment payloads.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "unvalidated-external-input",
+      "title": "External input not validated",
+      "severity": "MAJOR",
+      "description": "Data that crosses a trust boundary (network, IPC, deep link, WebView bridge, the public entry point of a library) is validated before use.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "webview-bridge-exposure",
+      "title": "WebView bridge exposes too much",
+      "severity": "BLOCKER",
+      "description": "A JavaScript bridge exposes the minimum surface, never arbitrary execution or sensitive data, and validates everything that arrives from the page.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "insecure-storage",
+      "title": "Sensitive value in plain storage",
+      "severity": "MAJOR",
+      "description": "Sensitive values are not written to plain preferences or files.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "missing-tests",
+      "title": "Missing unit tests",
+      "severity": "MAJOR",
+      "description": "Unit tests for every ViewModel, repository, mapper or helper added or changed and, in a library, for every public entry point added or changed. It is checked on the whole change request, not on one file.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "group": "Tests"
+    },
+    {
+      "id": "empty-test-stub",
+      "title": "Empty test stub",
+      "severity": "MAJOR",
+      "description": "No scaffolded test is left empty: it reports green while covering nothing.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "group": "Tests"
+    },
+    {
+      "id": "undescriptive-test-name",
+      "title": "Test name says nothing",
+      "severity": "MINOR",
+      "description": "The name of a test states what is tested and the expected outcome, as in `shouldReturnX_whenY()`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "group": "Tests"
+    },
+    {
+      "id": "test-asserts-nothing",
+      "title": "Test without assertions",
+      "severity": "MAJOR",
+      "description": "Every test asserts on a result, not only that no exception was thrown.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "group": "Tests"
     }
   ]
 }
