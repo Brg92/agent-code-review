@@ -6,7 +6,7 @@
   "findings": [
     {
       "id": "fd8c4f9e37b129d1",
-      "rule": "kotlin.not-null-assertion",
+      "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "side": "RIGHT",

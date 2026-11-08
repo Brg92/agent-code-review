@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "defaults": {
+    "files": {
+      "exclude": [
+        "**/*.kts"
+      ],
+      "tests": "skip"
+    },
+    "ignoreLines": [
+      {
+        "tokens": [
+          {
+            "kind": "word",
+            "oneOf": [
+              "import",
+              "package"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "generic-exception",
+      "title": "Catching Exception or Throwable",
+      "severity": "MAJOR",
+      "description": "Catch specific exceptions, not `Exception` or `Throwable`, unless the boundary handles everything.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "errors"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "kind": "identifier"
+              },
+              {
+                "kind": "punct",
+                "text": ":"
+              },
+              {
+                "repeat": []
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "Exception",
+                  "Throwable"
+                ]
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word",
+                    "text": "final"
+                  }
+                ],
+                "max": 1
+              },
+              {
+                "repeat": [
+                  {
+                    "repeat": [
+                      {
+                        "kind": "word"
+                      },
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "|"
+                  }
+                ]
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "Exception",
+                  "Throwable"
+                ]
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "punct",
+                    "text": "|"
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "word"
+                      },
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier"
+                  }
+                ]
+              },
+              {
+                "kind": "identifier"
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

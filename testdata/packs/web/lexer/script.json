@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "language": "script",
+  "lineComment": "//",
+  "strings": [
+    {
+      "delimiter": "'",
+      "escape": "\\"
+    }
+  ],
+  "keywords": [
+    "function",
+    "var"
+  ],
+  "softKeywords": [],
+  "brackets": [
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "{",
+      "close": "}"
+    }
+  ]
+}

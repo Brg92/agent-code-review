@@ -22,13 +22,15 @@
       "extensions": [
         ".kt",
         ".kts"
-      ]
+      ],
+      "lexer": "lexer/kotlin.json"
     },
     {
       "id": "java",
       "extensions": [
         ".java"
-      ]
+      ],
+      "lexer": "lexer/java.json"
     }
   ],
   "profiles": [
@@ -36,7 +38,6 @@
     "library"
   ],
   "rules": "../shared/rules.json",
-  "lexer": "lexer.json",
   "checklists": [
     {
       "profile": "app",

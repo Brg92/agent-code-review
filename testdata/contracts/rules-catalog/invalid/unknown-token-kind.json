@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "defaults": {
+    "files": {
+      "exclude": [
+        "**/*.kts"
+      ],
+      "tests": "skip"
+    },
+    "ignoreLines": [
+      {
+        "tokens": [
+          {
+            "kind": "word",
+            "oneOf": [
+              "import",
+              "package"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "global-scope",
+      "title": "Coroutine launched in GlobalScope",
+      "severity": "BLOCKER",
+      "description": "Work in `GlobalScope` escapes every lifecycle and cannot be cancelled.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "comment",
+                "text": "GlobalScope"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

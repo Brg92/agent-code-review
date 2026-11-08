@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "web",
+  "name": "Web",
+  "description": "Synthetic pack for tests: a web front end in a scripting language.",
+  "detect": [
+    {
+      "path": "package.json"
+    }
+  ],
+  "languages": [
+    {
+      "id": "script",
+      "extensions": [
+        ".js",
+        ".mjs"
+      ],
+      "lexer": "lexer/script.json"
+    }
+  ],
+  "profiles": [
+    "app"
+  ],
+  "rules": "rules.json",
+  "checklists": [
+    {
+      "profile": "app",
+      "path": "checklists/app.md"
+    }
+  ],
+  "templates": [],
+  "noise": [
+    "dist/**"
+  ],
+  "generatedMarkers": []
+}

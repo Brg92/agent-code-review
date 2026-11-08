@@ -4,7 +4,7 @@
   "headSha": "edf5ce35fec83754d0155405db423ddf92d85709",
   "findings": [
     {
-      "rule": "kotlin.not-null-assertion",
+      "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "side": "RIGHT",

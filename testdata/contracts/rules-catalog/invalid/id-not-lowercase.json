@@ -3,7 +3,7 @@
   "pack": "android",
   "rules": [
     {
-      "id": "coroutines.run-blocking",
+      "id": "run-blocking-prod",
       "title": "runBlocking on the main thread",
       "severity": "BLOCKER",
       "description": "`runBlocking` blocks the calling thread; on the main thread it freezes the UI and can trigger an ANR.",
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "id": "coroutines.global-scope",
+      "id": "global-scope",
       "title": "Coroutine launched in GlobalScope",
       "severity": "MAJOR",
       "description": "Work launched in `GlobalScope` is never cancelled and outlives the component that started it.",

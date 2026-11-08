@@ -8,7 +8,7 @@
     {
       "id": 1,
       "kind": "approve",
-      "body": "**BLOCKER** `coroutines.run-blocking`: runBlocking in onCreate blocks the main thread until the session refresh completes.",
+      "body": "**BLOCKER** `run-blocking-prod`: runBlocking in onCreate blocks the main thread until the session refresh completes.",
       "findingId": "3d211532409505ba",
       "path": "app/src/main/java/com/example/sample/MainActivity.kt",
       "side": "RIGHT",
@@ -17,7 +17,7 @@
     {
       "id": 2,
       "kind": "review-comment",
-      "body": "**MAJOR** `coroutines.global-scope`: prefetch() launches in GlobalScope.",
+      "body": "**MAJOR** `global-scope`: prefetch() launches in GlobalScope.",
       "findingId": "6b982c141107316e",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",

@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "defaults": {
+    "files": {
+      "exclude": [
+        "**/*.kts"
+      ],
+      "tests": "skip"
+    },
+    "ignoreLines": [
+      {
+        "tokens": [
+          {
+            "kind": "word",
+            "oneOf": [
+              "import",
+              "package"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "missing-kdoc",
+      "title": "Declaration without KDoc",
+      "severity": "MINOR",
+      "needsJudgement": true,
+      "description": "MAJOR on a public symbol of a library or of a module other modules call, MINOR otherwise.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "docs"
+      ],
+      "match": {
+        "detector": "missing-doc",
+        "lines": "added",
+        "modifiers": [
+          "public",
+          "open",
+          "abstract",
+          "final",
+          "data",
+          "sealed",
+          "inline",
+          "value",
+          "suspend",
+          "operator",
+          "infix",
+          "tailrec",
+          "const",
+          "lateinit",
+          "enum"
+        ],
+        "skipModifiers": [
+          "private",
+          "internal",
+          "protected",
+          "override"
+        ],
+        "types": [
+          "class",
+          "interface",
+          "object"
+        ],
+        "notAfter": [
+          "::"
+        ],
+        "annotation": "@",
+        "skipAnnotations": [
+          "Inject"
+        ],
+        "header": {
+          "open": "(",
+          "close": ")"
+        },
+        "body": {
+          "open": "{",
+          "close": "}"
+        }
+      }
+    }
+  ]
+}

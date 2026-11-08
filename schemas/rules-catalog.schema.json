@@ -19,6 +19,24 @@
       "description": "Pack the catalog belongs to.",
       "$ref": "#/$defs/packId"
     },
+    "defaults": {
+      "description": "Settings shared by the rules of the catalog.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "files": {
+          "description": "Files of rules that do not set their own.",
+          "$ref": "#/$defs/files"
+        },
+        "ignoreLines": {
+          "description": "Patterns matched from the first code token of a line; the lines they match are skipped by every rule of the catalog.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pattern"
+          }
+        }
+      }
+    },
     "rules": {
       "description": "Rules of the pack.",
       "type": "array",
@@ -45,8 +63,13 @@
             "pattern": "\\S"
           },
           "severity": {
-            "description": "Default severity; criteria may say more.",
+            "description": "Default severity; criteria may say more. A rule that needs judgement still declares it, as the severity the judgement starts from.",
             "$ref": "#/$defs/severity"
+          },
+          "needsJudgement": {
+            "description": "True if the rule only points at code to look at: its signals carry no severity, and the judgement decides whether there is a finding and how serious it is.",
+            "default": false,
+            "type": "boolean"
           },
           "description": {
             "description": "What the rule checks and why, in Markdown.",
@@ -57,8 +80,7 @@
             "description": "Languages the rule applies to; empty means all languages of the pack.",
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^[a-z0-9-]+$"
+              "$ref": "#/$defs/languageId"
             }
           },
           "tags": {
@@ -68,19 +90,475 @@
               "type": "string",
               "pattern": "^[a-z0-9-]+$"
             }
+          },
+          "match": {
+            "description": "What the rule matches mechanically. Absent: the rule is only judged, never matched.",
+            "$ref": "#/$defs/match"
           }
         }
       }
     }
   },
   "$defs": {
+    "bracketPair": {
+      "description": "A pair of brackets.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "open",
+        "close"
+      ],
+      "properties": {
+        "open": {
+          "description": "Opening character.",
+          "$ref": "#/$defs/lexerBracket"
+        },
+        "close": {
+          "description": "Closing character.",
+          "$ref": "#/$defs/lexerBracket"
+        }
+      }
+    },
+    "element": {
+      "description": "One element of a token pattern: a token, a gap, a repeated group, or alternatives.",
+      "type": "object",
+      "additionalProperties": false,
+      "if": {
+        "required": [
+          "gap"
+        ]
+      },
+      "then": {
+        "properties": {
+          "kind": false,
+          "text": false,
+          "oneOf": false,
+          "regexp": false,
+          "at": false,
+          "repeat": false,
+          "min": false,
+          "max": false,
+          "anyOf": false
+        }
+      },
+      "else": {
+        "if": {
+          "required": [
+            "repeat"
+          ]
+        },
+        "then": {
+          "properties": {
+            "kind": false,
+            "text": false,
+            "oneOf": false,
+            "regexp": false,
+            "at": false,
+            "gap": false,
+            "anyOf": false
+          }
+        },
+        "else": {
+          "if": {
+            "required": [
+              "anyOf"
+            ]
+          },
+          "then": {
+            "properties": {
+              "kind": false,
+              "text": false,
+              "oneOf": false,
+              "regexp": false,
+              "at": false,
+              "gap": false,
+              "repeat": false,
+              "min": false,
+              "max": false
+            }
+          },
+          "else": {
+            "properties": {
+              "min": false,
+              "max": false
+            }
+          }
+        }
+      },
+      "properties": {
+        "kind": {
+          "description": "Kind, or kinds, the token must have. Absent: any kind.",
+          "type": [
+            "string",
+            "array"
+          ],
+          "if": {
+            "type": "string"
+          },
+          "then": {
+            "$ref": "#/$defs/tokenKind"
+          },
+          "else": {
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/tokenKind"
+            }
+          }
+        },
+        "text": {
+          "description": "Exact text of the token.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "oneOf": {
+          "description": "Texts, one of which the token must have.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "regexp": {
+          "description": "RE2 regular expression the text of the token must contain a match of; anchor it to match the whole text. At most one of text, oneOf and regexp.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "at": {
+          "description": "True on the token the signal points at; by default, the first token of the match. At most one per pattern.",
+          "const": true
+        },
+        "gap": {
+          "description": "Skips as few tokens as needed for the rest of the pattern to match.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max": {
+              "description": "Most tokens skipped.",
+              "default": 64,
+              "type": "integer",
+              "minimum": 0
+            },
+            "balanced": {
+              "description": "True if the skipped tokens must open and close the brackets of the lexer table in pairs; the gap then never goes past a closing bracket it did not open.",
+              "default": false,
+              "type": "boolean"
+            },
+            "stopAt": {
+              "description": "Tokens the gap may not skip.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/tokenMatcher"
+              }
+            }
+          }
+        },
+        "repeat": {
+          "description": "A group of elements matched between min and max times, as many as possible.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/element"
+          }
+        },
+        "min": {
+          "description": "Fewest repetitions of repeat.",
+          "default": 0,
+          "type": "integer",
+          "minimum": 0
+        },
+        "max": {
+          "description": "Most repetitions of repeat. Absent: no limit.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "anyOf": {
+          "description": "Alternative sequences of elements, tried in order.",
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/element"
+            }
+          }
+        }
+      }
+    },
+    "files": {
+      "description": "Which files a rule runs on. All conditions must hold.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "include": {
+          "description": "Globs; the file must match one. Absent: every file of the rule languages.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/glob"
+          }
+        },
+        "exclude": {
+          "description": "Globs the file must not match.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/glob"
+          }
+        },
+        "tests": {
+          "description": "skip: not on the test files of the pack manifest; include: on every file; only: only on test files.",
+          "default": "skip",
+          "enum": [
+            "skip",
+            "include",
+            "only"
+          ]
+        },
+        "contains": {
+          "description": "Patterns, one of which must match somewhere in the file.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/pattern"
+          }
+        },
+        "notContains": {
+          "description": "Patterns none of which may match anywhere in the file.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pattern"
+          }
+        }
+      }
+    },
+    "glob": {
+      "description": "Path glob with forward slashes: '*' matches within a segment, '**' matches any number of segments.",
+      "type": "string",
+      "pattern": "^[^/\\\\]+(?:/[^/\\\\]+)*$"
+    },
+    "languageId": {
+      "description": "Language identifier, as in the languages of the pack manifest.",
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "lexerBracket": {
+      "description": "A single punctuation character: not blank, not a letter, digit or underscore.",
+      "type": "string",
+      "pattern": "^[^\\sA-Za-z0-9_]$"
+    },
+    "match": {
+      "description": "What a rule matches mechanically: token patterns or one generic detector.",
+      "type": "object",
+      "additionalProperties": false,
+      "if": {
+        "required": [
+          "detector"
+        ]
+      },
+      "then": {
+        "properties": {
+          "patterns": false,
+          "exclude": false
+        },
+        "if": {
+          "properties": {
+            "detector": {
+              "const": "line-length"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "max"
+          ],
+          "properties": {
+            "declarations": false,
+            "modifiers": false,
+            "skipModifiers": false,
+            "types": false,
+            "notAfter": false,
+            "annotation": false,
+            "skipAnnotations": false,
+            "header": false,
+            "body": false
+          }
+        },
+        "else": {
+          "required": [
+            "declarations",
+            "types",
+            "annotation",
+            "header",
+            "body"
+          ],
+          "properties": {
+            "max": false
+          }
+        }
+      },
+      "else": {
+        "required": [
+          "patterns"
+        ],
+        "properties": {
+          "max": false,
+          "declarations": false,
+          "modifiers": false,
+          "skipModifiers": false,
+          "types": false,
+          "notAfter": false,
+          "annotation": false,
+          "skipAnnotations": false,
+          "header": false,
+          "body": false
+        }
+      },
+      "properties": {
+        "patterns": {
+          "description": "Token patterns; a match of any of them is a signal.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/pattern"
+          }
+        },
+        "exclude": {
+          "description": "Patterns that cancel a signal whose token lies inside one of their matches.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pattern"
+          }
+        },
+        "files": {
+          "description": "Which files the rule runs on; replaces the files of the catalog defaults.",
+          "$ref": "#/$defs/files"
+        },
+        "lines": {
+          "description": "all: signals on any line; added: only on lines the change request adds.",
+          "default": "all",
+          "enum": [
+            "all",
+            "added"
+          ]
+        },
+        "detector": {
+          "description": "A generic detector instead of token patterns. line-length: lines longer than max runes. missing-doc: declarations at top level or directly in a type body with no doc comment right before them.",
+          "enum": [
+            "line-length",
+            "missing-doc"
+          ]
+        },
+        "max": {
+          "description": "line-length: longest allowed line, in runes, line break excluded.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "declarations": {
+          "description": "missing-doc: words that start a declaration.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "minItems": 1
+        },
+        "modifiers": {
+          "description": "missing-doc: words that may come between the annotations and the declaration word.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        },
+        "skipModifiers": {
+          "description": "missing-doc: modifiers that exempt the declaration.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        },
+        "types": {
+          "description": "missing-doc: declaration words that open a type, whose body holds members.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "minItems": 1
+        },
+        "notAfter": {
+          "description": "missing-doc: punctuation after which a type word does not declare a type, for example ::.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^\\S+$"
+          }
+        },
+        "annotation": {
+          "description": "missing-doc: punctuation that starts an annotation, for example @.",
+          "type": "string",
+          "pattern": "^\\S+$"
+        },
+        "skipAnnotations": {
+          "description": "missing-doc: annotation names that exempt the declaration.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        },
+        "header": {
+          "description": "missing-doc: brackets of the header of a type, whose contents are not members.",
+          "$ref": "#/$defs/bracketPair"
+        },
+        "body": {
+          "description": "missing-doc: brackets of a body.",
+          "$ref": "#/$defs/bracketPair"
+        }
+      }
+    },
     "packId": {
       "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
       "type": "string",
       "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
+    "pattern": {
+      "description": "A sequence of elements matched against consecutive code tokens of a file.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tokens"
+      ],
+      "properties": {
+        "languages": {
+          "description": "Languages the pattern applies to, among those of the rule. Absent: all of them.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/languageId"
+          }
+        },
+        "tokens": {
+          "description": "Elements of the pattern.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/element"
+          }
+        }
+      }
+    },
     "ruleId": {
-      "description": "Rule identifier: lowercase dot-separated words, for example kotlin.not-null-assertion.",
+      "description": "Rule identifier: lowercase words joined by hyphens, optionally in dot-separated groups, for example no-double-bang.",
       "type": "string",
       "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
     },
@@ -92,6 +570,66 @@
         "MINOR",
         "INFO"
       ]
+    },
+    "tokenKind": {
+      "description": "Kind of a code token: identifier, keyword, word (an identifier or a keyword, soft keywords included), number, string, raw-string, char, punct, or any. Comments are never matched.",
+      "enum": [
+        "identifier",
+        "keyword",
+        "word",
+        "number",
+        "string",
+        "raw-string",
+        "char",
+        "punct",
+        "any"
+      ]
+    },
+    "tokenMatcher": {
+      "description": "Conditions on one token; all must hold.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "description": "Kind, or kinds, the token must have. Absent: any kind.",
+          "type": [
+            "string",
+            "array"
+          ],
+          "if": {
+            "type": "string"
+          },
+          "then": {
+            "$ref": "#/$defs/tokenKind"
+          },
+          "else": {
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/tokenKind"
+            }
+          }
+        },
+        "text": {
+          "description": "Exact text of the token.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "oneOf": {
+          "description": "Texts, one of which the token must have.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "regexp": {
+          "description": "RE2 regular expression the text of the token must contain a match of; anchor it to match the whole text. At most one of text, oneOf and regexp.",
+          "type": "string",
+          "pattern": "\\S"
+        }
+      }
     }
   }
 }

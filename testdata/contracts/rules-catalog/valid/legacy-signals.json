@@ -1,0 +1,931 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "defaults": {
+    "files": {
+      "exclude": [
+        "**/*.kts"
+      ],
+      "tests": "skip"
+    },
+    "ignoreLines": [
+      {
+        "tokens": [
+          {
+            "kind": "word",
+            "oneOf": [
+              "import",
+              "package"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "strict-version-pin",
+      "title": "Strict dependency version",
+      "severity": "BLOCKER",
+      "description": "A strict version (`!!`, `strictly`) overrides every other request for the module in the whole build. Declare the plain version.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "match": {
+        "files": {
+          "include": [
+            "**/*.gradle",
+            "**/*.gradle.kts",
+            "**/*.versions.toml",
+            "**/gradle.properties"
+          ],
+          "tests": "include"
+        },
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": [
+                  "string",
+                  "raw-string"
+                ],
+                "regexp": "!![\"']+$"
+              }
+            ]
+          },
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "strictly"
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  "(",
+                  "="
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "new-live-data",
+      "title": "LiveData in new code",
+      "severity": "MAJOR",
+      "description": "Use `StateFlow` or `SharedFlow` instead of `LiveData`, `MutableLiveData` or `MediatorLiveData`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "state"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "regexp": "^(Mutable|Mediator)?LiveData$"
+              },
+              {
+                "kind": "punct",
+                "text": "<"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "local-broadcast-manager",
+      "title": "In-process broadcasts",
+      "severity": "MAJOR",
+      "description": "Use a Flow or a Channel instead of `LocalBroadcastManager` or a `BroadcastReceiver` for in-process communication.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "state"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "LocalBroadcastManager"
+              }
+            ]
+          },
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": ":"
+              },
+              {
+                "kind": "identifier",
+                "text": "BroadcastReceiver"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "extends"
+              },
+              {
+                "kind": "identifier",
+                "text": "BroadcastReceiver"
+              }
+            ]
+          },
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "registerReceiver"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "find-view-by-id",
+      "title": "findViewById",
+      "severity": "MAJOR",
+      "description": "Use view binding instead of `findViewById`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "views"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "findViewById"
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  "<",
+                  "("
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "global-scope",
+      "title": "Coroutine launched in GlobalScope",
+      "severity": "BLOCKER",
+      "description": "Work in `GlobalScope` escapes every lifecycle and cannot be cancelled.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "GlobalScope"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "launch-when-started",
+      "title": "launchWhen* coroutine builders",
+      "severity": "BLOCKER",
+      "description": "`launchWhenCreated`, `launchWhenStarted` and `launchWhenResumed` suspend work instead of cancelling it; use `repeatOnLifecycle`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "regexp": "^launchWhen(Created|Started|Resumed)$"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "async-task",
+      "title": "AsyncTask",
+      "severity": "MAJOR",
+      "description": "`AsyncTask` is deprecated and leaks the enclosing instance.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "concurrency"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "AsyncTask"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "lateinit-binding",
+      "title": "lateinit view binding",
+      "severity": "MAJOR",
+      "description": "A `lateinit var` binding outlives the view; use a nullable backing property cleared in `onDestroyView`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "views"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "lateinit"
+              },
+              {
+                "kind": "word",
+                "text": "var"
+              },
+              {
+                "kind": "identifier",
+                "regexp": "[Bb]inding$"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "full-list-refresh",
+      "title": "Full list refresh",
+      "severity": "MAJOR",
+      "description": "Use `DiffUtil` or Paging instead of `notifyDataSetChanged()`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "performance"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "notifyDataSetChanged"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-blocking-prod",
+      "title": "runBlocking in production code",
+      "severity": "BLOCKER",
+      "description": "`runBlocking` blocks the calling thread; on the main thread it is an ANR.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "runBlocking"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-exception",
+      "title": "Catching Exception or Throwable",
+      "severity": "MAJOR",
+      "description": "Catch specific exceptions, not `Exception` or `Throwable`, unless the boundary handles everything.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "errors"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "kind": "identifier"
+              },
+              {
+                "kind": "punct",
+                "text": ":"
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "Exception",
+                  "Throwable"
+                ]
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word",
+                    "text": "final"
+                  }
+                ],
+                "max": 1
+              },
+              {
+                "repeat": [
+                  {
+                    "repeat": [
+                      {
+                        "kind": "word"
+                      },
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "|"
+                  }
+                ]
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "Exception",
+                  "Throwable"
+                ]
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "punct",
+                    "text": "|"
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "word"
+                      },
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier"
+                  }
+                ]
+              },
+              {
+                "kind": "identifier"
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-dispatcher",
+      "title": "Hard-coded coroutine dispatcher",
+      "severity": "MAJOR",
+      "description": "Inject dispatchers so the code stays testable.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "Dispatchers"
+              },
+              {
+                "kind": "punct",
+                "text": "."
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "IO",
+                  "Default",
+                  "Main",
+                  "Unconfined"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "no-double-bang",
+      "title": "Not-null assertion",
+      "severity": "MAJOR",
+      "needsJudgement": true,
+      "description": "BLOCKER when the value comes from outside the process or the user, MAJOR otherwise. The ViewBinding accessor `get() = _binding!!` is not reported.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "nullability"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "!!"
+              }
+            ]
+          }
+        ],
+        "exclude": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "get"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              },
+              {
+                "kind": "punct",
+                "text": "="
+              },
+              {
+                "kind": "identifier",
+                "regexp": "^_\\w*[Bb]inding$"
+              },
+              {
+                "kind": "punct",
+                "text": "!!"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "empty-catch",
+      "title": "Empty catch block",
+      "severity": "BLOCKER",
+      "description": "An error that vanishes is a bug that will be diagnosed twice.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "errors"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "gap": {
+                  "balanced": true
+                }
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              },
+              {
+                "kind": "punct",
+                "text": "{"
+              },
+              {
+                "kind": "punct",
+                "text": "}"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "line-too-long",
+      "title": "Line too long",
+      "severity": "MINOR",
+      "description": "Lines within the configured length.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "style"
+      ],
+      "match": {
+        "detector": "line-length",
+        "max": 100,
+        "lines": "added"
+      }
+    },
+    {
+      "id": "field-injection",
+      "title": "Field injection",
+      "severity": "MAJOR",
+      "description": "Constructor injection over field injection. Hilt entry points, which need field injection, are not reported.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "match": {
+        "files": {
+          "exclude": [
+            "**/*.kts"
+          ],
+          "notContains": [
+            {
+              "tokens": [
+                {
+                  "kind": "punct",
+                  "text": "@"
+                },
+                {
+                  "kind": "identifier",
+                  "oneOf": [
+                    "AndroidEntryPoint",
+                    "HiltAndroidApp"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "patterns": [
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "@"
+              },
+              {
+                "kind": "identifier",
+                "text": "Inject"
+              },
+              {
+                "gap": {
+                  "max": 16,
+                  "balanced": true,
+                  "stopAt": [
+                    {
+                      "kind": "punct",
+                      "oneOf": [
+                        "{",
+                        "}",
+                        ";",
+                        "="
+                      ]
+                    },
+                    {
+                      "kind": "word",
+                      "oneOf": [
+                        "fun",
+                        "val",
+                        "class",
+                        "constructor"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "word",
+                "text": "var",
+                "at": true
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "@"
+              },
+              {
+                "kind": "identifier",
+                "text": "Inject"
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "punct",
+                    "text": "@"
+                  },
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      },
+                      {
+                        "kind": "word"
+                      }
+                    ]
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "punct",
+                        "text": "("
+                      },
+                      {
+                        "gap": {
+                          "balanced": true
+                        }
+                      },
+                      {
+                        "kind": "punct",
+                        "text": ")"
+                      }
+                    ],
+                    "max": 1
+                  }
+                ]
+              },
+              {
+                "gap": {
+                  "max": 16,
+                  "stopAt": [
+                    {
+                      "kind": "punct",
+                      "oneOf": [
+                        "(",
+                        "{",
+                        "}",
+                        ";",
+                        "=",
+                        "@"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "identifier",
+                "at": true
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  ";",
+                  "="
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "missing-kdoc",
+      "title": "Declaration without KDoc",
+      "severity": "MINOR",
+      "needsJudgement": true,
+      "description": "MAJOR on a public symbol of a library or of a module other modules call, MINOR otherwise.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "docs"
+      ],
+      "match": {
+        "detector": "missing-doc",
+        "lines": "added",
+        "declarations": [
+          "fun",
+          "val",
+          "var",
+          "class",
+          "interface",
+          "object"
+        ],
+        "modifiers": [
+          "public",
+          "open",
+          "abstract",
+          "final",
+          "data",
+          "sealed",
+          "inline",
+          "value",
+          "suspend",
+          "operator",
+          "infix",
+          "tailrec",
+          "const",
+          "lateinit",
+          "enum"
+        ],
+        "skipModifiers": [
+          "private",
+          "internal",
+          "protected",
+          "override"
+        ],
+        "types": [
+          "class",
+          "interface",
+          "object"
+        ],
+        "notAfter": [
+          "::"
+        ],
+        "annotation": "@",
+        "skipAnnotations": [
+          "Inject"
+        ],
+        "header": {
+          "open": "(",
+          "close": ")"
+        },
+        "body": {
+          "open": "{",
+          "close": "}"
+        }
+      }
+    },
+    {
+      "id": "missing-tests",
+      "title": "Missing unit tests",
+      "severity": "MAJOR",
+      "description": "Unit tests for every ViewModel, repository, mapper or helper added or modified. Checked on the whole change request.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ]
+    }
+  ]
+}

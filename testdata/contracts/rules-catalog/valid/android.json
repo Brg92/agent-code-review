@@ -3,7 +3,7 @@
   "pack": "android",
   "rules": [
     {
-      "id": "coroutines.run-blocking",
+      "id": "run-blocking-prod",
       "title": "runBlocking on the main thread",
       "severity": "BLOCKER",
       "description": "`runBlocking` blocks the calling thread; on the main thread it freezes the UI and can trigger an ANR.",
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "id": "coroutines.global-scope",
+      "id": "global-scope",
       "title": "Coroutine launched in GlobalScope",
       "severity": "MAJOR",
       "description": "Work launched in `GlobalScope` is never cancelled and outlives the component that started it.",
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "id": "kotlin.not-null-assertion",
+      "id": "no-double-bang",
       "title": "Not-null assertion on a nullable value",
       "severity": "MAJOR",
       "description": "`!!` throws a NullPointerException when the value is null at runtime.",
@@ -54,6 +54,7 @@
       "id": "logic.removed-validation",
       "title": "A change removes input validation",
       "severity": "MAJOR",
+      "needsJudgement": true,
       "description": "Removing a `require` or `check` lets invalid input through.",
       "languages": [
         "kotlin"
@@ -66,6 +67,7 @@
       "id": "style.redundant-if",
       "title": "An if/else only returns its condition",
       "severity": "MINOR",
+      "needsJudgement": false,
       "description": "Return the condition instead of branching on it.",
       "languages": [
         "kotlin"

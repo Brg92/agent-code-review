@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "language": "plain",
+  "keywords": [
+    "begin",
+    "end"
+  ],
+  "softKeywords": [],
+  "brackets": [
+    {
+      "open": "("
+    }
+  ]
+}

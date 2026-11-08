@@ -1,9 +1,6 @@
 {
   "schema": 1,
   "language": "java",
-  "extensions": [
-    ".java"
-  ],
   "lineComment": "//",
   "blockComment": {
     "open": "/*",
@@ -128,5 +125,19 @@
     "->",
     "::",
     "..."
+  ],
+  "brackets": [
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "{",
+      "close": "}"
+    }
   ]
 }

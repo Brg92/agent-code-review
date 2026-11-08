@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const minimalTable = `{"schema":1,"language":"plain","extensions":[".pln"],"keywords":["begin"],"softKeywords":[]}`
+const minimalTable = `{"schema":1,"language":"plain","keywords":["begin"],"softKeywords":[]}`
 
 // withField returns minimalTable with one more top-level field.
 func withField(field string) string {
@@ -20,15 +20,19 @@ func TestLoadTable(t *testing.T) {
 		`"lineComment":"//","blockComment":{"open":"/*","close":"*/","nested":true},"docComment":"/**",` +
 			`"strings":[{"delimiter":"\"","escape":"\\"},{"delimiter":"\"\"\"","raw":true,"multiline":true,"templates":true,"greedyClose":true}],` +
 			`"char":{"delimiter":"'","escape":"\\"},"quotedIdentifier":"` + "`" + `",` +
-			`"templates":{"identifier":"$","open":"${","close":"}"},"identifierChars":"$","operators":["==","..."]`)))
+			`"templates":{"identifier":"$","open":"${","close":"}"},"identifierChars":"$","operators":["==","..."],` +
+			`"brackets":[{"open":"(","close":")"},{"open":"{","close":"}"}]`)))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tab.Language != "plain" || !reflect.DeepEqual(tab.Extensions, []string{".pln"}) {
-		t.Errorf("language %q, extensions %q", tab.Language, tab.Extensions)
+	if tab.Language != "plain" {
+		t.Errorf("language %q", tab.Language)
 	}
 	if tab.BlockComment == nil || !tab.BlockComment.Nested || tab.DocComment != "/**" {
 		t.Errorf("block comment %+v, doc comment %q", tab.BlockComment, tab.DocComment)
+	}
+	if want := []Bracket{{"(", ")"}, {"{", "}"}}; !reflect.DeepEqual(tab.Brackets, want) {
+		t.Errorf("brackets = %v, want %v", tab.Brackets, want)
 	}
 	var delims []string
 	for _, s := range tab.Strings {
@@ -54,9 +58,7 @@ func TestLoadTableRejects(t *testing.T) {
 		{"no version", strings.Replace(minimalTable, `"schema":1,`, ``, 1), "schema"},
 		{"no language", strings.Replace(minimalTable, `"language":"plain",`, ``, 1), "language"},
 		{"language not lowercase", strings.Replace(minimalTable, `plain`, `Plain`, 1), "language"},
-		{"no extensions", strings.Replace(minimalTable, `".pln"`, ``, 1), "extensions"},
-		{"extension without dot", strings.Replace(minimalTable, `".pln"`, `"pln"`, 1), "extension"},
-		{"duplicate extension", strings.Replace(minimalTable, `".pln"`, `".pln",".pln"`, 1), "extension"},
+		{"extensions belong to the manifest", withField(`"extensions":[".pln"]`), "unknown field"},
 		{"no keywords", strings.Replace(minimalTable, `"keywords":["begin"],`, ``, 1), "keywords"},
 		{"no soft keywords", strings.Replace(minimalTable, `,"softKeywords":[]`, ``, 1), "softKeywords"},
 		{"bad keyword", strings.Replace(minimalTable, `"begin"`, `"go to"`, 1), "keyword"},
@@ -77,6 +79,12 @@ func TestLoadTableRejects(t *testing.T) {
 		{"single-character operator", withField(`"operators":["+"]`), "operator"},
 		{"duplicate operator", withField(`"operators":["==","=="]`), "operator"},
 		{"blank identifier char", withField(`"identifierChars":" "`), "identifierChars"},
+		{"bracket without close", withField(`"brackets":[{"open":"("}]`), "bracket"},
+		{"bracket of two characters", withField(`"brackets":[{"open":"((","close":")"}]`), "bracket"},
+		{"bracket is a letter", withField(`"brackets":[{"open":"b","close":"e"}]`), "bracket"},
+		{"bracket closes itself", withField(`"brackets":[{"open":"|","close":"|"}]`), "bracket"},
+		{"bracket listed twice", withField(`"brackets":[{"open":"(","close":")"},{"open":"[","close":")"}]`), "bracket"},
+		{"unknown bracket field", withField(`"brackets":[{"open":"(","close":")","nested":true}]`), "unknown field"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

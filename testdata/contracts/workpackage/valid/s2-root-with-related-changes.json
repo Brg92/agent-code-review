@@ -20,7 +20,7 @@
   },
   "rules": [
     {
-      "id": "coroutines.run-blocking",
+      "id": "run-blocking-prod",
       "severity": "BLOCKER",
       "title": "runBlocking on the main thread"
     }

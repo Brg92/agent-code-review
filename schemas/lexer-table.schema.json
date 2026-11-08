@@ -2,13 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Brg92/agent-code-review/schemas/lexer-table.schema.json",
   "title": "Lexer table",
-  "description": "How the table-driven lexer splits the source of one language into tokens: comments, string and character literals, string templates, identifiers, keywords and operators. Whitespace is skipped; anything not described is a single-character punctuation token.",
+  "description": "How the table-driven lexer splits the source of one language into tokens: comments, string and character literals, string templates, identifiers, keywords and operators. Whitespace is skipped; anything not described is a single-character punctuation token. The pack manifest says which table applies to which file name extensions.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema",
     "language",
-    "extensions",
     "keywords",
     "softKeywords"
   ],
@@ -21,16 +20,6 @@
       "description": "Language identifier, as in the languages of the pack manifest.",
       "type": "string",
       "pattern": "^[a-z0-9-]+$"
-    },
-    "extensions": {
-      "description": "File name extensions the table applies to, with the leading dot.",
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "type": "string",
-        "pattern": "^\\.[A-Za-z0-9]+$"
-      }
     },
     "lineComment": {
       "description": "Opener of a comment that runs to the end of the line. Absent: the language has none.",
@@ -172,6 +161,29 @@
         "type": "string",
         "pattern": "^[^\\sA-Za-z0-9_]{2,}$"
       }
+    },
+    "brackets": {
+      "description": "Pairs of punctuation characters that open and close a nested group, for example ( and ). Rules use them to skip a balanced group of tokens. Every character is listed once.",
+      "type": "array",
+      "items": {
+        "description": "One pair.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "open",
+          "close"
+        ],
+        "properties": {
+          "open": {
+            "description": "Opening character.",
+            "$ref": "#/$defs/lexerBracket"
+          },
+          "close": {
+            "description": "Closing character.",
+            "$ref": "#/$defs/lexerBracket"
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -193,6 +205,11 @@
         "type": "string",
         "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
       }
+    },
+    "lexerBracket": {
+      "description": "A single punctuation character: not blank, not a letter, digit or underscore.",
+      "type": "string",
+      "pattern": "^[^\\sA-Za-z0-9_]$"
     }
   }
 }

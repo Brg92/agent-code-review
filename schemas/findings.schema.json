@@ -65,23 +65,36 @@
           "path",
           "reason"
         ],
+        "if": {
+          "properties": {
+            "reason": {
+              "const": "match-budget-exceeded"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "detail"
+          ]
+        },
         "properties": {
           "path": {
             "description": "File path in the change request.",
             "$ref": "#/$defs/relativePath"
           },
           "reason": {
-            "description": "generated: marked as generated; binary: no text diff; patch-unavailable: the platform omitted the diff; noise: matches a noise glob; unsupported-language: no pack covers it.",
+            "description": "generated: marked as generated; binary: no text diff; patch-unavailable: the platform omitted the diff; noise: matches a noise glob; unsupported-language: no pack covers it; match-budget-exceeded: a rule ran out of matching steps on the file, and detail names the rule.",
             "enum": [
               "generated",
               "binary",
               "patch-unavailable",
               "noise",
-              "unsupported-language"
+              "unsupported-language",
+              "match-budget-exceeded"
             ]
           },
           "detail": {
-            "description": "Optional human-readable detail.",
+            "description": "Optional human-readable detail; required for match-budget-exceeded, where it names the rule.",
             "type": "string"
           }
         }
@@ -368,7 +381,7 @@
       }
     },
     "ruleId": {
-      "description": "Rule identifier: lowercase dot-separated words, for example kotlin.not-null-assertion.",
+      "description": "Rule identifier: lowercase words joined by hyphens, optionally in dot-separated groups, for example no-double-bang.",
       "type": "string",
       "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*$"
     },

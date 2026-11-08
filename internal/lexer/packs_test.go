@@ -17,23 +17,9 @@ func packTable(t testing.TB, language string) string {
 }
 
 func TestPackTablesLoad(t *testing.T) {
-	for _, tt := range []struct{ language, extensions string }{
-		{"kotlin", ".kt .kts"},
-		{"java", ".java"},
-	} {
-		tab := mustLoad(t, packTable(t, tt.language))
-		if tab.Language != tt.language {
-			t.Errorf("%s.json: language %q", tt.language, tab.Language)
-		}
-		got := ""
-		for i, e := range tab.Extensions {
-			if i > 0 {
-				got += " "
-			}
-			got += e
-		}
-		if got != tt.extensions {
-			t.Errorf("%s.json: extensions %q, want %q", tt.language, got, tt.extensions)
+	for _, language := range []string{"kotlin", "java"} {
+		if tab := mustLoad(t, packTable(t, language)); tab.Language != language {
+			t.Errorf("%s.json: language %q", language, tab.Language)
 		}
 	}
 }

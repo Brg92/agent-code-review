@@ -1,10 +1,6 @@
 {
   "schema": 1,
   "language": "kotlin",
-  "extensions": [
-    ".kt",
-    ".kts"
-  ],
   "lineComment": "//",
   "blockComment": {
     "open": "/*",
@@ -139,5 +135,19 @@
     "*=",
     "/=",
     "%="
+  ],
+  "brackets": [
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "{",
+      "close": "}"
+    }
   ]
 }

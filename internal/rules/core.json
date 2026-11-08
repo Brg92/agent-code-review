@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "pack": "core",
+  "rules": [
+    {
+      "id": "variant-asymmetry",
+      "title": "A change in one variant without its counterpart",
+      "severity": "MAJOR",
+      "description": "A change under one flavor or product-variant source set has no counterpart in the others, and the feature is not deliberately variant-specific. Not checked in single-variant repositories.",
+      "languages": [],
+      "tags": [
+        "variants"
+      ]
+    },
+    {
+      "id": "dependency-mr-undeclared",
+      "title": "Relies on an undeclared change of a shared library",
+      "severity": "MAJOR",
+      "description": "The change request relies on a change in a shared library (a new version, a new or changed symbol) and its Related Changes section has no entry for it. Which libraries are shared comes from the repository criteria.",
+      "languages": [],
+      "tags": [
+        "cascade"
+      ]
+    },
+    {
+      "id": "uses-removed-api",
+      "title": "Uses API that a related change removes",
+      "severity": "BLOCKER",
+      "description": "The change request still calls a symbol that a related change request removes or renames. Reported on this change request's lines.",
+      "languages": [],
+      "tags": [
+        "cascade",
+        "api"
+      ]
+    },
+    {
+      "id": "missing-required-argument",
+      "title": "Misses an argument a related change requires",
+      "severity": "BLOCKER",
+      "description": "A related change request adds a required parameter and the call sites of this change request do not pass it. Reported on this change request's lines.",
+      "languages": [],
+      "tags": [
+        "cascade",
+        "api"
+      ]
+    },
+    {
+      "id": "contract-misuse",
+      "title": "Uses a changed API against its new contract",
+      "severity": "MAJOR",
+      "description": "The change request uses an API changed by a related change request against its new contract: nullability, threading or error behaviour. Reported on this change request's lines.",
+      "languages": [],
+      "tags": [
+        "cascade",
+        "api"
+      ]
+    }
+  ]
+}
