@@ -2,6 +2,7 @@ package packs
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/Brg92/agent-code-review/internal/rules"
 )
@@ -89,4 +90,88 @@ func (p *Pack) loadFileDimensions(raws []rawFileDim) error {
 		p.FileDimensions = append(p.FileDimensions, d)
 	}
 	return nil
+}
+
+// ResolveFileDimensions returns the value of each file dimension of the
+// active packs for a file. When several packs declare a dimension, the one
+// with the highest priority decides, the first in order among equals; its
+// first matching map entry gives the value, else its default.
+func ResolveFileDimensions(active []*Pack, filePath string) map[string]string {
+	out := map[string]string{}
+	for id, w := range winners(active) {
+		out[id] = w.value(filePath)
+	}
+	return out
+}
+
+// winners picks, for each file dimension id, the declaration of the active
+// pack with the highest priority, the first in order among equals.
+func winners(active []*Pack) map[string]winner {
+	out := map[string]winner{}
+	for _, p := range active {
+		for i := range p.FileDimensions {
+			d := &p.FileDimensions[i]
+			if w, ok := out[d.ID]; !ok || p.Priority > w.priority {
+				out[d.ID] = winner{pack: p, priority: p.Priority, dim: d}
+			}
+		}
+	}
+	return out
+}
+
+type winner struct {
+	pack     *Pack
+	priority int
+	dim      *FileDimension
+}
+
+func (w winner) value(filePath string) string {
+	for _, e := range w.dim.Map {
+		if e.Path.Match(filePath) {
+			return e.Value
+		}
+	}
+	return w.dim.Default
+}
+
+// checkFileDimensions fails when two active packs of the highest priority
+// for a file dimension declare it differently: neither could win.
+func checkFileDimensions(active []*Pack) error {
+	won := winners(active)
+	ids := make([]string, 0, len(won))
+	for id := range won {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	for _, id := range ids {
+		w := won[id]
+		for _, p := range active {
+			if p == w.pack || p.Priority != w.priority {
+				continue
+			}
+			for i := range p.FileDimensions {
+				if d := &p.FileDimensions[i]; d.ID == id && !d.equal(w.dim) {
+					return fmt.Errorf("file dimension %s: packs %s and %s have the same priority %d and map it differently", id, w.pack.ID, p.ID, w.priority)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (d *FileDimension) equal(o *FileDimension) bool {
+	if d.Default != o.Default || len(d.Values) != len(o.Values) || len(d.Map) != len(o.Map) {
+		return false
+	}
+	for i := range d.Values {
+		if d.Values[i] != o.Values[i] {
+			return false
+		}
+	}
+	for i := range d.Map {
+		if d.Map[i].Value != o.Map[i].Value || d.Map[i].Path.String() != o.Map[i].Path.String() {
+			return false
+		}
+	}
+	return true
 }
