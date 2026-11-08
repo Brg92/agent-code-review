@@ -67,6 +67,7 @@ docs/                    project docs for humans
 - PR titles use the same Conventional Commits format.
 - PRs are merged with **squash** only; the PR title (Conventional Commits) becomes the commit message on `main`.
 - After the squash merge the branch is deleted: on GitHub automatically (repository setting "Automatically delete head branches"); locally with `git checkout main && git pull && git branch -D <branch>` (`-D` is required because git does not see a squash-merged branch as merged). Sandbox scenario branches are never merged nor deleted.
+- After opening or updating a PR, wait for CI to finish. If a check fails, fix the cause in a new commit that follows these rules (TDD where code changes). Never weaken or skip a test, never make an invalid contract example valid, never relax a limit, budget or fuzz seed just to pass. If the failure is external (network, runner, rate limit) or the right fix is a design change, stop and report it instead. List every fix commit in the milestone report.
 - Sandbox repositories (organization `acr-plugin-sandbox`): base content on `main`; scenario branches `<type>/<scope>-s<N>-<short-description>`; scenario PRs are opened by the author account and **never merged**.
 
 ## 6. Remote actions
