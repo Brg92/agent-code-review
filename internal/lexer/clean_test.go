@@ -92,6 +92,7 @@ var cleanKotlinLegacyCases = []cleanCase{
 	{"improvement: identifier template", `"$x!"`, `" x "`},
 	{"newlines preserved", "a\nb\r\nc\rd", "a\nb\r\nc\rd"},
 	{"crlf after a comment", "// a\r\nb", "    \r\nb"},
+	{"crlf and cr inside multiline tokens", "/* a\r\n b */ \"\"\"c\rd\"\"\"", "    \r\n      \"\"\" \r \"\"\""},
 	{"unterminated string ends at the line end", "\"a{\nb", "\"  \nb"},
 	{"unterminated char", "'a\nb", "' \nb"},
 	{"unterminated block comment", "a /* b\nc", "a     \n "},

@@ -7,7 +7,7 @@ import (
 )
 
 // packTable reads a lexer table of the android pack.
-func packTable(t *testing.T, language string) string {
+func packTable(t testing.TB, language string) string {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join("..", "..", "packs", "android", "lexer", language+".json"))
 	if err != nil {
