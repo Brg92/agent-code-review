@@ -63,60 +63,60 @@ func checkShape(t *testing.T, src, clean string) {
 	}
 }
 
-// TestCleanKotlinLegacy ports the cases of the legacy Get-CleanKotlinCode.
+// cleanKotlinLegacyCases port the cases of the legacy Get-CleanKotlinCode.
 // Improvement over the legacy, in every string and char case: the quotes
 // of literals stay, only their contents become spaces, so code like f("")
 // still shows an argument. Comments are blanked whole, markers included,
 // as in the legacy.
-func TestCleanKotlinLegacy(t *testing.T) {
-	runCleanCases(t, testKotlinTable, []cleanCase{
-		{"empty", "", ""},
-		{"code only", "if (a) { b() }", "if (a) { b() }"},
-		{"line comment", "a // b {", "a       "},
-		{"block comment over lines", "a /* b {\nc */ d", "a       \n     d"},
-		{"nested block comment", "a /* b /* c */ d */ e", "a                   e"},
-		{"doc comment", "/** {a} */\nfun f()", "          \nfun f()"},
-		{"string", `f("a(b")`, `f("   ")`},
-		{"escapes in a string", `"a\"b\\" x`, `"      " x`},
-		{"raw string with quotes", `"""a "{" b""" x`, `"""       """ x`},
-		{"improvement: raw string ends at the last quote", `"""a"""" x`, `"""  """ x`},
-		{"raw string over lines", "\"\"\"a {\n} b\"\"\"", "\"\"\"   \n   \"\"\""},
-		{"chars", `'{' '\'' '"'`, `' ' '  ' ' '`},
-		{"comment markers inside a string", `"// /*" x`, `"     " x`},
-		{"quotes inside comments", "// it's \"x\"\n/* ' */ y", "           \n        y"},
-		{"expression template", `"a${b + "c"}d"`, `"   b + " "  "`},
-		{"braces and strings in a template", `"${m["}"] { 1 }}"`, `"  m[" "] { 1 } "`},
-		{"nested templates", `"${"${x}"}"`, `"  "  x " "`},
-		{"template in a raw string", "\"\"\"${a}\n\"\"\"", "\"\"\"  a \n\"\"\""},
-		{"comment inside a template", `"${a /* } */}"`, `"  a         "`},
-		// Improvement: the legacy blanked $name templates as string text.
-		{"improvement: identifier template", `"$x!"`, `" x "`},
-		{"newlines preserved", "a\nb\r\nc\rd", "a\nb\r\nc\rd"},
-		{"crlf after a comment", "// a\r\nb", "    \r\nb"},
-		{"unterminated string ends at the line end", "\"a{\nb", "\"  \nb"},
-		{"unterminated char", "'a\nb", "' \nb"},
-		{"unterminated block comment", "a /* b\nc", "a     \n "},
-		{"unterminated raw string", "\"\"\"a\n{", "\"\"\" \n "},
-		{"template closed on the next line", "\"${a\n}", "\"  a\n "},
-		{"unterminated template", "\"${a {\nb", "\"  a {\nb"},
-	})
+var cleanKotlinLegacyCases = []cleanCase{
+	{"empty", "", ""},
+	{"code only", "if (a) { b() }", "if (a) { b() }"},
+	{"line comment", "a // b {", "a       "},
+	{"block comment over lines", "a /* b {\nc */ d", "a       \n     d"},
+	{"nested block comment", "a /* b /* c */ d */ e", "a                   e"},
+	{"doc comment", "/** {a} */\nfun f()", "          \nfun f()"},
+	{"string", `f("a(b")`, `f("   ")`},
+	{"escapes in a string", `"a\"b\\" x`, `"      " x`},
+	{"raw string with quotes", `"""a "{" b""" x`, `"""       """ x`},
+	{"improvement: raw string ends at the last quote", `"""a"""" x`, `"""  """ x`},
+	{"raw string over lines", "\"\"\"a {\n} b\"\"\"", "\"\"\"   \n   \"\"\""},
+	{"chars", `'{' '\'' '"'`, `' ' '  ' ' '`},
+	{"comment markers inside a string", `"// /*" x`, `"     " x`},
+	{"quotes inside comments", "// it's \"x\"\n/* ' */ y", "           \n        y"},
+	{"expression template", `"a${b + "c"}d"`, `"   b + " "  "`},
+	{"braces and strings in a template", `"${m["}"] { 1 }}"`, `"  m[" "] { 1 } "`},
+	{"nested templates", `"${"${x}"}"`, `"  "  x " "`},
+	{"template in a raw string", "\"\"\"${a}\n\"\"\"", "\"\"\"  a \n\"\"\""},
+	{"comment inside a template", `"${a /* } */}"`, `"  a         "`},
+	// Improvement: the legacy blanked $name templates as string text.
+	{"improvement: identifier template", `"$x!"`, `" x "`},
+	{"newlines preserved", "a\nb\r\nc\rd", "a\nb\r\nc\rd"},
+	{"crlf after a comment", "// a\r\nb", "    \r\nb"},
+	{"unterminated string ends at the line end", "\"a{\nb", "\"  \nb"},
+	{"unterminated char", "'a\nb", "' \nb"},
+	{"unterminated block comment", "a /* b\nc", "a     \n "},
+	{"unterminated raw string", "\"\"\"a\n{", "\"\"\" \n "},
+	{"template closed on the next line", "\"${a\n}", "\"  a\n "},
+	{"unterminated template", "\"${a {\nb", "\"  a {\nb"},
 }
 
-func TestCleanKotlin(t *testing.T) {
-	runCleanCases(t, testKotlinTable, []cleanCase{
-		{"non-ASCII contents are one space per rune", "\"äé€\" // ö\nü", "\"   \"     \nü"},
-		{"quoted identifiers stay", "fun `a \"b\"`() {}", "fun `a \"b\"`() {}"},
-		{"invalid UTF-8 in a string", "\"\xff\" \xfe", "\" \" \xfe"},
-	})
+func TestCleanKotlinLegacy(t *testing.T) { runCleanCases(t, testKotlinTable, cleanKotlinLegacyCases) }
+
+var cleanKotlinCases = []cleanCase{
+	{"non-ASCII contents are one space per rune", "\"äé€\" // ö\nü", "\"   \"     \nü"},
+	{"quoted identifiers stay", "fun `a \"b\"`() {}", "fun `a \"b\"`() {}"},
+	{"invalid UTF-8 in a string", "\"\xff\" \xfe", "\" \" \xfe"},
 }
 
-func TestCleanJava(t *testing.T) {
-	runCleanCases(t, testJavaTable, []cleanCase{
-		{"block comments do not nest", "/* /* */ x */", "         x */"},
-		{"text block", "\"\"\"\n  a\"b\n  \"\"\"", "\"\"\"\n     \n  \"\"\""},
-		{"no templates", `"${a}"`, `"    "`},
-	})
+func TestCleanKotlin(t *testing.T) { runCleanCases(t, testKotlinTable, cleanKotlinCases) }
+
+var cleanJavaCases = []cleanCase{
+	{"block comments do not nest", "/* /* */ x */", "         x */"},
+	{"text block", "\"\"\"\n  a\"b\n  \"\"\"", "\"\"\"\n     \n  \"\"\""},
+	{"no templates", `"${a}"`, `"    "`},
 }
+
+func TestCleanJava(t *testing.T) { runCleanCases(t, testJavaTable, cleanJavaCases) }
 
 // TestCleanKeepsCodePositions checks that the text of every code token,
 // template expressions included, is at the same line and column in the
