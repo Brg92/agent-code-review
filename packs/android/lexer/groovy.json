@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "language": "groovy",
+  "lineComment": "//",
+  "blockComment": {
+    "open": "/*",
+    "close": "*/",
+    "nested": false
+  },
+  "docComment": "/**",
+  "strings": [
+    {
+      "delimiter": "'''",
+      "escape": "\\",
+      "raw": true,
+      "multiline": true
+    },
+    {
+      "delimiter": "\"\"\"",
+      "escape": "\\",
+      "raw": true,
+      "multiline": true,
+      "templates": true
+    },
+    {
+      "delimiter": "\"",
+      "escape": "\\",
+      "templates": true
+    },
+    {
+      "delimiter": "'",
+      "escape": "\\"
+    }
+  ],
+  "templates": {
+    "identifier": "$",
+    "open": "${",
+    "close": "}"
+  },
+  "identifierChars": "$",
+  "keywords": [
+    "abstract",
+    "as",
+    "assert",
+    "boolean",
+    "break",
+    "byte",
+    "case",
+    "catch",
+    "char",
+    "class",
+    "const",
+    "continue",
+    "def",
+    "default",
+    "do",
+    "double",
+    "else",
+    "enum",
+    "extends",
+    "false",
+    "final",
+    "finally",
+    "float",
+    "for",
+    "goto",
+    "if",
+    "implements",
+    "import",
+    "in",
+    "instanceof",
+    "int",
+    "interface",
+    "long",
+    "native",
+    "new",
+    "null",
+    "package",
+    "private",
+    "protected",
+    "public",
+    "return",
+    "short",
+    "static",
+    "strictfp",
+    "super",
+    "switch",
+    "synchronized",
+    "this",
+    "throw",
+    "throws",
+    "trait",
+    "transient",
+    "true",
+    "try",
+    "void",
+    "volatile",
+    "while"
+  ],
+  "softKeywords": [
+    "permits",
+    "record",
+    "sealed",
+    "var",
+    "yield"
+  ],
+  "operators": [
+    "<<=",
+    ">>=",
+    ">>>",
+    "==~",
+    "..<",
+    "<=>",
+    "?.",
+    "*.",
+    "?:",
+    "==",
+    "!=",
+    "<=",
+    ">=",
+    "&&",
+    "||",
+    "++",
+    "--",
+    "+=",
+    "-=",
+    "*=",
+    "/=",
+    "%=",
+    "->",
+    "..",
+    "<<",
+    ">>",
+    "=~",
+    "**",
+    ".&",
+    "::"
+  ],
+  "brackets": [
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "{",
+      "close": "}"
+    }
+  ]
+}
