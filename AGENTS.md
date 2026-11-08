@@ -18,7 +18,7 @@ These invariants describe the product. They do not restrict the development agen
 
 - **Platform-agnostic**: the core never knows GitHub or GitLab. Platform code lives in `internal/forges/<forge>/` behind `ForgeProvider` and its capabilities. GitHub is the default; GitLab comes after the first stable release but is prepared from day one. A cascade uses one platform only.
 - **Agent-agnostic**: the CLI is the product, used via shell. Skills and agents are thin; host differences live only in manifests (Agent Plugins 1.0 + `.claude-plugin/`). MCP is an optional adapter, never required.
-- **Stack-extensible**: the core never knows Android, KMP, iOS or web. Stack knowledge lives in data packs `packs/<stack>/` (manifest, rules catalog, lexer table, checklists, templates) loaded at runtime. Packs for the first stable release: `android`, `kotlin-multiplatform`.
+- **Stack-extensible**: the core never knows Android, KMP, iOS or web. Stack knowledge lives in data packs `packs/<stack>/` (manifest, rules catalog, lexer tables, templates) loaded at runtime; review checklists are generated from the rules catalog, filtered by profile and dimensions. Packs for the first stable release: `android`, `kotlin-multiplatform`.
 - **Fat CLI, thin agent**: commands `queue`, `review`, `next`, `finalize`, `show`, `publish --plan|--apply`, `auth`, `doctor`, `check-criteria`, `version`. A state machine (`resolved → collected → judged → finalized → planned → published`) drives the flow; the agent only fills a `judgement` file.
 - Only binaries, launchers, packs, JSON schemas, skills, agents, hooks and manifests reach users, via the `release` branch (see `docs/release-allowlist.txt`). Tests and fixtures never ship.
 

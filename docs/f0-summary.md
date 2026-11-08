@@ -65,7 +65,7 @@ ACR_SANDBOX_LOGINS=<reviewer>,<author> go test ./internal/guards/
 
 - **Exit codes:** [exit-codes.md](exit-codes.md) stays a proposal until the first command returns them.
 - **Recorder token:** the recordings were made with the reviewer's `gh` token. The fine-grained, read-only token described in [sandbox.md](sandbox.md) is not tested yet, in particular whether it can read check runs.
-- **Rule ids and severities** live in the example catalog `testdata/contracts/rules-catalog/valid/android.json`. They become real with the `android` pack.
+- **Rule ids and severities** live in the example catalog `testdata/contracts/rules-catalog/valid/android.json`. The real ones are in `packs/android/rules.json`; a test keeps the example in step with them.
 - **Recordings age:** the S5 A recording shows `instrumented` in progress. Recording S5 again needs the job to be re-run first.
 
 ## Next
