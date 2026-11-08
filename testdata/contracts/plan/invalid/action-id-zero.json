@@ -9,7 +9,7 @@
       "id": 0,
       "kind": "review-comment",
       "body": "**BLOCKER** `run-blocking-prod`: runBlocking in onCreate blocks the main thread until the session refresh completes.",
-      "findingId": "3d211532409505ba",
+      "findingId": "acr:v1:run-blocking-prod:app/src/main/java/com/example/sample/MainActivity.kt:f6631c865b8f",
       "path": "app/src/main/java/com/example/sample/MainActivity.kt",
       "side": "RIGHT",
       "line": 13
@@ -18,7 +18,7 @@
       "id": 2,
       "kind": "review-comment",
       "body": "**MAJOR** `global-scope`: prefetch() launches in GlobalScope.",
-      "findingId": "6b982c141107316e",
+      "findingId": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 19
@@ -26,7 +26,7 @@
     {
       "id": 3,
       "kind": "summary-comment",
-      "body": "## Review summary\n\n**BLOCKED**: 2 BLOCKER, 2 MAJOR.\n\nOutside the diff: `ui/HomeViewModel.kt` line 27 always throws now that warmUp() is never called."
+      "body": "## Review summary\n\n**BLOCKED**: 2 BLOCKER, 2 MAJOR.\n\n`ui/HomeViewModel.kt` line 27 always throws now that warmUp() is never called."
     },
     {
       "id": 4,

@@ -66,9 +66,9 @@
             "type": "string"
           },
           "findingId": {
-            "description": "Finding the action publishes.",
+            "description": "Fingerprint of the finding the action publishes: the id of a reported finding.",
             "type": "string",
-            "pattern": "^[0-9a-f]{16}$"
+            "pattern": "^acr:v1:[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*:(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*:[0-9a-f]{12}$"
           },
           "path": {
             "description": "File of an inline comment.",

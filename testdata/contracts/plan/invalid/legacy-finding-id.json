@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "runId": "20261102-090000-s1",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "createdAt": "2026-11-02T09:20:00Z",
+  "actions": [
+    {
+      "id": 1,
+      "kind": "review-comment",
+      "body": "**BLOCKER** `run-blocking-prod`: runBlocking in onCreate blocks the main thread until the session refresh completes.",
+      "findingId": "mr-review:v1:run-blocking-prod:app/src/main/java/com/example/sample/MainActivity.kt:13",
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "side": "RIGHT",
+      "line": 13
+    },
+    {
+      "id": 2,
+      "kind": "review-comment",
+      "body": "**MAJOR** `global-scope`: prefetch() launches in GlobalScope.",
+      "findingId": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 19
+    },
+    {
+      "id": 3,
+      "kind": "summary-comment",
+      "body": "## Review summary\n\n**BLOCKED**: 2 BLOCKER, 2 MAJOR.\n\n`ui/HomeViewModel.kt` line 27 always throws now that warmUp() is never called."
+    },
+    {
+      "id": 4,
+      "kind": "issue",
+      "body": "`ProfileStore.displayName()` throws when no name is stored. Found while reviewing sample-app#2.",
+      "project": "github:github.com/acr-plugin-sandbox/sample-app",
+      "title": "displayName() crashes without a stored name"
+    }
+  ]
+}

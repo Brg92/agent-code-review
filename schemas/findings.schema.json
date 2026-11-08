@@ -411,9 +411,9 @@
       },
       "properties": {
         "id": {
-          "description": "Stable fingerprint of the finding, used to avoid posting it twice.",
+          "description": "Fingerprint of the finding, acr:v1:<rule>:<path>:<h12>, where h12 is the first 12 hexadecimal characters of the SHA-256 of the normalised text of the requested line (trimmed, inner whitespace collapsed), a newline and the occurrence index of that text among the findings of the change request with the same rule and path, counted in side and line order. It stays the same when the line moves, and is embedded in published notes so that a finding is not posted twice.",
           "type": "string",
-          "pattern": "^[0-9a-f]{16}$"
+          "pattern": "^acr:v1:[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*:(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*:[0-9a-f]{12}$"
         },
         "rule": {
           "description": "Rule the finding applies.",

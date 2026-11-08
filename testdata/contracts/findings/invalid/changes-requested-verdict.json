@@ -5,7 +5,7 @@
   "verdict": "CHANGES_REQUESTED",
   "findings": [
     {
-      "id": "fd8c4f9e37b129d1",
+      "id": "acr:v1:no-double-bang:app/src/main/java/com/example/sample/data/ProfileStore.kt:7726b8854d31",
       "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",

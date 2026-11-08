@@ -5,7 +5,7 @@
   "verdict": "BLOCKED",
   "findings": [
     {
-      "id": "a1b2c3d4e5f60718",
+      "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:c7757c0896cb",
       "rule": "global-scope",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
@@ -25,7 +25,7 @@
   ],
   "preExisting": [
     {
-      "id": "0718a1b2c3d4e5f6",
+      "id": "acr:v1:no-double-bang:app/src/main/java/com/example/sample/data/ProfileStore.kt:c7757c0896cb",
       "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",

@@ -5,7 +5,7 @@
   "verdict": "OK",
   "findings": [
     {
-      "id": "5c0ffee15ba5e000",
+      "id": "acr:v1:package-organization:src/main/java/com/example/core/ui/badge/StatusBadgeView.kt:c7757c0896cb",
       "rule": "package-organization",
       "severity": "MINOR",
       "path": "src/main/java/com/example/core/ui/badge/StatusBadgeView.kt",

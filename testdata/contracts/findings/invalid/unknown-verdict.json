@@ -5,7 +5,7 @@
   "verdict": "REJECTED",
   "findings": [
     {
-      "id": "3d211532409505ba",
+      "id": "acr:v1:run-blocking-prod:app/src/main/java/com/example/sample/MainActivity.kt:f6631c865b8f",
       "rule": "run-blocking-prod",
       "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/MainActivity.kt",
@@ -23,7 +23,7 @@
       }
     },
     {
-      "id": "6b982c141107316e",
+      "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
       "rule": "global-scope",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
@@ -41,7 +41,7 @@
       }
     },
     {
-      "id": "91122ec00818e006",
+      "id": "acr:v1:no-double-bang:app/src/main/java/com/example/sample/data/SessionRepository.kt:9f84004f67ad",
       "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
@@ -59,7 +59,7 @@
       }
     },
     {
-      "id": "76cbab58bbf34813",
+      "id": "acr:v1:logic.always-throws:app/src/main/java/com/example/sample/ui/HomeViewModel.kt:08fff5a68b5c",
       "rule": "logic.always-throws",
       "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
@@ -80,7 +80,7 @@
   ],
   "preExisting": [
     {
-      "id": "38094ca5869efe85",
+      "id": "acr:v1:no-double-bang:app/src/main/java/com/example/sample/data/ProfileStore.kt:faa683b15a8a",
       "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
@@ -98,7 +98,7 @@
       }
     },
     {
-      "id": "5aeb49767dfeef92",
+      "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:1b7430f5f46c",
       "rule": "global-scope",
       "severity": "MINOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
