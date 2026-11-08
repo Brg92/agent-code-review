@@ -27,6 +27,20 @@
       "title": "Replace legacyToken with expiresAt"
     },
     {
+      "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+      "depth": 2,
+      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "status": "skipped",
+      "skipReason": "over-depth-limit"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "depth": 2,
+      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "status": "skipped",
+      "skipReason": "cycle"
+    },
+    {
       "cr": "github:github.com/acr-plugin-sandbox/feature-lib#2",
       "depth": 1,
       "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
@@ -67,13 +81,6 @@
       "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
       "status": "skipped",
       "skipReason": "not-found"
-    },
-    {
-      "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
-      "depth": 2,
-      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
-      "status": "skipped",
-      "skipReason": "over-depth-limit"
     }
   ]
 }
