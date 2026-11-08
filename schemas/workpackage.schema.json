@@ -18,6 +18,7 @@
     "criteria",
     "rules",
     "files",
+    "signals",
     "relatedChanges",
     "judgementPath"
   ],
@@ -175,6 +176,91 @@
         }
       }
     },
+    "signals": {
+      "description": "Places in the changed files that the mechanical rules point at, each with a short id. The judgement must decide every signal that needs judgement; the others become findings unless the judgement dismisses them.",
+      "type": "array",
+      "items": {
+        "description": "One signal. Its severity is null exactly when its rule needs judgement.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "rule",
+          "severity",
+          "path",
+          "line",
+          "column",
+          "origin",
+          "needsJudgement"
+        ],
+        "if": {
+          "properties": {
+            "needsJudgement": {
+              "const": true
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "severity": {
+              "const": null
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "severity": {
+              "$ref": "#/$defs/severity"
+            }
+          }
+        },
+        "properties": {
+          "id": {
+            "description": "Short id the judgement refers to: s1, s2, and so on, unique in the work package.",
+            "type": "string",
+            "pattern": "^s[1-9][0-9]*$"
+          },
+          "rule": {
+            "description": "Rule that points at the place.",
+            "$ref": "#/$defs/ruleId"
+          },
+          "severity": {
+            "description": "Severity of the rule; null when the rule needs judgement, which then decides it.",
+            "enum": [
+              "BLOCKER",
+              "MAJOR",
+              "MINOR",
+              "INFO",
+              null
+            ]
+          },
+          "path": {
+            "description": "File path in the change request.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "line": {
+            "description": "Line at the head commit (the RIGHT side).",
+            "$ref": "#/$defs/line"
+          },
+          "column": {
+            "description": "Column of the first character, starting at 1.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "origin": {
+            "description": "mr when the change request adds the line, existing when the line is already on the target branch; existing signals become pre-existing findings.",
+            "enum": [
+              "mr",
+              "existing"
+            ]
+          },
+          "needsJudgement": {
+            "description": "True when the rule cannot decide alone: the judgement confirms the signal with a severity or dismisses it.",
+            "type": "boolean"
+          }
+        }
+      }
+    },
     "relatedChanges": {
       "description": "Other change requests reviewed in the same cascade, so that changes made together are not reported as missing.",
       "type": "array",
@@ -220,6 +306,11 @@
         "legacy",
         "default"
       ]
+    },
+    "line": {
+      "description": "Line number, starting at 1, in the file version of the chosen side.",
+      "type": "integer",
+      "minimum": 1
     },
     "packId": {
       "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
