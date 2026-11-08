@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/Brg92/agent-code-review/internal/rules"
 )
 
 const (
@@ -34,11 +36,11 @@ func testReview(t *testing.T) Review {
 		CR:      cr,
 		HeadSHA: testHead,
 		Files:   []ChangedFile{modified, added, removed},
-		Rules: map[string]RuleInfo{
-			"empty-catch":         {Severity: Blocker, Title: "Empty catch block", Why: "The error vanishes.", Fix: "Handle or rethrow it."},
-			"no-double-bang":      {Severity: Major, NeedsJudgement: true, Title: "Not-null assertion", Why: "It throws on null.", Fix: "Handle null."},
-			"logic.always-throws": {Severity: Blocker, Title: "Always throws", Why: "The call always fails.", Fix: "Remove the failing path."},
-		},
+		Rules: RulesOf(&rules.Catalog{Pack: "test", Rules: []*rules.Rule{
+			{ID: "empty-catch", Severity: "BLOCKER", Title: "Empty catch block", Why: "The error vanishes.", Fix: "Handle or rethrow it."},
+			{ID: "no-double-bang", Severity: "MAJOR", NeedsJudgement: true, Title: "Not-null assertion", Why: "It throws on null.", Fix: "Handle null."},
+			{ID: "logic.always-throws", Severity: "BLOCKER", Title: "Always throws", Why: "The call always fails.", Fix: "Remove the failing path."},
+		}}),
 		Signals: []Signal{
 			{ID: "s1", Rule: "empty-catch", Severity: Blocker, Path: "app/A.kt", Line: 2, Column: 5, Origin: OriginMR},
 			{ID: "s2", Rule: "no-double-bang", Path: "app/A.kt", Line: 3, Column: 9, Origin: OriginMR, NeedsJudgement: true},

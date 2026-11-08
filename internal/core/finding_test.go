@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/Brg92/agent-code-review/internal/rules"
 )
 
 // brief describes a finding as "<rule> <severity> <path>:<side><line>
@@ -95,7 +99,7 @@ func TestFinalizeSuggestions(t *testing.T) {
 		t.Fatal(err)
 	}
 	r.Files = append(r.Files, ChangedFile{Diff: big})
-	r.Rules["big"] = RuleInfo{Severity: Minor, Title: "t", Why: "w", Fix: "f"}
+	r.Rules["big"] = &rules.Rule{ID: "big", Severity: "MINOR", Title: "t", Why: "w", Fix: "f"}
 	tests := []struct {
 		name            string
 		path            string
@@ -238,7 +242,7 @@ func TestFinalizeErrors(t *testing.T) {
 	}
 
 	r := testReview(t)
-	r.Rules["empty-catch"] = RuleInfo{Severity: Blocker, Title: "Empty catch block", Why: "The error vanishes."}
+	r.Rules["empty-catch"] = &rules.Rule{ID: "empty-catch", Severity: "BLOCKER", Title: "Empty catch block", Why: "The error vanishes."}
 	if _, err := Finalize(r, testJudgement()); err == nil || !strings.Contains(err.Error(), `rule "empty-catch" has no fix`) {
 		t.Errorf("rule without a fix: %v", err)
 	}
@@ -270,5 +274,41 @@ func TestFinalizeEmptyListsAreArrays(t *testing.T) {
 	}
 	if string(data) != `{"findings":[],"preExisting":[]}` {
 		t.Errorf("got %s", data)
+	}
+}
+
+// TestFinalizeTakesTheTextOfPackRules finalizes signals of the android
+// pack: their findings say what the catalog says.
+func TestFinalizeTakesTheTextOfPackRules(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "packs", "android", "rules.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	android, err := rules.LoadCatalog(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := testReview(t)
+	r.Rules = RulesOf(android, rules.Core())
+	j := testJudgement()
+	j.Findings, j.PreExisting = nil, nil
+	res, err := Finalize(r, j)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range append(res.Findings, res.PreExisting...) {
+		rule := r.Rules[f.Rule]
+		if f.Title != rule.Title || f.Why != rule.Why || f.Fix != rule.Fix || f.Why == "" || f.Fix == "" {
+			t.Errorf("%s: %q / %q / %q, want the text of the rule", f.Rule, f.Title, f.Why, f.Fix)
+		}
+	}
+}
+
+func TestRulesOfKeepsTheFirstRuleOfAnID(t *testing.T) {
+	a := &rules.Catalog{Pack: "a", Rules: []*rules.Rule{{ID: "x", Title: "from a"}}}
+	b := &rules.Catalog{Pack: "b", Rules: []*rules.Rule{{ID: "x", Title: "from b"}, {ID: "y", Title: "y"}}}
+	got := RulesOf(a, b)
+	if len(got) != 2 || got["x"].Title != "from a" || got["y"].Title != "y" {
+		t.Errorf("RulesOf = %+v", got)
 	}
 }

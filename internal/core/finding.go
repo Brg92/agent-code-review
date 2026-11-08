@@ -89,6 +89,8 @@ func Finalize(r Review, j Judgement) (Result, error) {
 		if !ok {
 			return Result{}, fmt.Errorf("signal %s: rule %q is not a rule of this change request", s.ID, s.Rule)
 		}
+		// A loaded catalog guarantees the text of a matched rule that needs
+		// no judgement; a rule that needs judgement may still lack it.
 		if blank(rule.Title) || blank(rule.Why) || blank(rule.Fix) {
 			return Result{}, fmt.Errorf("signal %s: rule %q has no fix, title or why for its findings", s.ID, s.Rule)
 		}
