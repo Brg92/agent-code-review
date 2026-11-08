@@ -32,5 +32,18 @@
       "decision": "confirm",
       "severity": "MAJOR"
     }
+  ],
+  "questions": [
+    {
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 18,
+      "text": "Is `prefetch()` meant to replace `warmUp()`? Nothing calls it yet."
+    }
+  ],
+  "notes": [
+    "The session refresh in `onCreate` runs before the first frame on every start."
+  ],
+  "notVerified": [
+    "Whether `SessionManager.refresh()` can be called before sign-in: it lives in core-lib."
   ]
 }

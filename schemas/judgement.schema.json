@@ -49,6 +49,53 @@
       "items": {
         "$ref": "#/$defs/signalDecision"
       }
+    },
+    "questions": {
+      "description": "Questions for the author that the agent could not settle from the code. They appear in the report and are never published.",
+      "type": "array",
+      "items": {
+        "description": "One question, optionally tied to a line.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "path": {
+            "description": "File the question is about.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "line": {
+            "description": "Line the question is about, at the head commit.",
+            "$ref": "#/$defs/line"
+          },
+          "text": {
+            "description": "The question, in Markdown.",
+            "type": "string",
+            "pattern": "\\S"
+          }
+        }
+      }
+    },
+    "notes": {
+      "description": "Short remarks for the report, at most three.",
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "description": "One remark of at most 200 characters.",
+        "type": "string",
+        "pattern": "\\S",
+        "maxLength": 200
+      }
+    },
+    "notVerified": {
+      "description": "What the agent could not check, for example a behaviour that depends on code outside the change request.",
+      "type": "array",
+      "items": {
+        "description": "One thing that was not checked.",
+        "type": "string",
+        "pattern": "\\S"
+      }
     }
   },
   "$defs": {
