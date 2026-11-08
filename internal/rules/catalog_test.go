@@ -42,6 +42,18 @@ func TestLoadCatalog(t *testing.T) {
 	}
 }
 
+func TestLoadCatalogFindingText(t *testing.T) {
+	data := strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"tags"`,
+		`"why":"Readers scroll sideways.","fix":"Wrap the line.","tags"`, 1)
+	c, err := LoadCatalog([]byte(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := c.Rules[0]; r.Why != "Readers scroll sideways." || r.Fix != "Wrap the line." {
+		t.Errorf("why %q, fix %q", r.Why, r.Fix)
+	}
+}
+
 // TestLoadCatalogMatchesTheContract keeps the loader in step with the
 // rules catalog schema.
 func TestLoadCatalogMatchesTheContract(t *testing.T) {
@@ -108,6 +120,8 @@ func TestLoadCatalogRejects(t *testing.T) {
 		{"bad glob", catalogWith(`{"detector":"line-length","max":1,"files":{"include":["/a"]}}`), "glob"},
 		{"bad tests mode", catalogWith(`{"detector":"line-length","max":1,"files":{"tests":"never"}}`), "tests"},
 		{"empty include", catalogWith(`{"detector":"line-length","max":1,"files":{"include":[]}}`), "include"},
+		{"blank why", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"tags"`, `"why":" ","tags"`, 1), "why"},
+		{"blank fix", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"tags"`, `"fix":"","tags"`, 1), "fix"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -76,6 +76,16 @@
             "type": "string",
             "pattern": "\\S"
           },
+          "why": {
+            "description": "Consequence written into the findings made from the rule's signals: what goes wrong if the code ships as it is, in one sentence of Markdown.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "fix": {
+            "description": "Smallest safe correction written into the findings made from the rule's signals, in one sentence of Markdown.",
+            "type": "string",
+            "pattern": "\\S"
+          },
           "languages": {
             "description": "Languages the rule applies to; empty means all languages of the pack.",
             "type": "array",
