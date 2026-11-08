@@ -24,7 +24,17 @@
       ],
       "tags": [
         "coroutines"
-      ]
+      ],
+      "when": {
+        "profile": [
+          "app",
+          "library"
+        ],
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
     },
     {
       "id": "no-double-bang",
