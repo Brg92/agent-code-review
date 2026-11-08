@@ -22,12 +22,6 @@
     "app"
   ],
   "rules": "rules.json",
-  "checklists": [
-    {
-      "profile": "app",
-      "path": "checklists/app.md"
-    }
-  ],
   "templates": [],
   "noise": [
     "dist/**"

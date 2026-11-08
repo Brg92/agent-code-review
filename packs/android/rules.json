@@ -1,0 +1,2609 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "defaults": {
+    "files": {
+      "exclude": [
+        "**/*.kts"
+      ],
+      "tests": "skip"
+    },
+    "ignoreLines": [
+      {
+        "tokens": [
+          {
+            "kind": "word",
+            "oneOf": [
+              "import",
+              "package"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "global-scope",
+      "title": "Coroutine launched in GlobalScope",
+      "severity": "BLOCKER",
+      "description": "Work launched in `GlobalScope` escapes every lifecycle and cannot be cancelled. Use a scope tied to the component, or one supplied by the caller.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "GlobalScope"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "async-task",
+      "title": "AsyncTask used",
+      "severity": "MAJOR",
+      "description": "`AsyncTask` is deprecated and leaks the enclosing instance. Use coroutines or an executor.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "concurrency"
+      ],
+      "group": "Coroutines and concurrency",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "AsyncTask"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-blocking-prod",
+      "title": "runBlocking in production code",
+      "severity": "BLOCKER",
+      "description": "`runBlocking` blocks the caller's thread; on the main thread it freezes the UI and can cause an ANR. Test code is not checked.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "runBlocking"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-dispatcher",
+      "title": "Dispatcher hard-coded",
+      "severity": "MAJOR",
+      "description": "Dispatchers are injected, not named in the code, so the code stays testable.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines",
+        "testability"
+      ],
+      "group": "Coroutines and concurrency",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "Dispatchers"
+              },
+              {
+                "kind": "punct",
+                "text": "."
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "IO",
+                  "Default",
+                  "Main",
+                  "Unconfined"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "blocking-on-main",
+      "title": "Blocking work on the main thread",
+      "severity": "BLOCKER",
+      "description": "No I/O, disk access or heavy computation on the main thread; move it off with `withContext(Dispatchers.IO)` or the equivalent.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "concurrency"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "unstructured-launch",
+      "title": "Coroutine launched outside a lifecycle scope",
+      "severity": "MAJOR",
+      "description": "Every coroutine starts from a scope tied to a lifecycle (`viewModelScope`, a UI scope, or one supplied by the caller). No free-floating jobs.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "async-without-concurrency",
+      "title": "async awaited at once",
+      "severity": "MINOR",
+      "description": "Use `async`/`await` for work that is really concurrent. A single `async` awaited at once is a `suspend` call with extra machinery; use `coroutineScope` or `supervisorScope` to decompose in parallel.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "flow-error-unhandled",
+      "title": "Flow errors not handled",
+      "severity": "MAJOR",
+      "description": "Errors of a stream are handled with `catch`: a failing flow must not stop emitting silently.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "coroutines",
+        "error-handling"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "missing-flow-on",
+      "title": "Cold flow without flowOn",
+      "severity": "MINOR",
+      "description": "A cold flow that does I/O declares its context with `flowOn` instead of relying on the collector's.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "exposed-mutable-flow",
+      "title": "Mutable flow exposed",
+      "severity": "MAJOR",
+      "description": "`MutableStateFlow` and `MutableSharedFlow` stay private and are exposed with `asStateFlow()` or `asSharedFlow()`. A caller that can emit into your state makes the owner's invariants unenforceable.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure"
+    },
+    {
+      "id": "mutable-collection-exposed",
+      "title": "Mutable collection in a public API",
+      "severity": "MAJOR",
+      "description": "A public API exposes `List`, `Map` and `Set`, not their mutable counterparts.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "state",
+        "api"
+      ],
+      "group": "State exposure"
+    },
+    {
+      "id": "state-not-modelled",
+      "title": "Screen state not modelled",
+      "severity": "MAJOR",
+      "description": "Screen state is a sealed hierarchy or an immutable data class, not a handful of independent booleans that can contradict each other.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure"
+    },
+    {
+      "id": "events-in-state",
+      "title": "One-shot event in the state",
+      "severity": "MAJOR",
+      "description": "One-shot events (navigation, snackbar, dialog) have their own stream. In the state object, a re-emission would replay them.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure"
+    },
+    {
+      "id": "new-live-data",
+      "title": "LiveData in new code",
+      "severity": "MAJOR",
+      "description": "No `LiveData`, `MutableLiveData` or `MediatorLiveData` in new or changed code: use `StateFlow` or `SharedFlow`. Allowed only with a comment on the declaration that justifies it.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "regexp": "^(Mutable|Mediator)?LiveData$"
+              },
+              {
+                "kind": "punct",
+                "text": "<"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "local-broadcast-manager",
+      "title": "Broadcast used inside the process",
+      "severity": "MAJOR",
+      "description": "No `LocalBroadcastManager`, and no `BroadcastReceiver` for communication inside the process: use a Flow or a Channel. A receiver for system broadcasts is allowed with a comment that justifies it.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "LocalBroadcastManager"
+              }
+            ]
+          },
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": ":"
+              },
+              {
+                "kind": "identifier",
+                "text": "BroadcastReceiver"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "extends"
+              },
+              {
+                "kind": "identifier",
+                "text": "BroadcastReceiver"
+              }
+            ]
+          },
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "registerReceiver"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "empty-catch",
+      "title": "Empty catch block",
+      "severity": "BLOCKER",
+      "description": "An error that vanishes is a bug that will be diagnosed twice. A `catch` block holds at least a handling statement or a comment that explains why the error is ignored.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "error-handling"
+      ],
+      "group": "Error handling",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "gap": {
+                  "balanced": true
+                }
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              },
+              {
+                "kind": "punct",
+                "text": "{"
+              },
+              {
+                "kind": "punct",
+                "text": "}"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-exception",
+      "title": "Generic exception caught",
+      "severity": "MAJOR",
+      "description": "Catch specific exceptions, not `Exception` or `Throwable`, unless the boundary really handles everything.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "error-handling"
+      ],
+      "group": "Error handling",
+      "match": {
+        "patterns": [
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "kind": "identifier"
+              },
+              {
+                "kind": "punct",
+                "text": ":"
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "Exception",
+                  "Throwable"
+                ]
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word",
+                    "text": "final"
+                  }
+                ],
+                "max": 1
+              },
+              {
+                "repeat": [
+                  {
+                    "repeat": [
+                      {
+                        "kind": "word"
+                      },
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "|"
+                  }
+                ]
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "Exception",
+                  "Throwable"
+                ]
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "punct",
+                    "text": "|"
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "word"
+                      },
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier"
+                  }
+                ]
+              },
+              {
+                "kind": "identifier"
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "swallowed-error",
+      "title": "Failure logged and dropped",
+      "severity": "MAJOR",
+      "description": "Failures reach the caller or the UI, as `Resource<T>` or the error type the module declares. They are never logged and dropped.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "error-handling"
+      ],
+      "group": "Error handling"
+    },
+    {
+      "id": "no-double-bang",
+      "title": "Not-null assertion",
+      "severity": "MAJOR",
+      "needsJudgement": true,
+      "description": "BLOCKER when the value comes from outside the process or the user (network, deserialization, IPC, deep link, intent extras, platform callback, user input); MAJOR otherwise. In existing code the BLOCKER case needs a verified crash path, otherwise it is MAJOR. Resolve nullability with `?.`, `?:`, `requireNotNull` with a message, or a smart cast. Known exception: the ViewBinding accessor `get() = _binding!!` is never reported.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "nullability"
+      ],
+      "group": "Error handling",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "!!"
+              }
+            ]
+          }
+        ],
+        "exclude": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "get"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              },
+              {
+                "kind": "punct",
+                "text": "="
+              },
+              {
+                "kind": "identifier",
+                "regexp": "^_\\w*[Bb]inding$"
+              },
+              {
+                "kind": "punct",
+                "text": "!!"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "manual-throw-precondition",
+      "title": "Hand-written precondition",
+      "severity": "MINOR",
+      "description": "Use `require`, `check` or `error` for preconditions and invariants instead of `if (...) throw ...`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "error-handling",
+        "kotlin"
+      ],
+      "group": "Error handling"
+    },
+    {
+      "id": "field-injection",
+      "title": "Field injection",
+      "severity": "MAJOR",
+      "description": "Constructor injection over field injection: it makes the dependency explicit and the class testable. Fields injected in a Hilt entry point class are allowed.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection",
+      "match": {
+        "files": {
+          "exclude": [
+            "**/*.kts"
+          ],
+          "notContains": [
+            {
+              "tokens": [
+                {
+                  "kind": "punct",
+                  "text": "@"
+                },
+                {
+                  "kind": "identifier",
+                  "oneOf": [
+                    "AndroidEntryPoint",
+                    "HiltAndroidApp"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "patterns": [
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "@"
+              },
+              {
+                "kind": "identifier",
+                "text": "Inject"
+              },
+              {
+                "gap": {
+                  "max": 16,
+                  "balanced": true,
+                  "stopAt": [
+                    {
+                      "kind": "punct",
+                      "oneOf": [
+                        "{",
+                        "}",
+                        ";",
+                        "="
+                      ]
+                    },
+                    {
+                      "kind": "word",
+                      "oneOf": [
+                        "fun",
+                        "val",
+                        "class",
+                        "constructor"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "word",
+                "text": "var",
+                "at": true
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "@"
+              },
+              {
+                "kind": "identifier",
+                "text": "Inject"
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "punct",
+                    "text": "@"
+                  },
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      },
+                      {
+                        "kind": "word"
+                      }
+                    ]
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "punct",
+                        "text": "("
+                      },
+                      {
+                        "gap": {
+                          "balanced": true
+                        }
+                      },
+                      {
+                        "kind": "punct",
+                        "text": ")"
+                      }
+                    ],
+                    "max": 1
+                  }
+                ]
+              },
+              {
+                "gap": {
+                  "max": 16,
+                  "stopAt": [
+                    {
+                      "kind": "punct",
+                      "oneOf": [
+                        "(",
+                        "{",
+                        "}",
+                        ";",
+                        "=",
+                        "@"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "identifier",
+                "at": true
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  ";",
+                  "="
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "manual-instantiation",
+      "title": "Dependency built by hand",
+      "severity": "MAJOR",
+      "description": "No direct construction of what the graph provides: it bypasses scoping and cannot be replaced in tests.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection"
+    },
+    {
+      "id": "missing-di-annotation",
+      "title": "DI annotation missing",
+      "severity": "MAJOR",
+      "description": "ViewModels and injection entry points carry the annotations Hilt requires: `@HiltViewModel` on ViewModels, `@AndroidEntryPoint` on Fragments and Activities, `@Inject constructor` for injected classes.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection"
+    },
+    {
+      "id": "duplicate-di-module",
+      "title": "Binding provided twice",
+      "severity": "MAJOR",
+      "description": "No second module provides a binding that already exists, and modules live where the project keeps them.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection"
+    },
+    {
+      "id": "service-locator",
+      "title": "Static accessor as a hidden dependency",
+      "severity": "MAJOR",
+      "description": "No static or global accessor used as a hidden dependency.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection"
+    },
+    {
+      "id": "var-never-reassigned",
+      "title": "var never reassigned",
+      "severity": "MINOR",
+      "description": "`val` by default; `var` only where the value really changes.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "mutable-collection-default",
+      "title": "Collection built by mutation",
+      "severity": "MINOR",
+      "description": "Build collections with `listOf`, `mapOf` or `buildList` rather than creating a mutable one and filling it, unless mutation is needed.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "data-class-missing",
+      "title": "Data holder is not a data class",
+      "severity": "MINOR",
+      "description": "Pure data holders are `data class`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "raw-type-wrapper",
+      "title": "Identifier passed as a raw type",
+      "severity": "MINOR",
+      "description": "A single-value identifier or token that crosses a boundary is a `@JvmInline value class`, so two `String` ids cannot be swapped by accident.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "manual-loop",
+      "title": "Hand-rolled loop",
+      "severity": "MINOR",
+      "description": "Collection operators (`map`, `filter`, `firstOrNull`, `associateBy`, `sumOf`) instead of hand-rolled loops.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "reimplemented-stdlib",
+      "title": "Standard library reimplemented",
+      "severity": "MINOR",
+      "description": "Use the standard library (`runCatching`, `buildList`, `takeIf`, `groupBy` and friends) instead of reimplementing it.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "sequence-for-large-pipeline",
+      "title": "Large pipeline not lazy",
+      "severity": "MINOR",
+      "description": "Use `asSequence()` for large or multi-step pipelines.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin",
+        "performance"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "non-exhaustive-when",
+      "title": "when with else over a closed type",
+      "severity": "MAJOR",
+      "description": "A `when` over a sealed type or an enum has no `else`, so a new case fails to compile until every use handles it.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "long-if-chain",
+      "title": "Long if/else-if chain",
+      "severity": "MINOR",
+      "description": "Use `when` instead of a long `if / else if` chain.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "unsafe-cast",
+      "title": "Unsafe cast",
+      "severity": "MAJOR",
+      "description": "Prefer `is` smart casts to `as`; use `as?` where a cast can fail legitimately.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "index-can-throw",
+      "title": "Indexing that can throw",
+      "severity": "MINOR",
+      "description": "Prefer `firstOrNull` and `getOrNull` to indexing that can throw.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "boolean-flag-parameter",
+      "title": "Boolean flag parameter",
+      "severity": "MAJOR",
+      "description": "No positional boolean flag that switches behaviour: use named arguments with defaults, or two functions. At the call site `doThing(true)` says nothing.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "expression-body",
+      "title": "Block body for one expression",
+      "severity": "MINOR",
+      "description": "A function of a single expression has an expression body.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "redundant-type-annotation",
+      "title": "Redundant type annotation",
+      "severity": "MINOR",
+      "description": "Let the compiler infer local types. Annotate explicitly on public or overridable signatures, where the type is part of the contract.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "utils-class-over-extension",
+      "title": "Utils holder instead of extension",
+      "severity": "MINOR",
+      "description": "Write an extension function rather than another member of a static-style `Utils` holder.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "nested-scope-functions",
+      "title": "Scope functions nested",
+      "severity": "MINOR",
+      "description": "One purpose per scope function (`let` for a non-null value, `apply` to configure, `also` for side effects, `run` or `with` to produce a result), and no nesting that hurts readability.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "java-in-new-code",
+      "title": "Java in new code",
+      "severity": "MAJOR",
+      "description": "New code is Kotlin, unless it changes an area that is deliberately Java-only.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "out-of-scope-refactor",
+      "title": "Refactoring outside the ticket",
+      "severity": "MAJOR",
+      "description": "The change does what the ticket says. A broad rewrite of untouched code by the author hides the real change in noise. It applies only to refactoring done by the author, never to reporting existing defects.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "logic-in-wrong-layer",
+      "title": "Business logic in the wrong layer",
+      "severity": "MAJOR",
+      "description": "Business logic sits in the domain or presentation layer, not in mappers or data sources. UI classes have more specific rules in the Views and Compose checklists.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "architecture"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "class-too-large",
+      "title": "Class with more than one responsibility",
+      "severity": "MINOR",
+      "description": "One responsibility per class: a class that needs \"and\" to be described is the finding.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "long-function",
+      "title": "Long function",
+      "severity": "MINOR",
+      "description": "Functions are short and single-purpose.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "deep-nesting",
+      "title": "Deep nesting",
+      "severity": "MINOR",
+      "description": "Nesting is shallow: prefer early returns to another level of `if`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "duplicated-logic",
+      "title": "Logic duplicated across classes",
+      "severity": "MINOR",
+      "description": "Logic repeated across two or more classes is centralised once. Repetition inside one class is not this rule.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "line-too-long",
+      "title": "Line too long",
+      "severity": "MINOR",
+      "description": "Lines stay within 100 characters. Only lines the change adds are reported.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "style"
+      ],
+      "group": "Structure and scope",
+      "match": {
+        "detector": "line-length",
+        "max": 100,
+        "lines": "added"
+      }
+    },
+    {
+      "id": "package-organization",
+      "title": "Package structure not followed",
+      "severity": "MINOR",
+      "description": "New code follows the package structure of the project; prefer grouping by feature to a technical dumping ground.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "context-leak",
+      "title": "Context retained beyond its lifecycle",
+      "severity": "BLOCKER",
+      "description": "No `Activity`, `Fragment` or view `Context` is retained beyond its lifecycle: not in a long-lived object, a companion or a static field. Adapters and composables have more specific rules.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "context-in-viewmodel",
+      "title": "Context in a ViewModel",
+      "severity": "MAJOR",
+      "description": "No `Context` in a ViewModel unless it is needed and a comment says why: it outlives configuration changes.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "listener-not-removed",
+      "title": "Listener never removed",
+      "severity": "MAJOR",
+      "description": "Every registered listener, observer, callback or receiver is removed on the matching teardown.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "unnecessary-weak-reference",
+      "title": "Unnecessary WeakReference",
+      "severity": "MINOR",
+      "description": "`WeakReference` only where the lifetime really needs it: used to paper over a leak it hides the real ownership problem.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "bitmap-in-model",
+      "title": "Bitmap in a model",
+      "severity": "MAJOR",
+      "description": "No `Bitmap` inside a domain or data model.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "full-list-refresh",
+      "title": "Whole list refreshed",
+      "severity": "MAJOR",
+      "description": "Lists use `DiffUtil` or Paging, not a full refresh (`notifyDataSetChanged`) on every change.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "performance"
+      ],
+      "group": "Memory and performance",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "notifyDataSetChanged"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "strict-version-pin",
+      "title": "Strict dependency version",
+      "severity": "BLOCKER",
+      "description": "No strict version on any dependency: the `!!` suffix (`\"group:name:1.2.3!!\"`), `version { strictly(...) }` in a build script, or `{ strictly = \"...\" }` in a version catalog. A strict version overrides every other request for that module in the whole build; another module asking for a different version is silently forced to this one, or the build fails to resolve. Declare the plain version. A `-SNAPSHOT` version is allowed.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "group": "Dependencies",
+      "match": {
+        "files": {
+          "include": [
+            "**/*.gradle",
+            "**/*.gradle.kts",
+            "**/*.toml"
+          ],
+          "tests": "include"
+        },
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": [
+                  "string",
+                  "raw-string"
+                ],
+                "regexp": "!![\"']+$"
+              }
+            ]
+          },
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "strictly"
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  "(",
+                  "="
+                ]
+              }
+            ]
+          },
+          {
+            "languages": [
+              "groovy"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "strictly"
+              },
+              {
+                "kind": [
+                  "string",
+                  "raw-string"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dependency-version-bump",
+      "title": "Dependency version changed",
+      "severity": "MAJOR",
+      "description": "No dependency version change inside a feature branch without prior agreement: it affects every module and, in a library, every consumer, and it is invisible in a diff that is about something else.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "group": "Dependencies"
+    },
+    {
+      "id": "new-dependency",
+      "title": "New third-party dependency",
+      "severity": "MAJOR",
+      "description": "A new third-party dependency needs prior agreement. In a library every consumer inherits it. Using `kapt` instead of KSP is a known exception and is never reported.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "group": "Dependencies"
+    },
+    {
+      "id": "nested-module-import",
+      "title": "Shared library imports another",
+      "severity": "MAJOR",
+      "description": "No shared library imports another shared library without agreement: it multiplies the coupling every consumer inherits.",
+      "languages": [],
+      "tags": [
+        "dependencies"
+      ],
+      "group": "Dependencies"
+    },
+    {
+      "id": "naming-convention",
+      "title": "Naming convention broken",
+      "severity": "MINOR",
+      "description": "`PascalCase` for types, `camelCase` for functions and properties, `UPPER_SNAKE_CASE` for constants.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "naming"
+      ],
+      "group": "Naming and documentation"
+    },
+    {
+      "id": "non-descriptive-name",
+      "title": "Name does not say what it is",
+      "severity": "MINOR",
+      "description": "Names say what the thing is, in English.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "naming"
+      ],
+      "group": "Naming and documentation"
+    },
+    {
+      "id": "missing-kdoc",
+      "title": "Declaration without KDoc",
+      "severity": "MINOR",
+      "needsJudgement": true,
+      "description": "MAJOR on a public symbol of a library (profile library) or of a module other modules call; MINOR otherwise. Public types, public functions and non-obvious properties are documented. In a library the documentation states preconditions, threading and what it throws: consumers read the documentation, not the source.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "docs"
+      ],
+      "group": "Naming and documentation",
+      "match": {
+        "detector": "missing-doc",
+        "lines": "added",
+        "declarations": [
+          "fun",
+          "val",
+          "var",
+          "class",
+          "interface",
+          "object"
+        ],
+        "modifiers": [
+          "public",
+          "open",
+          "abstract",
+          "final",
+          "data",
+          "sealed",
+          "inline",
+          "value",
+          "suspend",
+          "operator",
+          "infix",
+          "tailrec",
+          "const",
+          "lateinit",
+          "enum"
+        ],
+        "skipModifiers": [
+          "private",
+          "internal",
+          "protected",
+          "override"
+        ],
+        "types": [
+          "class",
+          "interface",
+          "object"
+        ],
+        "notAfter": [
+          "::"
+        ],
+        "annotation": "@",
+        "skipAnnotations": [
+          "Inject"
+        ],
+        "header": {
+          "open": "(",
+          "close": ")"
+        },
+        "body": {
+          "open": "{",
+          "close": "}"
+        }
+      }
+    },
+    {
+      "id": "over-commenting",
+      "title": "Comment that adds nothing",
+      "severity": "MINOR",
+      "description": "Inline comments only where the logic is not obvious.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "docs"
+      ],
+      "group": "Naming and documentation"
+    },
+    {
+      "id": "hardcoded-secret",
+      "title": "Secret in the source",
+      "severity": "BLOCKER",
+      "description": "No credentials, API keys, tokens or environment URLs in the source: they come from build configuration or a secure store.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "sensitive-logging",
+      "title": "Sensitive data logged",
+      "severity": "BLOCKER",
+      "description": "No logging of credentials, session tokens, personal data or payment payloads.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "unvalidated-external-input",
+      "title": "External input not validated",
+      "severity": "MAJOR",
+      "description": "Data that crosses a trust boundary (network, IPC, deep link, WebView bridge, the public entry point of a library) is validated before use.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "webview-bridge-exposure",
+      "title": "WebView bridge exposes too much",
+      "severity": "BLOCKER",
+      "description": "A JavaScript bridge exposes the minimum surface, never arbitrary execution or sensitive data, and validates everything that arrives from the page.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "insecure-storage",
+      "title": "Sensitive value in plain storage",
+      "severity": "MAJOR",
+      "description": "Sensitive values are not written to plain preferences or files.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "security"
+      ],
+      "group": "Security"
+    },
+    {
+      "id": "missing-tests",
+      "title": "Missing unit tests",
+      "severity": "MAJOR",
+      "description": "Unit tests for every ViewModel, repository, mapper or helper added or changed and, in a library, for every public entry point added or changed. It is checked on the whole change request, not on one file.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "group": "Tests"
+    },
+    {
+      "id": "empty-test-stub",
+      "title": "Empty test stub",
+      "severity": "MAJOR",
+      "description": "No scaffolded test is left empty: it reports green while covering nothing.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "group": "Tests"
+    },
+    {
+      "id": "undescriptive-test-name",
+      "title": "Test name says nothing",
+      "severity": "MINOR",
+      "description": "The name of a test states what is tested and the expected outcome, as in `shouldReturnX_whenY()`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "group": "Tests"
+    },
+    {
+      "id": "test-asserts-nothing",
+      "title": "Test without assertions",
+      "severity": "MAJOR",
+      "description": "Every test asserts on a result, not only that no exception was thrown.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "group": "Tests"
+    },
+    {
+      "id": "binding-not-cleared",
+      "title": "Binding kept after the view is destroyed",
+      "severity": "BLOCKER",
+      "description": "A Fragment releases its binding in `onDestroyView()`. The view hierarchy is destroyed while the Fragment instance survives; a retained binding leaks the whole view tree. XML layouts with ViewBinding instead of Jetpack Compose are accepted and never reported.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "binding",
+        "memory"
+      ],
+      "group": "Views: Binding",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "lateinit-binding",
+      "title": "lateinit binding",
+      "severity": "MAJOR",
+      "description": "No `lateinit` for a binding or any property tied to the view lifecycle: it stays a stale non-null reference after teardown. Use a nullable backing field or `by lazy`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "binding"
+      ],
+      "group": "Views: Binding",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      },
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "lateinit"
+              },
+              {
+                "kind": "word",
+                "text": "var"
+              },
+              {
+                "kind": "identifier",
+                "regexp": "[Bb]inding$"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "find-view-by-id",
+      "title": "findViewById where binding is available",
+      "severity": "MAJOR",
+      "description": "No `findViewById` where binding is available: it is unchecked at compile time and queries the hierarchy again.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "binding"
+      ],
+      "group": "Views: Binding",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      },
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "findViewById"
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  "<",
+                  "("
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "binding-outside-view-lifecycle",
+      "title": "Binding used after onDestroyView",
+      "severity": "BLOCKER",
+      "description": "No access to the binding from a callback that can fire after `onDestroyView`: a network result, a timer, a flow collected on the wrong scope.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "binding",
+        "lifecycle"
+      ],
+      "group": "Views: Binding",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "launch-when-started",
+      "title": "launchWhenStarted used",
+      "severity": "BLOCKER",
+      "description": "Collect with `viewLifecycleOwner.lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) { ... } }`, never `launchWhenStarted`: it suspends the coroutine but keeps the collection alive, so upstream work goes on and the observer stays attached to a destroyed view.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "lifecycle",
+        "coroutines"
+      ],
+      "group": "Views: Lifecycle",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      },
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "regexp": "^launchWhen(Created|Started|Resumed)$"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "wrong-lifecycle-owner",
+      "title": "Fragment owner used for UI observation",
+      "severity": "BLOCKER",
+      "description": "In a Fragment, UI collection and observation use `viewLifecycleOwner`, not `this`. The Fragment outlives its view, so the wrong owner leaks across view recreation.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "lifecycle"
+      ],
+      "group": "Views: Lifecycle",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "work-in-oncreateview",
+      "title": "Wiring in onCreateView",
+      "severity": "MINOR",
+      "description": "`onCreateView` inflates; wiring belongs in `onViewCreated`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "lifecycle"
+      ],
+      "group": "Views: Lifecycle",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "logic-in-ui-class",
+      "title": "Business logic in a UI class",
+      "severity": "BLOCKER",
+      "description": "No business logic in `Fragment`, `Activity`, `Service` or adapters: it cannot be unit tested, and it is a non-negotiable team rule.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "architecture"
+      ],
+      "group": "Views: Architecture",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "adapter-holds-context",
+      "title": "Adapter holds a Context",
+      "severity": "MAJOR",
+      "description": "An adapter or ViewHolder does not retain an `Activity` or a listener beyond the life of the view.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "architecture",
+        "memory"
+      ],
+      "group": "Views: Architecture",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "deep-view-hierarchy",
+      "title": "Deep view hierarchy",
+      "severity": "MINOR",
+      "description": "Avoid nesting layouts where a constraint-based layout would be flat: depth costs on every measure pass.",
+      "languages": [],
+      "tags": [
+        "layout"
+      ],
+      "group": "Views: Layout",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-dimension",
+      "title": "Literal in a layout",
+      "severity": "MINOR",
+      "description": "Dimensions, colours and strings come from resources, not from literals in the layout or in the code.",
+      "languages": [],
+      "tags": [
+        "layout"
+      ],
+      "group": "Views: Layout",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "views-missing-content-description",
+      "title": "View without content description",
+      "severity": "MINOR",
+      "description": "Meaningful views carry a content description; decorative ones are explicitly excluded.",
+      "languages": [],
+      "tags": [
+        "accessibility"
+      ],
+      "group": "Views: Layout",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "state-without-remember",
+      "title": "State without remember",
+      "severity": "BLOCKER",
+      "description": "State created inside a composable is wrapped in `remember`: without it the value is created again on every recomposition and never changes.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "state"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "remember-missing-key",
+      "title": "remember without a key",
+      "severity": "MAJOR",
+      "description": "A `remember` that derives from a parameter takes that parameter as a key, otherwise it keeps a stale value when the input changes.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "state"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "state-not-hoisted",
+      "title": "State not hoisted",
+      "severity": "MAJOR",
+      "description": "A composable that only displays takes state as a parameter and emits events upward; internal state belongs to the owner. A stateful leaf cannot be reused or previewed.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "state"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "exposed-mutable-state",
+      "title": "MutableState exposed",
+      "severity": "MAJOR",
+      "description": "A ViewModel exposes Compose `State`, never `MutableState`. Exposed flows are covered by `exposed-mutable-flow`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "state"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "unstable-parameter",
+      "title": "Unstable parameter",
+      "severity": "MINOR",
+      "description": "Parameters are stable types (immutable data classes, primitives): an unstable one defeats recomposition skipping.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "performance"
+      ],
+      "group": "Compose: State",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "side-effect-in-composition",
+      "title": "Side effect in the composable body",
+      "severity": "BLOCKER",
+      "description": "No I/O, navigation, analytics or state mutation directly in the body of a composable: it runs on every recomposition, an unknown number of times. Use `LaunchedEffect`, `SideEffect` or an event callback.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose"
+      ],
+      "group": "Compose: Side effects",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "launched-effect-key",
+      "title": "LaunchedEffect with a wrong key",
+      "severity": "MAJOR",
+      "description": "The keys of a `LaunchedEffect` are the values that should restart it. `Unit` where a parameter matters means the effect never runs again on change; a key that changes where it does not matter restarts it all the time.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose"
+      ],
+      "group": "Compose: Side effects",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "missing-disposable-effect",
+      "title": "Registration without DisposableEffect",
+      "severity": "MAJOR",
+      "description": "A subscription, listener or callback registered from a composable is removed in the `onDispose` of a `DisposableEffect`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "memory"
+      ],
+      "group": "Compose: Side effects",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "collect-without-lifecycle",
+      "title": "collectAsState without lifecycle",
+      "severity": "MAJOR",
+      "description": "Collect flows with `collectAsStateWithLifecycle()`, not plain `collectAsState()`: the latter keeps collecting while the screen is in the background.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "lifecycle"
+      ],
+      "group": "Compose: Side effects",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "logic-in-composable",
+      "title": "Business logic in a composable",
+      "severity": "MAJOR",
+      "description": "No business logic in a composable: it belongs in the ViewModel or below.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "architecture"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "viewmodel-passed-down",
+      "title": "ViewModel passed to a leaf composable",
+      "severity": "MAJOR",
+      "description": "A ViewModel is not passed into leaf composables: it couples them to a screen and makes them impossible to preview.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "architecture"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "context-captured",
+      "title": "Context captured in a composable",
+      "severity": "MAJOR",
+      "description": "`LocalContext` is read where it is needed, not captured in a long-lived object or a remembered lambda.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "memory"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "missing-modifier-param",
+      "title": "Public composable without a Modifier",
+      "severity": "MINOR",
+      "description": "A public composable accepts a `Modifier` parameter, with a default, as the first optional one.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "modifier-not-forwarded",
+      "title": "Modifier not applied",
+      "severity": "MINOR",
+      "description": "The `Modifier` parameter is applied to the root of the composable, not dropped.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose"
+      ],
+      "group": "Compose: Structure",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "heavy-work-in-composition",
+      "title": "Heavy work in the composable body",
+      "severity": "MAJOR",
+      "description": "Sorting, filtering, parsing and formatting go in `remember` or `derivedStateOf`, or upstream, not inline in the body.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "performance"
+      ],
+      "group": "Compose: Performance",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "lazy-list-no-key",
+      "title": "Lazy list items without a key",
+      "severity": "MAJOR",
+      "description": "The items of a `LazyColumn` or `LazyRow` declare a stable `key`, otherwise every insertion recomposes and loses item state.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "performance"
+      ],
+      "group": "Compose: Performance",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "whole-list-in-lazy-item",
+      "title": "Whole list inside one lazy item",
+      "severity": "MAJOR",
+      "description": "A lazy list emits its items with `items(...)`, not a `Column` inside one item: the second form renders everything at once.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "performance"
+      ],
+      "group": "Compose: Performance",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-string",
+      "title": "User-visible text in the code",
+      "severity": "MINOR",
+      "description": "User-visible text comes from resources.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "accessibility"
+      ],
+      "group": "Compose: Accessibility and resources",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "compose-missing-content-description",
+      "title": "Image without content description",
+      "severity": "MINOR",
+      "description": "A meaningful `Image` or `Icon` carries a content description; a decorative one passes `null` explicitly.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "compose",
+        "accessibility"
+      ],
+      "group": "Compose: Accessibility and resources",
+      "when": {
+        "ui-toolkit": [
+          "compose",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "breaking-signature-change",
+      "title": "Public symbol removed or changed",
+      "severity": "BLOCKER",
+      "description": "No removal, rename or signature change of a public symbol without a declared migration path: consumers are other repositories and will not compile.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "new-required-parameter",
+      "title": "Required parameter added",
+      "severity": "BLOCKER",
+      "description": "No new required parameter on an existing public function: add a default or an overload.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "new-abstract-member",
+      "title": "Abstract member added",
+      "severity": "BLOCKER",
+      "description": "No new abstract member on a public interface or open class that consumers implement.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "silent-behaviour-change",
+      "title": "Behaviour changed under the same signature",
+      "severity": "BLOCKER",
+      "description": "No change to the meaning of a parameter, a return value, nullability or error behaviour while the signature stays the same: nothing tells the consumer to look.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "unnecessary-public",
+      "title": "Public by default",
+      "severity": "MAJOR",
+      "description": "`internal` by default, `public` on purpose: anything public has to be supported from now on.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "consumers-not-declared",
+      "title": "Affected consumers not named",
+      "severity": "MAJOR",
+      "description": "A change to the public contract names the affected consumers in the description of the change request.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "depends-on-host",
+      "title": "Library depends on its host",
+      "severity": "BLOCKER",
+      "description": "No dependency on a consumer application, its resources, its build configuration or its assets.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library"
+      ],
+      "group": "Library: Independence from the host",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-host-value",
+      "title": "Host value baked in",
+      "severity": "MAJOR",
+      "description": "No brand names, market codes, environment URLs or product identifiers baked in: the host supplies them through configuration or injection.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library"
+      ],
+      "group": "Library: Independence from the host",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "instantiates-cross-cutting",
+      "title": "Cross-cutting concern instantiated",
+      "severity": "MAJOR",
+      "description": "Analytics, logging, tracking and similar concerns are declared as interfaces in the library and implemented by the host, never instantiated inside the library.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library"
+      ],
+      "group": "Library: Independence from the host",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "assumes-host-lifecycle",
+      "title": "Initialization order assumed",
+      "severity": "MAJOR",
+      "description": "Initialization order requirements are documented as preconditions, not assumed.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library"
+      ],
+      "group": "Library: Independence from the host",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "leaked-transitive-dependency",
+      "title": "Dependency exposed in a signature",
+      "severity": "MAJOR",
+      "description": "A dependency exposed in a public signature becomes part of the contract. Keep it `implementation` unless exposing it is deliberate.",
+      "languages": [],
+      "tags": [
+        "library",
+        "dependencies"
+      ],
+      "group": "Library: Dependencies exposed",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "deprecation-without-replacement",
+      "title": "Deprecation without a replacement",
+      "severity": "MAJOR",
+      "description": "`@Deprecated` carries a replacement and a removal timeline.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: API surface quality",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "main-safety-undeclared",
+      "title": "Threading of a suspend function undeclared",
+      "severity": "MAJOR",
+      "description": "A public suspend function is main-safe, or its threading requirement is documented.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "library",
+        "api",
+        "coroutines"
+      ],
+      "group": "Library: API surface quality",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "contract-not-pinned",
+      "title": "Public contract not pinned by a test",
+      "severity": "MAJOR",
+      "description": "A test pins the public contract, so a breaking change fails here rather than in the build of a consumer.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "tests"
+      ],
+      "group": "Library: Tests and versioning",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "version-not-bumped",
+      "title": "Version not bumped",
+      "severity": "MINOR",
+      "description": "The version reflects the nature of the change: breaking, feature or fix.",
+      "languages": [],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Tests and versioning",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    }
+  ]
+}

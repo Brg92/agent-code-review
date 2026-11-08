@@ -91,6 +91,35 @@
               "pattern": "^[a-z0-9-]+$"
             }
           },
+          "group": {
+            "description": "Section heading under which the rule is listed in the checklist generated from the catalog; rules with the same group are listed together, in catalog order. Absent: the rule is listed without a heading.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "when": {
+            "description": "Conditions for the rule to apply to a repository; all must hold. profile lists the profiles; any other key is a dimension of the pack and lists its values. Absent: the rule always applies.",
+            "type": "object",
+            "properties": {
+              "profile": {
+                "description": "Profiles the rule applies to.",
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/profile"
+                }
+              }
+            },
+            "additionalProperties": {
+              "description": "Values of the dimension named by the key, one of which the repository must have.",
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/dimensionId"
+              }
+            }
+          },
           "match": {
             "description": "What the rule matches mechanically. Absent: the rule is only judged, never matched.",
             "$ref": "#/$defs/match"
@@ -118,6 +147,11 @@
           "$ref": "#/$defs/lexerBracket"
         }
       }
+    },
+    "dimensionId": {
+      "description": "Identifier of a dimension or of one of its values: lowercase words joined by hyphens.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
     "element": {
       "description": "One element of a token pattern: a token, a gap, a repeated group, or alternatives.",
@@ -556,6 +590,14 @@
           }
         }
       }
+    },
+    "profile": {
+      "description": "Kind of repository, which selects the default criteria.",
+      "enum": [
+        "app",
+        "library",
+        "kmp"
+      ]
     },
     "ruleId": {
       "description": "Rule identifier: lowercase words joined by hyphens, optionally in dot-separated groups, for example no-double-bang.",

@@ -12,19 +12,30 @@
       ],
       "tags": [
         "coroutines"
-      ]
+      ],
+      "group": "Coroutines and concurrency"
     },
     {
       "id": "global-scope",
       "title": "Coroutine launched in GlobalScope",
-      "severity": "MAJOR",
+      "severity": "BLOCKER",
       "description": "Work launched in `GlobalScope` is never cancelled and outlives the component that started it.",
       "languages": [
         "kotlin"
       ],
       "tags": [
         "coroutines"
-      ]
+      ],
+      "when": {
+        "profile": [
+          "app",
+          "library"
+        ],
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
     },
     {
       "id": "no-double-bang",

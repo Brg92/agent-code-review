@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "rules": [
+    {
+      "id": "run-blocking-prod",
+      "title": "runBlocking on the main thread",
+      "severity": "BLOCKER",
+      "description": "`runBlocking` blocks the calling thread; on the main thread it freezes the UI and can trigger an ANR.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "coroutines"
+      ]
+    },
+    {
+      "id": "global-scope",
+      "title": "Coroutine launched in GlobalScope",
+      "severity": "MAJOR",
+      "description": "Work launched in `GlobalScope` is never cancelled and outlives the component that started it.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "when": {
+        "profile": [
+          "desktop"
+        ]
+      }
+    },
+    {
+      "id": "no-double-bang",
+      "title": "Not-null assertion on a nullable value",
+      "severity": "MAJOR",
+      "description": "`!!` throws a NullPointerException when the value is null at runtime.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "nullability"
+      ]
+    },
+    {
+      "id": "logic.always-throws",
+      "title": "Code that always throws",
+      "severity": "BLOCKER",
+      "description": "A call that throws on every path, often because a precondition is no longer set up.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "logic.removed-validation",
+      "title": "A change removes input validation",
+      "severity": "MAJOR",
+      "needsJudgement": true,
+      "description": "Removing a `require` or `check` lets invalid input through.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "logic"
+      ]
+    },
+    {
+      "id": "style.redundant-if",
+      "title": "An if/else only returns its condition",
+      "severity": "MINOR",
+      "needsJudgement": false,
+      "description": "Return the condition instead of branching on it.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "style"
+      ]
+    },
+    {
+      "id": "uses-removed-api",
+      "title": "Public API still used by a consumer",
+      "severity": "BLOCKER",
+      "description": "A change removes public API that a consumer repository still calls.",
+      "languages": [],
+      "tags": [
+        "api"
+      ]
+    }
+  ]
+}

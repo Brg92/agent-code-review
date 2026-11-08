@@ -37,16 +37,6 @@
     "game"
   ],
   "rules": "rules.json",
-  "checklists": [
-    {
-      "profile": "app",
-      "path": "checklists/app.md"
-    },
-    {
-      "profile": "library",
-      "path": "checklists/library.md"
-    }
-  ],
   "templates": [
     "templates/summary.md",
     "templates/comment.md"

@@ -14,7 +14,6 @@
     "languages",
     "profiles",
     "rules",
-    "checklists",
     "templates",
     "noise",
     "generatedMarkers"
@@ -133,32 +132,75 @@
       "description": "Profile used when no sign of profileDetect matches; it must be in profiles. Absent: the first of profiles.",
       "$ref": "#/$defs/profile"
     },
-    "rules": {
-      "description": "Rules catalog file, relative to the pack directory.",
-      "$ref": "#/$defs/relativePath"
-    },
-    "checklists": {
-      "description": "Review checklists, by profile.",
+    "dimensions": {
+      "description": "Axes along which the repository varies within the stack, for example the UI toolkit. Each one has a value per repository, set by the repository configuration or detected from its files; rules can depend on it. The core treats dimensions as data.",
+      "default": [],
       "type": "array",
       "items": {
-        "description": "One checklist.",
+        "description": "One dimension.",
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "profile",
-          "path"
+          "id",
+          "values",
+          "detect",
+          "default"
         ],
         "properties": {
-          "profile": {
-            "description": "Profile the checklist is for.",
-            "$ref": "#/$defs/profile"
+          "id": {
+            "description": "Dimension identifier, the key of the repository configuration and of the conditions of rules. It cannot be profile.",
+            "$ref": "#/$defs/dimensionId"
           },
-          "path": {
-            "description": "Checklist file, relative to the pack directory.",
-            "$ref": "#/$defs/relativePath"
+          "values": {
+            "description": "Values the dimension can take.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/dimensionId"
+            }
+          },
+          "detect": {
+            "description": "Signs of a value, used when the repository configuration does not set the dimension.",
+            "type": "array",
+            "items": {
+              "description": "One sign: a file matching path, which contains the text when contains is set, shows the value.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "value",
+                "path"
+              ],
+              "properties": {
+                "value": {
+                  "description": "Value the sign shows; it must be in values.",
+                  "$ref": "#/$defs/dimensionId"
+                },
+                "path": {
+                  "description": "Glob of a file or directory.",
+                  "$ref": "#/$defs/glob"
+                },
+                "contains": {
+                  "description": "Text the file must contain.",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Value used when no sign matches; it must be in values.",
+            "$ref": "#/$defs/dimensionId"
+          },
+          "combined": {
+            "description": "Value used when signs of more than one value match; it must be in values. Absent: the value of the first sign that matches.",
+            "$ref": "#/$defs/dimensionId"
           }
         }
       }
+    },
+    "rules": {
+      "description": "Rules catalog file, relative to the pack directory.",
+      "$ref": "#/$defs/relativePath"
     },
     "templates": {
       "description": "Report and comment templates, relative to the pack directory.",
@@ -192,6 +234,11 @@
     }
   },
   "$defs": {
+    "dimensionId": {
+      "description": "Identifier of a dimension or of one of its values: lowercase words joined by hyphens.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
     "glob": {
       "description": "Path glob with forward slashes: '*' matches within a segment, '**' matches any number of segments.",
       "type": "string",
