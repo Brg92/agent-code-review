@@ -101,6 +101,38 @@
         "$ref": "#/$defs/profile"
       }
     },
+    "profileDetect": {
+      "description": "Signs of a profile, tried in order when neither the repository configuration nor the cascade decides it (a repository that another change request of the cascade depends on is a library). The first matching sign decides. Every profile named must be in profiles.",
+      "default": [],
+      "type": "array",
+      "items": {
+        "description": "One sign: a file matching path, which contains the text when contains is set.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile",
+          "path"
+        ],
+        "properties": {
+          "profile": {
+            "description": "Profile the sign selects.",
+            "$ref": "#/$defs/profile"
+          },
+          "path": {
+            "description": "Glob of a file or directory.",
+            "$ref": "#/$defs/glob"
+          },
+          "contains": {
+            "description": "Text the file must contain.",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "defaultProfile": {
+      "description": "Profile used when no sign of profileDetect matches; it must be in profiles. Absent: the first of profiles.",
+      "$ref": "#/$defs/profile"
+    },
     "rules": {
       "description": "Rules catalog file, relative to the pack directory.",
       "$ref": "#/$defs/relativePath"

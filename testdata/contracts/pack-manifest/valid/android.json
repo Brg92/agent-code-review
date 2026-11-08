@@ -37,6 +37,19 @@
     "app",
     "library"
   ],
+  "profileDetect": [
+    {
+      "profile": "library",
+      "path": "**/build.gradle.kts",
+      "contains": "maven-publish"
+    },
+    {
+      "profile": "library",
+      "path": "**/build.gradle",
+      "contains": "maven-publish"
+    }
+  ],
+  "defaultProfile": "app",
   "rules": "rules.json",
   "checklists": [
     {
