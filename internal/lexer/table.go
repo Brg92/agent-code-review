@@ -1,5 +1,3 @@
-// Package lexer splits source code into tokens, driven by a language table
-// loaded at runtime, so the core needs no knowledge of any language.
 package lexer
 
 import (
@@ -18,31 +16,34 @@ import (
 // Table describes the lexical structure of one language. Its JSON form is
 // defined by schemas/lexer-table.schema.json.
 type Table struct {
-	Schema           int           `json:"schema"`
-	Language         string        `json:"language"`
-	Extensions       []string      `json:"extensions"`
-	LineComment      string        `json:"lineComment,omitempty"`
-	BlockComment     *BlockComment `json:"blockComment,omitempty"`
-	DocComment       string        `json:"docComment,omitempty"`
-	Strings          []StringForm  `json:"strings,omitempty"`
-	Char             *CharForm     `json:"char,omitempty"`
-	QuotedIdentifier string        `json:"quotedIdentifier,omitempty"`
-	Templates        *Templates    `json:"templates,omitempty"`
-	IdentifierChars  string        `json:"identifierChars,omitempty"`
-	Keywords         []string      `json:"keywords"`
-	SoftKeywords     []string      `json:"softKeywords"`
-	Operators        []string      `json:"operators,omitempty"`
+	Schema           int               `json:"schema"`
+	Language         string            `json:"language"`
+	Extensions       []string          `json:"extensions"`
+	LineComment      string            `json:"lineComment,omitempty"`
+	BlockComment     *BlockCommentForm `json:"blockComment,omitempty"`
+	DocComment       string            `json:"docComment,omitempty"`
+	Strings          []StringForm      `json:"strings,omitempty"`
+	Char             *CharForm         `json:"char,omitempty"`
+	QuotedIdentifier string            `json:"quotedIdentifier,omitempty"`
+	Templates        *Templates        `json:"templates,omitempty"`
+	IdentifierChars  string            `json:"identifierChars,omitempty"`
+	Keywords         []string          `json:"keywords"`
+	SoftKeywords     []string          `json:"softKeywords"`
+	Operators        []string          `json:"operators,omitempty"`
+
+	keywords     map[string]bool
+	softKeywords map[string]bool
 }
 
-// BlockComment is a comment between an opener and a closer.
-type BlockComment struct {
+// BlockCommentForm is a comment between an opener and a closer.
+type BlockCommentForm struct {
 	Open   string `json:"open"`
 	Close  string `json:"close"`
 	Nested bool   `json:"nested"`
 }
 
 // UnmarshalJSON decodes a block comment; nested is required.
-func (b *BlockComment) UnmarshalJSON(data []byte) error {
+func (b *BlockCommentForm) UnmarshalJSON(data []byte) error {
 	var raw struct {
 		Open   string `json:"open"`
 		Close  string `json:"close"`
@@ -56,7 +57,7 @@ func (b *BlockComment) UnmarshalJSON(data []byte) error {
 	if raw.Nested == nil {
 		return errors.New("blockComment: nested is required")
 	}
-	*b = BlockComment{Open: raw.Open, Close: raw.Close, Nested: *raw.Nested}
+	*b = BlockCommentForm{Open: raw.Open, Close: raw.Close, Nested: *raw.Nested}
 	return nil
 }
 
@@ -136,6 +137,7 @@ func LoadTable(data []byte) (*Table, error) {
 	}
 	sort.SliceStable(t.Strings, func(i, j int) bool { return len(t.Strings[i].Delimiter) > len(t.Strings[j].Delimiter) })
 	sort.SliceStable(t.Operators, func(i, j int) bool { return len(t.Operators[i]) > len(t.Operators[j]) })
+	t.keywords, t.softKeywords = set(t.Keywords), set(t.SoftKeywords)
 	return &t, nil
 }
 
@@ -144,6 +146,14 @@ func deref(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+func set(words []string) map[string]bool {
+	m := make(map[string]bool, len(words))
+	for _, w := range words {
+		m[w] = true
+	}
+	return m
 }
 
 func (t *Table) check() error {
