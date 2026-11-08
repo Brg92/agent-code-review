@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "language": "toml",
+  "lineComment": "#",
+  "strings": [
+    {
+      "delimiter": "\"\"\"",
+      "escape": "\\",
+      "raw": true,
+      "multiline": true
+    },
+    {
+      "delimiter": "'''",
+      "raw": true,
+      "multiline": true
+    },
+    {
+      "delimiter": "\"",
+      "escape": "\\"
+    },
+    {
+      "delimiter": "'"
+    }
+  ],
+  "identifierChars": "-",
+  "keywords": [
+    "false",
+    "true"
+  ],
+  "softKeywords": [],
+  "brackets": [
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "{",
+      "close": "}"
+    }
+  ]
+}
