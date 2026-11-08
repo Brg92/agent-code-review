@@ -141,3 +141,10 @@ func (k *Key) UnmarshalText(b []byte) error {
 	*k = v
 	return nil
 }
+
+// Same reports whether k and o name the same change request. Platforms
+// ignore the case of project paths, so Same does too; the key itself keeps
+// the spelling it was written with.
+func (k Key) Same(o Key) bool {
+	return k.Forge == o.Forge && k.Host == o.Host && k.Number == o.Number && strings.EqualFold(k.Project, o.Project)
+}
