@@ -95,18 +95,52 @@
         "state",
         "checks"
       ],
+      "if": {
+        "properties": {
+          "state": {
+            "const": "unknown"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "checks": {
+            "const": []
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "reason": false
+        }
+      },
       "properties": {
         "state": {
-          "description": "failing if any check failed, else pending if any is not completed, passing if all passed, none if the head has no checks.",
+          "description": "failing if any check failed, else pending if any is not completed, passing if all passed, none if the head has no checks, unknown when the checks could not be read. A head whose checks could not be read is never reported as none.",
           "enum": [
             "passing",
             "failing",
             "pending",
-            "none"
+            "none",
+            "unknown"
           ]
         },
+        "reason": {
+          "description": "Why the checks could not be read: forbidden when the platform denied access, error for any other failure. Present if and only if state is unknown.",
+          "enum": [
+            "forbidden",
+            "error"
+          ]
+        },
+        "detail": {
+          "description": "Optional human-readable detail about the state, for example the platform's error message.",
+          "type": "string"
+        },
         "checks": {
-          "description": "Every check on the head commit.",
+          "description": "Every check on the head commit; empty when state is none or unknown.",
           "type": "array",
           "items": {
             "description": "One check.",

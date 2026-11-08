@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/feature-lib#1",
+  "headSha": "e7665e368da1fcad940a56e09eeb9f1c7c87a58b",
+  "verdict": "OK",
+  "findings": [],
+  "preExisting": [],
+  "notVerified": [
+    {
+      "path": "src/main/java/com/example/feature/catalog/IconCatalog.kt",
+      "reason": "generated",
+      "detail": "The platform omitted the diff of this 30007-line file."
+    },
+    {
+      "path": "gradle/verification-metadata.xml",
+      "reason": "noise"
+    }
+  ],
+  "ci": {
+    "state": "unknown",
+    "reason": "timeout",
+    "checks": []
+  },
+  "criteria": {
+    "source": "default",
+    "profile": "library",
+    "packs": [
+      "android"
+    ],
+    "notes": []
+  }
+}
