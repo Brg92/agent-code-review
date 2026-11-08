@@ -9,7 +9,9 @@
       "path": "src/main/java/com/example/core/session/SessionManager.kt",
       "side": "LEFT",
       "line": 39,
-      "message": "legacyToken() is public API and is still called by a consumer: sample-app's SessionRepository.authHeader() on main, which the sample-app change in this cascade does not update. Removing it breaks that build. Migrate the consumer first, or keep the deprecated method for one more release.",
+      "title": "Removes legacyToken(), which a consumer still calls",
+      "why": "`legacyToken()` is public API and is still called by a consumer: sample-app's `SessionRepository.authHeader()` on `main`, which the sample-app change in this cascade does not update. Removing it breaks that build.",
+      "fix": "Migrate the consumer first, or keep the deprecated method for one more release.",
       "references": [
         {
           "project": "github:github.com/acr-plugin-sandbox/sample-app",

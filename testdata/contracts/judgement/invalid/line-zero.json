@@ -9,7 +9,9 @@
       "path": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
       "side": "LEFT",
       "line": 0,
-      "message": "The move to the codec package also drops the check that the token is not blank, so encode() now silently stores an empty token. Keep the require() call.",
+      "title": "The move drops the blank-token check in encode()",
+      "why": "The move to the codec package also drops the check that the token is not blank, so `encode()` now silently stores an empty token.",
+      "fix": "Keep the `require()` call.",
       "references": []
     },
     {
@@ -19,7 +21,9 @@
       "side": "RIGHT",
       "startLine": 5,
       "line": 9,
-      "message": "The if/else only returns the value of its condition. Return the comparison directly.",
+      "title": "The if/else only returns its condition",
+      "why": "The five lines say in a branch what the comparison already says, which hides the intent.",
+      "fix": "Return the comparison directly.",
       "suggestion": "        return session.expiresAtMillis <= nowMillis",
       "references": []
     }

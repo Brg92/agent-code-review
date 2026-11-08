@@ -64,5 +64,6 @@
       "base": "cr/core-lib-1/base/src/main/java/com/example/core/session/TokenCodec.kt"
     }
   ],
+  "signals": [],
   "relatedChanges": []
 }

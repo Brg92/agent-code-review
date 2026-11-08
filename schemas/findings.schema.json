@@ -234,6 +234,77 @@
     }
   },
   "$defs": {
+    "anchor": {
+      "description": "The line of the diff a finding is published on. A line in the diff anchors there: added and context lines on the RIGHT side, removed lines on the LEFT side. A line outside the hunks is relocated to the nearest visible line of its file (ties go to the lower line), and the published text then starts with \"Refers to line N of `path`, outside the changed lines.\"",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "side",
+        "line"
+      ],
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "relocated"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "requestedLine"
+        ]
+      },
+      "else": {
+        "properties": {
+          "requestedLine": false
+        },
+        "if": {
+          "properties": {
+            "kind": {
+              "const": "removed"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "side": {
+              "const": "LEFT"
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "side": {
+              "const": "RIGHT"
+            }
+          }
+        }
+      },
+      "properties": {
+        "kind": {
+          "description": "added, context or removed when the finding's own line is in the diff; relocated when it is outside the hunks.",
+          "enum": [
+            "added",
+            "context",
+            "removed",
+            "relocated"
+          ]
+        },
+        "side": {
+          "description": "Diff side of the anchor line.",
+          "$ref": "#/$defs/side"
+        },
+        "line": {
+          "description": "Anchor line, in the file version of its side.",
+          "$ref": "#/$defs/line"
+        },
+        "requestedLine": {
+          "description": "Line the finding is about, on the finding's side; present only for a relocated anchor.",
+          "$ref": "#/$defs/line"
+        }
+      }
+    },
     "crKey": {
       "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
       "type": "string",
@@ -305,7 +376,7 @@
       "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
     },
     "reportedFinding": {
-      "description": "A finding after finalization, with its fingerprint and placement.",
+      "description": "A finding after finalization, with its fingerprint, anchor and placement.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -315,15 +386,34 @@
         "path",
         "side",
         "line",
-        "message",
+        "title",
+        "why",
+        "fix",
         "references",
         "placement"
       ],
+      "if": {
+        "properties": {
+          "placement": {
+            "const": "inline"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "anchor"
+        ]
+      },
+      "else": {
+        "properties": {
+          "anchor": false
+        }
+      },
       "properties": {
         "id": {
-          "description": "Stable fingerprint of the finding, used to avoid posting it twice.",
+          "description": "Fingerprint of the finding, acr:v1:<rule>:<path>:<h12>, where h12 is the first 12 hexadecimal characters of the SHA-256 of the normalised text of the requested line (trimmed, inner whitespace collapsed), a newline and the occurrence index of that text among the findings of the change request with the same rule and path, counted in side and line order. It stays the same when the line moves, and is embedded in published notes so that a finding is not posted twice.",
           "type": "string",
-          "pattern": "^[0-9a-f]{16}$"
+          "pattern": "^acr:v1:[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*:(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*:[0-9a-f]{12}$"
         },
         "rule": {
           "description": "Rule the finding applies.",
@@ -349,8 +439,18 @@
           "description": "First line of a finding that spans several lines; absent for a single line.",
           "$ref": "#/$defs/line"
         },
-        "message": {
-          "description": "Explanation in Markdown: what is wrong, why it matters, how to fix it.",
+        "title": {
+          "description": "What is wrong, in one line.",
+          "type": "string",
+          "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$"
+        },
+        "why": {
+          "description": "The consequence: what goes wrong if the code ships as it is, in Markdown.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "fix": {
+          "description": "The smallest safe correction, in Markdown. A finding without a fix is not a finding.",
           "type": "string",
           "pattern": "\\S"
         },
@@ -371,11 +471,15 @@
           "default": false
         },
         "placement": {
-          "description": "Where the finding is published: inline on the diff, or in the summary when its lines are outside the diff.",
+          "description": "Where the finding is published: inline on the diff, at its anchor, for every finding of a file with a visible line; in the summary only when the file has no visible line at all (no patch).",
           "enum": [
             "inline",
             "summary"
           ]
+        },
+        "anchor": {
+          "description": "Where the finding is published on the diff; present exactly when the placement is inline.",
+          "$ref": "#/$defs/anchor"
         }
       }
     },

@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "runId": "20261102-100000-s1",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "url": "https://github.com/acr-plugin-sandbox/sample-app/pull/2",
+  "title": "Prefetch the session on startup",
+  "description": "Refreshes the session when the app starts and prefetches the user name.",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "baseSha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
+  "baseRef": "main",
+  "criteria": {
+    "source": "overlay",
+    "profile": "app",
+    "packs": [
+      "android"
+    ],
+    "files": [
+      "cr/sample-app-2/criteria/.agent-code-review/criteria.md"
+    ]
+  },
+  "rules": [
+    {
+      "id": "run-blocking-prod",
+      "severity": "BLOCKER",
+      "title": "runBlocking on the main thread"
+    },
+    {
+      "id": "global-scope",
+      "severity": "MAJOR",
+      "title": "Work launched in GlobalScope"
+    },
+    {
+      "id": "no-double-bang",
+      "severity": "MAJOR",
+      "title": "Not-null assertion on a value that can be null"
+    }
+  ],
+  "files": [
+    {
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "patch": "cr/sample-app-2/patches/MainActivity.kt.diff",
+      "head": "cr/sample-app-2/head/MainActivity.kt",
+      "base": "cr/sample-app-2/base/MainActivity.kt"
+    },
+    {
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "patch": "cr/sample-app-2/patches/ProfileStore.kt.diff",
+      "head": "cr/sample-app-2/head/ProfileStore.kt",
+      "base": "cr/sample-app-2/base/ProfileStore.kt"
+    },
+    {
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "patch": "cr/sample-app-2/patches/SessionRepository.kt.diff",
+      "head": "cr/sample-app-2/head/SessionRepository.kt",
+      "base": "cr/sample-app-2/base/SessionRepository.kt"
+    }
+  ],
+  "signals": [
+    {
+      "id": "s1",
+      "rule": "run-blocking-prod",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "line": 13,
+      "column": 9,
+      "origin": "mr",
+      "needsJudgement": false
+    },
+    {
+      "id": "s2",
+      "rule": "no-double-bang",
+      "severity": null,
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "line": 8,
+      "column": 73,
+      "origin": "existing",
+      "needsJudgement": true
+    },
+    {
+      "id": "s3",
+      "rule": "global-scope",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 13,
+      "column": 9,
+      "origin": "existing",
+      "needsJudgement": false
+    },
+    {
+      "id": "s4",
+      "rule": "global-scope",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 19,
+      "column": 9,
+      "origin": "mr",
+      "needsJudgement": false
+    },
+    {
+      "id": "s5",
+      "rule": "no-double-bang",
+      "severity": null,
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 20,
+      "column": 47,
+      "origin": "mr",
+      "needsJudgement": true
+    }
+  ],
+  "relatedChanges": [],
+  "judgementPath": "cr/sample-app-2/judgement.json"
+}

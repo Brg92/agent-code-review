@@ -9,7 +9,9 @@
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "side": "RIGHT",
       "line": 10,
-      "message": "getString returns null when no name has been stored, so !! throws a NullPointerException. Return an empty string or make initials() nullable.",
+      "title": "`!!` on a name that may not be stored",
+      "why": "`getString` returns null when no name has been stored, so `!!` throws a NullPointerException.",
+      "fix": "Return an empty string or make `initials()` nullable.",
       "references": []
     }
   ],

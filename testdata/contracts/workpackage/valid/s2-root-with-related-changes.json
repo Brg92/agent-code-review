@@ -35,6 +35,7 @@
       "base": "cr/sample-app-7/base/SessionRepository.kt"
     }
   ],
+  "signals": [],
   "relatedChanges": [
     {
       "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",

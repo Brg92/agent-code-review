@@ -5,28 +5,42 @@
   "verdict": "BLOCKED",
   "findings": [
     {
-      "id": "a1b2c3d4e5f60718",
+      "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:c7757c0896cb",
       "rule": "global-scope",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 19,
-      "message": "prefetch() launches in GlobalScope, so the work is never cancelled and outlives its caller.",
+      "title": "prefetch() launches in GlobalScope",
+      "why": "The work is never cancelled and outlives its caller.",
+      "fix": "Make `prefetch()` a suspend function or take a `CoroutineScope`.",
       "references": [],
-      "placement": "inline"
+      "placement": "inline",
+      "anchor": {
+        "kind": "added",
+        "side": "RIGHT",
+        "line": 19
+      }
     }
   ],
   "preExisting": [
     {
-      "id": "0718a1b2c3d4e5f6",
+      "id": "acr:v1:no-double-bang:app/src/main/java/com/example/sample/data/ProfileStore.kt:c7757c0896cb",
       "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "side": "RIGHT",
       "line": 8,
-      "message": "displayName() throws a NullPointerException when no name has been stored.",
+      "title": "displayName() asserts a stored name with `!!`",
+      "why": "`displayName()` throws a NullPointerException when no name has been stored, which crashes the app.",
+      "fix": "Return a default name, or make `displayName()` return `String?`.",
       "references": [],
       "placement": "inline",
+      "anchor": {
+        "kind": "context",
+        "side": "RIGHT",
+        "line": 8
+      },
       "crash": true
     }
   ],

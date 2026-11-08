@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode/utf8"
 )
 
 // Issue is one way a document does not match its schema.
@@ -216,7 +217,7 @@ func (sc *Schema) check(schema any, at string) error {
 			if _, ok := v.(json.Number); !ok {
 				return fmt.Errorf("%s: must be a number", here)
 			}
-		case k == "minItems":
+		case k == "minItems" || k == "maxItems" || k == "maxLength":
 			n, ok := v.(json.Number)
 			if i, err := n.Int64(); !ok || err != nil || i < 0 {
 				return fmt.Errorf("%s: must be a non-negative integer", here)
@@ -310,6 +311,11 @@ func (s *Schema) validate(schema, v any, path string, issues *[]Issue) {
 		if p, ok := sch["pattern"].(string); ok && !s.patterns[p].MatchString(v) {
 			add(path, "pattern", "%q does not match %s", v, p)
 		}
+		if m, ok := sch["maxLength"].(json.Number); ok {
+			if n, _ := m.Int64(); int64(utf8.RuneCountInString(v)) > n {
+				add(path, "maxLength", "%d characters, want at most %d", utf8.RuneCountInString(v), n)
+			}
+		}
 	case json.Number:
 		if m, ok := sch["minimum"].(json.Number); ok && number(v) < number(m) {
 			add(path, "minimum", "%s is less than %s", v, m)
@@ -318,6 +324,11 @@ func (s *Schema) validate(schema, v any, path string, issues *[]Issue) {
 		if m, ok := sch["minItems"].(json.Number); ok {
 			if n, _ := m.Int64(); int64(len(v)) < n {
 				add(path, "minItems", "%d items, want at least %d", len(v), n)
+			}
+		}
+		if m, ok := sch["maxItems"].(json.Number); ok {
+			if n, _ := m.Int64(); int64(len(v)) > n {
+				add(path, "maxItems", "%d items, want at most %d", len(v), n)
 			}
 		}
 		if u, _ := sch["uniqueItems"].(bool); u && !unique(v) {
