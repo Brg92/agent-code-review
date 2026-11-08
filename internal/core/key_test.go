@@ -198,3 +198,29 @@ func TestKeyIsZero(t *testing.T) {
 		t.Error("non-zero key is zero")
 	}
 }
+
+func TestKeySame(t *testing.T) {
+	tests := []struct {
+		a, b string
+		want bool
+	}{
+		{"github:github.com/Acme/Lib#3", "github:github.com/acme/lib#3", true},
+		{"github:github.com/acme/lib#3", "github:github.com/acme/lib#4", false},
+		{"github:github.com/acme/lib#3", "github:github.example.com/acme/lib#3", false},
+		{"github:github.com/acme/lib#3", "gitlab:github.com/acme/lib#3", false},
+		{"gitlab:gitlab.com/Grp/Sub/App#1", "gitlab:gitlab.com/grp/sub/app#1", true},
+	}
+	for _, tt := range tests {
+		a, err := ParseKey(tt.a)
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := ParseKey(tt.b)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := a.Same(b); got != tt.want || b.Same(a) != tt.want {
+			t.Errorf("%s.Same(%s) = %v, want %v", tt.a, tt.b, got, tt.want)
+		}
+	}
+}

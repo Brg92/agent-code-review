@@ -146,3 +146,18 @@ func TestEntryJSON(t *testing.T) {
 		t.Errorf("marshal =\n%s\nwant\n%s", out, want)
 	}
 }
+
+func TestSkipReasonIncomplete(t *testing.T) {
+	want := map[SkipReason]bool{
+		OverDepthLimit: true, OverCountLimit: true, OtherPlatform: true, NotFound: true,
+		AlreadyDone: false, NotAChangeRequest: false, Cycle: false, SelfReference: false,
+	}
+	for r, incomplete := range want {
+		if got := r.Incomplete(); got != incomplete {
+			t.Errorf("%s.Incomplete() = %v, want %v", r, got, incomplete)
+		}
+	}
+	if SkipReason("unknown").Incomplete() {
+		t.Error("an unknown reason is incomplete")
+	}
+}

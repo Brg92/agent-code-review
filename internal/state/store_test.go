@@ -100,12 +100,12 @@ func TestSaveLoad(t *testing.T) {
 	}
 }
 
-func TestSaveEmptyCascade(t *testing.T) {
+func TestSaveRefusesCascadeWithoutRoot(t *testing.T) {
 	s := newState(t)
 	s.ChangeRequests = nil
-	data := save(t, t.TempDir(), s)
-	if !strings.Contains(string(data), `"changeRequests": []`) {
-		t.Errorf("nil change requests saved as\n%s", data)
+	var ce *ConsistencyError
+	if err := Save(t.TempDir(), s); !errors.As(err, &ce) {
+		t.Errorf("Save() = %v, want a *ConsistencyError", err)
 	}
 }
 

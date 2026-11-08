@@ -17,6 +17,11 @@ const (
 	schemaIDs = "https://github.com/Brg92/agent-code-review/schemas/"
 )
 
+// structureOnlyPrefix starts the name of invalid examples that break a rule
+// of structure, such as the order of a cascade, that no schema can state.
+// They match the schema; the Go loader of the contract refuses them.
+const structureOnlyPrefix = "structure-"
+
 // moreValidExamples lists files outside testdata/contracts that must match
 // a schema.
 var moreValidExamples = map[string][]string{
@@ -171,6 +176,14 @@ func TestContractExamples(t *testing.T) {
 					t.Fatal(err)
 				}
 				issues, err := s.Validate(data)
+				if strings.HasPrefix(filepath.Base(f), structureOnlyPrefix) {
+					// A schema cannot express the shape of a cascade; these
+					// examples match it and are refused by the loader.
+					if err != nil || len(issues) != 0 {
+						t.Errorf("%s: %v %v, want a structural example that matches the schema", f, err, issues)
+					}
+					continue
+				}
 				if err == nil && len(issues) == 0 {
 					t.Errorf("%s: matches the schema, want at least one issue", f)
 				}

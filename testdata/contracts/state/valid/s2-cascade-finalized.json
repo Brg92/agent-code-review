@@ -27,6 +27,29 @@
       "title": "Replace legacyToken with expiresAt"
     },
     {
+      "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+      "depth": 2,
+      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "status": "finalized",
+      "headSha": "f9d862f3e8993cf66d4ae780856ef358b7e91d32",
+      "title": "Add a session countdown"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/feature-lib#1",
+      "depth": 3,
+      "parent": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+      "status": "finalized",
+      "headSha": "e7665e368da1fcad940a56e09eeb9f1c7c87a58b",
+      "title": "Regenerate the icon catalog"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+      "depth": 2,
+      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "status": "skipped",
+      "skipReason": "cycle"
+    },
+    {
       "cr": "github:github.com/acr-plugin-sandbox/feature-lib#2",
       "depth": 1,
       "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
@@ -68,29 +91,6 @@
       "parent": "github:github.com/acr-plugin-sandbox/sample-app#7",
       "status": "skipped",
       "skipReason": "not-found"
-    },
-    {
-      "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
-      "depth": 2,
-      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
-      "status": "finalized",
-      "headSha": "f9d862f3e8993cf66d4ae780856ef358b7e91d32",
-      "title": "Add a session countdown"
-    },
-    {
-      "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
-      "depth": 2,
-      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
-      "status": "skipped",
-      "skipReason": "cycle"
-    },
-    {
-      "cr": "github:github.com/acr-plugin-sandbox/feature-lib#1",
-      "depth": 3,
-      "parent": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
-      "status": "finalized",
-      "headSha": "e7665e368da1fcad940a56e09eeb9f1c7c87a58b",
-      "title": "Regenerate the icon catalog"
     }
   ]
 }

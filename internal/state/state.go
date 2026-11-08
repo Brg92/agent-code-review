@@ -157,7 +157,8 @@ func requiredStatus(p Phase) core.Status {
 
 // Validate returns a *ConsistencyError when the state breaks its rules:
 // valid fields, valid entries, and every non-skipped change request at
-// least as far as the phase requires.
+// least as far as the phase requires, and the change requests form a
+// cascade (see validateCascade).
 func (s *State) Validate() error {
 	run := func(err error) error { return &ConsistencyError{Index: -1, Problem: err.Error()} }
 	switch {
@@ -189,5 +190,5 @@ func (s *State) Validate() error {
 			return entry(fmt.Errorf("status %s, but phase %s needs at least %s", e.Status, s.Phase, want))
 		}
 	}
-	return nil
+	return s.validateCascade()
 }
