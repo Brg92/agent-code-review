@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "pack": "kotlin-multiplatform",
+  "defaults": {
+    "files": {
+      "exclude": [
+        "**/*.kts"
+      ],
+      "tests": "skip"
+    }
+  },
+  "rules": [
+    {
+      "id": "kmp-jvm-api-in-common",
+      "title": "JVM or Android API in common code",
+      "severity": "MAJOR",
+      "description": "Common code is compiled for every target, so a reference to `java.`, `javax.` or `android.` (an import included) does not compile for iOS. Use a Kotlin standard or multiplatform library, or declare it with `expect`/`actual`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "multiplatform",
+        "portability"
+      ],
+      "group": "Kotlin Multiplatform",
+      "when": {
+        "platform": [
+          "common"
+        ]
+      },
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "java",
+                  "javax",
+                  "android"
+                ]
+              },
+              {
+                "kind": "punct",
+                "text": "."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "kmp-missing-throws",
+      "title": "Public common function that can throw without @Throws",
+      "severity": "MAJOR",
+      "needsJudgement": true,
+      "description": "A public function in common code can throw but has no `@Throws`: Swift cannot catch the exception and the app crashes. It is a BLOCKER when the function is called from Swift.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "multiplatform",
+        "swift",
+        "errors"
+      ],
+      "group": "Kotlin Multiplatform",
+      "when": {
+        "platform": [
+          "common"
+        ]
+      }
+    },
+    {
+      "id": "kmp-swift-unfriendly-api",
+      "title": "Common API hard to use from Swift",
+      "severity": "MINOR",
+      "needsJudgement": true,
+      "description": "A public API in common code that Swift consumes awkwardly: `suspend` functions and `Flow` without a wrapper, default arguments, sealed interfaces, variance or value classes. Expose a Swift-friendly shape for what the iOS app calls.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "multiplatform",
+        "swift",
+        "api"
+      ],
+      "group": "Kotlin Multiplatform",
+      "when": {
+        "platform": [
+          "common"
+        ]
+      }
+    },
+    {
+      "id": "kmp-expect-without-actual",
+      "title": "expect declaration without an actual",
+      "severity": "BLOCKER",
+      "description": "An `expect` declaration needs an `actual` in every target source set, or the module does not compile for that target. The check comes with the source set analysis.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "multiplatform",
+        "source-sets"
+      ],
+      "group": "Kotlin Multiplatform"
+    },
+    {
+      "id": "kmp-source-set-asymmetry",
+      "title": "Behaviour changed in one source set only",
+      "severity": "MAJOR",
+      "description": "A change in one platform source set without the matching change in the others, so the targets behave differently. The check comes with the source set analysis.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "multiplatform",
+        "source-sets"
+      ],
+      "group": "Kotlin Multiplatform"
+    }
+  ]
+}
