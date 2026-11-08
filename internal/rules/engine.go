@@ -168,35 +168,53 @@ func (r *Rule) run(m *matcher, f File) []Signal {
 	if mt.files.contains != nil && !found(m, f, mt.files.contains) || found(m, f, mt.files.notContains) {
 		return nil
 	}
-	ignored := ignoredLines(m, f, mt.ignoreLines)
+	out := &collector{rule: r, file: f, ignored: ignoredLines(m, f, mt.ignoreLines), byLine: map[int]int{}}
+	switch mt.detector {
+	case detectorLineLength:
+		lineLength(m, f, mt.maxLength, out)
+		return out.sigs
+	}
 	var excluded []span
 	for _, p := range mt.exclude {
 		if p.appliesTo(f.Language) {
 			excluded = append(excluded, m.find(p)...)
 		}
 	}
-	byLine := map[int]int{} // line -> index in sigs
-	var sigs []Signal
 	for _, p := range mt.patterns {
 		if !p.appliesTo(f.Language) {
 			continue
 		}
 		for _, s := range m.find(p) {
-			tok := m.toks[s.at]
-			if ignored[tok.Line] || mt.addedOnly && !f.Added[tok.Line] || inside(s.at, excluded) {
-				continue
+			if !inside(s.at, excluded) {
+				tok := m.toks[s.at]
+				out.add(tok.Line, tok.Column)
 			}
-			if i, ok := byLine[tok.Line]; ok {
-				if tok.Column < sigs[i].Column {
-					sigs[i].Column = tok.Column
-				}
-				continue
-			}
-			byLine[tok.Line] = len(sigs)
-			sigs = append(sigs, r.signal(f, tok.Line, tok.Column))
 		}
 	}
-	return sigs
+	return out.sigs
+}
+
+// collector gathers the signals of one rule on one file, one per line.
+type collector struct {
+	rule    *Rule
+	file    File
+	ignored map[int]bool
+	byLine  map[int]int // line -> index in sigs
+	sigs    []Signal
+}
+
+func (c *collector) add(line, column int) {
+	if c.ignored[line] || c.rule.match.addedOnly && !c.file.Added[line] {
+		return
+	}
+	if i, ok := c.byLine[line]; ok {
+		if column < c.sigs[i].Column {
+			c.sigs[i].Column = column
+		}
+		return
+	}
+	c.byLine[line] = len(c.sigs)
+	c.sigs = append(c.sigs, c.rule.signal(c.file, line, column))
 }
 
 func inside(i int, spans []span) bool {

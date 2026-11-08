@@ -236,3 +236,34 @@ func TestRunAddedLinesOnly(t *testing.T) {
 		t.Errorf("signals %+v, want only line 2 with origin mr", got)
 	}
 }
+
+func TestRunLineLength(t *testing.T) {
+	tests := []struct {
+		name, match, src string
+		added            []int
+		want             string
+	}{
+		{"longer than max", `{"detector":"line-length","max":5}`, "val a\nval ab\n", nil, "2:6"},
+		{"runes, not bytes", `{"detector":"line-length","max":5}`, "\"äöü\"\n\"äöüß\"\n", nil, "2:6"},
+		{"line breaks excluded", `{"detector":"line-length","max":5}`, "val a\r\nval a\rval ab\n", nil, "3:6"},
+		{"added lines only", `{"detector":"line-length","max":3,"lines":"added"}`, "val a\nval b\n", []int{2}, "2:4"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := at(Run(oneRule(t, `[]`, tt.match), kotlinFile(t, tt.src, tt.added...), Options{}).Signals); got != tt.want {
+				t.Errorf("signals at %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRunLineLengthSkipsIgnoredLines(t *testing.T) {
+	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","defaults":{"ignoreLines":[{"tokens":[{"text":"import"}]}]},
+	  "rules":[{"id":"r","title":"T","severity":"MINOR","description":"D","languages":[],"tags":[],"match":{"detector":"line-length","max":10}}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := at(Run(c.Rules, kotlinFile(t, "import a.b.c.d.e.f\nval abcdefgh = 1\n"), Options{}).Signals); got != "2:11" {
+		t.Errorf("signals at %q", got)
+	}
+}
