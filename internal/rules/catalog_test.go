@@ -159,3 +159,15 @@ func TestLoadCatalogRejectsWhen(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadCatalogGroup(t *testing.T) {
+	c, err := LoadCatalog([]byte(catalogWithField(`"group":"Error handling"`)))
+	if err != nil || c.Rules[0].Group != "Error handling" {
+		t.Errorf("group = %+v, %v", c.Rules[0], err)
+	}
+	for _, bad := range []string{`""`, `"  "`, `3`} {
+		if _, err := LoadCatalog([]byte(catalogWithField(`"group":` + bad))); err == nil {
+			t.Errorf("group %s loaded, want an error", bad)
+		}
+	}
+}

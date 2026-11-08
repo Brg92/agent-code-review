@@ -29,6 +29,9 @@ type Rule struct {
 	// Languages the rule applies to; empty means every language.
 	Languages []string
 	Tags      []string
+	// Group is the section heading the rule is listed under in the
+	// checklist; empty: no heading.
+	Group string
 	// When holds the conditions for the rule to apply to a repository:
 	// the key ProfileKey lists profiles, any other key is a dimension of
 	// the pack and lists its values. Every condition must hold.
@@ -176,6 +179,7 @@ type (
 		Description    *string                    `json:"description"`
 		Languages      *[]string                  `json:"languages"`
 		Tags           *[]string                  `json:"tags"`
+		Group          *string                    `json:"group"`
 		When           map[string]json.RawMessage `json:"when"`
 		Match          *rawMatch                  `json:"match"`
 	}
@@ -344,6 +348,12 @@ func compileRule(rr rawRule, defFiles files, ignore []pattern) (*Rule, error) {
 		if !tag.MatchString(t) {
 			return fail("tag %q is not lowercase", t)
 		}
+	}
+	if rr.Group != nil {
+		if !nonBlank.MatchString(*rr.Group) {
+			return fail("group is blank")
+		}
+		r.Group = *rr.Group
 	}
 	var err error
 	if r.When, err = compileWhen(rr.When); err != nil {
