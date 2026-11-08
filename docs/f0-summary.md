@@ -57,7 +57,7 @@ ACR_SANDBOX_LOGINS=<reviewer>,<author> go test ./internal/guards/
 ## Decisions taken at the end of F0
 
 - **Criteria edited in a change request (S6 A):** the review goes on with the target branch's criteria and the summary notes that the edit was not applied. Exit code 5 is reserved and unused.
-- **Default cascade limit:** 2. A repository can change it with `cascadeLimit` in `.agent-code-review/config.json`.
+- **Cascade limits:** a cascade reviews at most `maxDepth` levels of Related Changes below the root (default 3) and at most `maxChangeRequests` change requests, the root included, in discovery order (default 10). A repository sets them with the `cascade` object in `.agent-code-review/config.json`; the root change request's repository sets the limits for the whole cascade. Entries over a limit are skipped as `over-depth-limit` or `over-count-limit`.
 - **Schemas ship:** `schemas/**` is in the release allowlist, so agents can read the judgement schema.
 - **Sandbox commit email:** sandbox commits move to an address on a reserved domain that no account can verify, so GitHub stops linking them to an unrelated account. This rewrites the sandbox history once, as an explicit exception to the no-force-push rule, and the recordings and judgements are regenerated in their own pull request.
 
@@ -70,4 +70,4 @@ ACR_SANDBOX_LOGINS=<reviewer>,<author> go test ./internal/guards/
 
 ## Next
 
-F1 starts the review flow on top of these contracts: resolving a change request and its cascade, collecting it through `ForgeProvider` for GitHub, and the `review`, `next` and `finalize` commands, tested offline against the recordings in `testdata/github/`.
+F1 builds the offline core and the packs on top of these contracts: the model, the state machine, the lexer, the rules, the `android` and `kotlin-multiplatform` packs, Related Changes parsing and the cascade, findings and the report, the symbol index, the work dir and the configuration. None of it talks to a platform. F2 adds the GitHub provider behind `ForgeProvider` and the `review`, `next`, `finalize`, `publish` and `queue` commands, tested offline against the recordings in `testdata/github/`.
