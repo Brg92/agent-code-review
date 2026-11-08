@@ -161,6 +161,8 @@ func requiredStatus(p Phase) core.Status {
 func (s *State) Validate() error {
 	run := func(err error) error { return &ConsistencyError{Index: -1, Problem: err.Error()} }
 	switch {
+	case !ValidRunID(s.RunID):
+		return run(fmt.Errorf("invalid run id %q", s.RunID))
 	case !s.Forge.Valid():
 		return run(fmt.Errorf("unknown forge %q", string(s.Forge)))
 	case s.Root.IsZero():
