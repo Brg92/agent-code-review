@@ -12,7 +12,7 @@
   "noise": [],
   "publicApi": [],
   "consumers": [],
-  "cascadeLimit": 2,
+  "cascade": {},
   "files": [],
   "notes": [
     "No criteria files: the profile was detected from commonMain, androidMain and iosMain."

@@ -18,7 +18,7 @@
   "consumers": [
     "github:github.com/acr-plugin-sandbox/sample-app"
   ],
-  "cascadeLimit": 2,
+  "cascade": {},
   "files": [
     ".github/skills/core-lib-code-review/SKILL.md",
     ".github/mr-review.json"

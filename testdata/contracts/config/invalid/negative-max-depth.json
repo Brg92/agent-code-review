@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "cascade": {
+    "maxDepth": -1
+  }
+}
