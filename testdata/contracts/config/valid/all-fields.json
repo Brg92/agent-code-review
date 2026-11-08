@@ -14,5 +14,8 @@
   "cascade": {
     "maxDepth": 1,
     "maxChangeRequests": 5
+  },
+  "dimensions": {
+    "ui-toolkit": "compose"
   }
 }
