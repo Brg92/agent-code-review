@@ -152,3 +152,76 @@ func TestLoadPackRejects(t *testing.T) {
 		t.Errorf("a directory without a manifest: error %v", err)
 	}
 }
+
+// toolkit is a dimension of a test pack.
+func toolkit(edit func(d map[string]any)) any {
+	d := map[string]any{
+		"id": "ui-toolkit", "values": []any{"views", "compose", "both"}, "default": "both", "combined": "both",
+		"detect": []any{
+			map[string]any{"value": "compose", "path": "**/build.gradle.kts", "contains": "androidx.compose"},
+			map[string]any{"value": "views", "path": "**/build.gradle.kts", "contains": "viewBinding"},
+		},
+	}
+	if edit != nil {
+		edit(d)
+	}
+	return []any{d}
+}
+
+func TestLoadPackDimensions(t *testing.T) {
+	dir := copyPack(t, "mobile", "mobile", func(m map[string]any) { m["dimensions"] = toolkit(nil) })
+	p, err := LoadPack(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(p.Dimensions) != 1 {
+		t.Fatalf("dimensions %+v", p.Dimensions)
+	}
+	d := p.Dimensions[0]
+	if d.ID != "ui-toolkit" || !reflect.DeepEqual(d.Values, []string{"views", "compose", "both"}) || d.Default != "both" || d.Combined != "both" {
+		t.Errorf("dimension %+v", d)
+	}
+	if len(d.Detect) != 2 || d.Detect[0].Value != "compose" || d.Detect[0].Path.String() != "**/build.gradle.kts" || d.Detect[0].Contains != "androidx.compose" {
+		t.Errorf("signs %+v", d.Detect)
+	}
+	if p, err = LoadPack(copyPack(t, "mobile", "mobile", nil)); err != nil || len(p.Dimensions) != 0 {
+		t.Errorf("a pack without dimensions: %+v, %v", p.Dimensions, err)
+	}
+}
+
+func TestLoadPackRejectsDimensions(t *testing.T) {
+	tests := []struct {
+		name string
+		edit func(d map[string]any)
+		want string
+	}{
+		{"profile is reserved", func(d map[string]any) { d["id"] = "profile" }, "profile"},
+		{"id not lowercase", func(d map[string]any) { d["id"] = "UiToolkit" }, "UiToolkit"},
+		{"no values", func(d map[string]any) { d["values"] = []any{} }, "values"},
+		{"repeated value", func(d map[string]any) { d["values"] = []any{"views", "views"} }, "views"},
+		{"value not lowercase", func(d map[string]any) { d["values"] = []any{"Views", "both"} }, "Views"},
+		{"default not a value", func(d map[string]any) { d["default"] = "xml" }, "default"},
+		{"missing default", func(d map[string]any) { delete(d, "default") }, "default"},
+		{"combined not a value", func(d map[string]any) { d["combined"] = "xml" }, "combined"},
+		{"sign of another value", func(d map[string]any) { d["detect"].([]any)[0].(map[string]any)["value"] = "xml" }, "xml"},
+		{"sign without path", func(d map[string]any) { delete(d["detect"].([]any)[0].(map[string]any), "path") }, "path"},
+		{"sign without value", func(d map[string]any) { delete(d["detect"].([]any)[0].(map[string]any), "value") }, "value"},
+		{"bad glob", func(d map[string]any) { d["detect"].([]any)[0].(map[string]any)["path"] = "/a" }, "glob"},
+		{"unknown field", func(d map[string]any) { d["weight"] = 1 }, "unknown field"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := copyPack(t, "mobile", "mobile", func(m map[string]any) { m["dimensions"] = toolkit(tt.edit) })
+			_, err := LoadPack(dir)
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("error = %v, want one that mentions %q", err, tt.want)
+			}
+		})
+	}
+	dir := copyPack(t, "mobile", "mobile", func(m map[string]any) {
+		m["dimensions"] = append(toolkit(nil).([]any), toolkit(nil).([]any)...)
+	})
+	if _, err := LoadPack(dir); err == nil || !strings.Contains(err.Error(), "twice") {
+		t.Errorf("a dimension listed twice: error %v", err)
+	}
+}

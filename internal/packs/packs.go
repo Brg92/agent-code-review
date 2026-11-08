@@ -33,6 +33,7 @@ type Pack struct {
 	Profiles       []string
 	ProfileDetect  []ProfileSign
 	DefaultProfile string
+	Dimensions     []Dimension
 	Rules          *rules.Catalog
 	Checklists     []Checklist
 	Templates      []string
@@ -51,6 +52,27 @@ type Sign struct {
 // ProfileSign is a sign of a profile.
 type ProfileSign struct {
 	Profile string
+	Sign
+}
+
+// Dimension is an axis along which a repository varies within the stack,
+// for example the UI toolkit. The core treats it as data: a repository
+// has one of its values, and rules can depend on it.
+type Dimension struct {
+	ID     string
+	Values []string
+	// Detect holds the signs of each value, in order.
+	Detect []DimensionSign
+	// Default is the value when no sign matches.
+	Default string
+	// Combined is the value when signs of several values match; empty:
+	// the value of the first sign that matches.
+	Combined string
+}
+
+// DimensionSign is a sign of a value of a dimension.
+type DimensionSign struct {
+	Value string
 	Sign
 }
 
@@ -73,6 +95,7 @@ var (
 	extension    = regexp.MustCompile(`^\.[A-Za-z0-9]+$`)
 	relativePath = regexp.MustCompile(`^(?:[^/\\.][^/\\]*|\.[^/\\.][^/\\]*)(?:/(?:[^/\\.][^/\\]*|\.[^/\\.][^/\\]*))*$`)
 	nonBlank     = regexp.MustCompile(`\S`)
+	dimensionID  = packID
 	knownProfile = map[string]bool{"app": true, "library": true, "kmp": true}
 )
 
@@ -87,6 +110,7 @@ type (
 		Profiles         *[]string       `json:"profiles"`
 		ProfileDetect    []rawProfile    `json:"profileDetect"`
 		DefaultProfile   *string         `json:"defaultProfile"`
+		Dimensions       []rawDimension  `json:"dimensions"`
 		Rules            *string         `json:"rules"`
 		Checklists       *[]rawChecklist `json:"checklists"`
 		Templates        *[]string       `json:"templates"`
@@ -100,6 +124,18 @@ type (
 	}
 	rawProfile struct {
 		Profile  *string `json:"profile"`
+		Path     *string `json:"path"`
+		Contains *string `json:"contains"`
+	}
+	rawDimension struct {
+		ID       *string       `json:"id"`
+		Values   *[]string     `json:"values"`
+		Detect   *[]rawDimSign `json:"detect"`
+		Default  *string       `json:"default"`
+		Combined *string       `json:"combined"`
+	}
+	rawDimSign struct {
+		Value    *string `json:"value"`
 		Path     *string `json:"path"`
 		Contains *string `json:"contains"`
 	}
@@ -176,6 +212,9 @@ func loadPack(dir string) (*Pack, error) {
 			}
 			*list.out = append(*list.out, g)
 		}
+	}
+	if err := p.loadDimensions(raw.Dimensions); err != nil {
+		return nil, err
 	}
 	if err := p.loadLanguages(*raw.Languages); err != nil {
 		return nil, err
@@ -265,6 +304,66 @@ func deref(s *string) string {
 		return "(none)"
 	}
 	return fmt.Sprintf("%q", *s)
+}
+
+// ProfileDimension is the key of the profile in the conditions of rules;
+// no dimension can have it as id.
+const ProfileDimension = rules.ProfileKey
+
+func (p *Pack) loadDimensions(raws []rawDimension) error {
+	seen := map[string]bool{}
+	for _, rd := range raws {
+		if rd.ID == nil || !dimensionID.MatchString(*rd.ID) {
+			return fmt.Errorf("dimensions: id %s is not a lowercase dimension id", deref(rd.ID))
+		}
+		d := Dimension{ID: *rd.ID}
+		fail := func(format string, args ...any) error {
+			return fmt.Errorf("dimension %s: "+format, append([]any{d.ID}, args...)...)
+		}
+		if d.ID == ProfileDimension {
+			return fail("the id is reserved for the profile")
+		}
+		if seen[d.ID] {
+			return fail("listed twice")
+		}
+		seen[d.ID] = true
+		if rd.Values == nil || len(*rd.Values) == 0 {
+			return fail("values is empty")
+		}
+		has := map[string]bool{}
+		for _, v := range *rd.Values {
+			if !dimensionID.MatchString(v) || has[v] {
+				return fail("value %q is not a distinct lowercase value", v)
+			}
+			has[v] = true
+			d.Values = append(d.Values, v)
+		}
+		if rd.Default == nil || !has[*rd.Default] {
+			return fail("default %s is not one of the values", deref(rd.Default))
+		}
+		d.Default = *rd.Default
+		if rd.Combined != nil {
+			if !has[*rd.Combined] {
+				return fail("combined %q is not one of the values", *rd.Combined)
+			}
+			d.Combined = *rd.Combined
+		}
+		if rd.Detect == nil {
+			return fail("detect is required")
+		}
+		for _, rs := range *rd.Detect {
+			if rs.Value == nil || !has[*rs.Value] {
+				return fail("a sign shows value %s, which is not one of the values", deref(rs.Value))
+			}
+			s, err := sign(rs.Path, rs.Contains)
+			if err != nil {
+				return fail("detect: %v", err)
+			}
+			d.Detect = append(d.Detect, DimensionSign{Value: *rs.Value, Sign: s})
+		}
+		p.Dimensions = append(p.Dimensions, d)
+	}
+	return nil
 }
 
 func (p *Pack) loadLanguages(raws []rawLanguage) error {
