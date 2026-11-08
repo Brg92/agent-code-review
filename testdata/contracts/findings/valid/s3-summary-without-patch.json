@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/core-lib#1",
+  "headSha": "1bb2c03af22c5360e04698de42d0833c0387b499",
+  "verdict": "OK",
+  "findings": [
+    {
+      "id": "5c0ffee15ba5e000",
+      "rule": "package-organization",
+      "severity": "MINOR",
+      "path": "src/main/java/com/example/core/ui/badge/StatusBadgeView.kt",
+      "side": "RIGHT",
+      "line": 1,
+      "title": "The moved file keeps its old package",
+      "why": "The rename moves `StatusBadgeView.kt` into `ui/badge` without changing its content, so its package no longer matches its directory.",
+      "fix": "Change the package to `com.example.core.ui.badge`, or leave the file in `ui`.",
+      "references": [],
+      "placement": "summary"
+    }
+  ],
+  "preExisting": [],
+  "notVerified": [
+    {
+      "path": "src/main/res/drawable-nodpi/badge_background.png",
+      "reason": "binary"
+    }
+  ],
+  "ci": {
+    "state": "passing",
+    "checks": [
+      {
+        "name": "lint",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "test",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "criteria": {
+    "source": "legacy",
+    "profile": "library",
+    "packs": [
+      "android"
+    ],
+    "notes": []
+  }
+}

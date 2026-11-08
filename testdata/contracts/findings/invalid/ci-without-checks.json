@@ -15,7 +15,12 @@
       "why": "onCreate waits until the session refresh completes, which can freeze the app or trigger an ANR.",
       "fix": "Launch the refresh in `lifecycleScope` instead.",
       "references": [],
-      "placement": "inline"
+      "placement": "inline",
+      "anchor": {
+        "kind": "added",
+        "side": "RIGHT",
+        "line": 13
+      }
     },
     {
       "id": "6b982c141107316e",
@@ -28,7 +33,12 @@
       "why": "The work is never cancelled and outlives its caller.",
       "fix": "Make `prefetch()` a suspend function or take a `CoroutineScope`.",
       "references": [],
-      "placement": "inline"
+      "placement": "inline",
+      "anchor": {
+        "kind": "added",
+        "side": "RIGHT",
+        "line": 19
+      }
     },
     {
       "id": "91122ec00818e006",
@@ -41,7 +51,12 @@
       "why": "`current()` returns null when nobody is signed in, so `!!` throws a NullPointerException inside the coroutine.",
       "fix": "Return early when there is no session.",
       "references": [],
-      "placement": "inline"
+      "placement": "inline",
+      "anchor": {
+        "kind": "added",
+        "side": "RIGHT",
+        "line": 20
+      }
     },
     {
       "id": "76cbab58bbf34813",
@@ -54,7 +69,13 @@
       "why": "This change removes the `warmUp()` call from `init`, and nothing else calls `warmUp()`. `cachedUser` therefore stays null, and `requireUser()` always throws IllegalStateException when `refresh()` runs.",
       "fix": "Keep the `repository.warmUp()` call in `init`.",
       "references": [],
-      "placement": "summary"
+      "placement": "inline",
+      "anchor": {
+        "kind": "relocated",
+        "side": "RIGHT",
+        "line": 16,
+        "requestedLine": 27
+      }
     }
   ],
   "preExisting": [
@@ -69,7 +90,12 @@
       "why": "`displayName()` throws a NullPointerException when no name has been stored, which crashes the app.",
       "fix": "Return a default name, or make `displayName()` return `String?`.",
       "references": [],
-      "placement": "inline"
+      "placement": "inline",
+      "anchor": {
+        "kind": "context",
+        "side": "RIGHT",
+        "line": 8
+      }
     },
     {
       "id": "5aeb49767dfeef92",
@@ -82,7 +108,13 @@
       "why": "The work is never cancelled.",
       "fix": "Launch it in a scope owned by the caller.",
       "references": [],
-      "placement": "summary"
+      "placement": "inline",
+      "anchor": {
+        "kind": "relocated",
+        "side": "RIGHT",
+        "line": 15,
+        "requestedLine": 13
+      }
     }
   ],
   "notVerified": [],

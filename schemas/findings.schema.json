@@ -234,6 +234,77 @@
     }
   },
   "$defs": {
+    "anchor": {
+      "description": "The line of the diff a finding is published on. A line in the diff anchors there: added and context lines on the RIGHT side, removed lines on the LEFT side. A line outside the hunks is relocated to the nearest visible line of its file (ties go to the lower line), and the published text then starts with \"Refers to line N of `path`, outside the changed lines.\"",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "side",
+        "line"
+      ],
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "relocated"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "requestedLine"
+        ]
+      },
+      "else": {
+        "properties": {
+          "requestedLine": false
+        },
+        "if": {
+          "properties": {
+            "kind": {
+              "const": "removed"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "side": {
+              "const": "LEFT"
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "side": {
+              "const": "RIGHT"
+            }
+          }
+        }
+      },
+      "properties": {
+        "kind": {
+          "description": "added, context or removed when the finding's own line is in the diff; relocated when it is outside the hunks.",
+          "enum": [
+            "added",
+            "context",
+            "removed",
+            "relocated"
+          ]
+        },
+        "side": {
+          "description": "Diff side of the anchor line.",
+          "$ref": "#/$defs/side"
+        },
+        "line": {
+          "description": "Anchor line, in the file version of its side.",
+          "$ref": "#/$defs/line"
+        },
+        "requestedLine": {
+          "description": "Line the finding is about, on the finding's side; present only for a relocated anchor.",
+          "$ref": "#/$defs/line"
+        }
+      }
+    },
     "crKey": {
       "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
       "type": "string",
@@ -305,7 +376,7 @@
       "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
     },
     "reportedFinding": {
-      "description": "A finding after finalization, with its fingerprint and placement.",
+      "description": "A finding after finalization, with its fingerprint, anchor and placement.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -321,6 +392,23 @@
         "references",
         "placement"
       ],
+      "if": {
+        "properties": {
+          "placement": {
+            "const": "inline"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "anchor"
+        ]
+      },
+      "else": {
+        "properties": {
+          "anchor": false
+        }
+      },
       "properties": {
         "id": {
           "description": "Stable fingerprint of the finding, used to avoid posting it twice.",
@@ -383,11 +471,15 @@
           "default": false
         },
         "placement": {
-          "description": "Where the finding is published: inline on the diff, or in the summary when its lines are outside the diff.",
+          "description": "Where the finding is published: inline on the diff, at its anchor, for every finding of a file with a visible line; in the summary only when the file has no visible line at all (no patch).",
           "enum": [
             "inline",
             "summary"
           ]
+        },
+        "anchor": {
+          "description": "Where the finding is published on the diff; present exactly when the placement is inline.",
+          "$ref": "#/$defs/anchor"
         }
       }
     },

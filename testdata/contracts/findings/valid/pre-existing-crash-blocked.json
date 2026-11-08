@@ -15,7 +15,12 @@
       "why": "The work is never cancelled and outlives its caller.",
       "fix": "Make `prefetch()` a suspend function or take a `CoroutineScope`.",
       "references": [],
-      "placement": "inline"
+      "placement": "inline",
+      "anchor": {
+        "kind": "added",
+        "side": "RIGHT",
+        "line": 19
+      }
     }
   ],
   "preExisting": [
@@ -31,6 +36,11 @@
       "fix": "Return a default name, or make `displayName()` return `String?`.",
       "references": [],
       "placement": "inline",
+      "anchor": {
+        "kind": "context",
+        "side": "RIGHT",
+        "line": 8
+      },
       "crash": true
     }
   ],

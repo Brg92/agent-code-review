@@ -15,7 +15,12 @@
       "why": "`getString` returns null when no name has been stored, so `!!` throws a NullPointerException.",
       "fix": "Return an empty string or make `initials()` nullable.",
       "references": [],
-      "placement": "inline"
+      "placement": "inline",
+      "anchor": {
+        "kind": "added",
+        "side": "RIGHT",
+        "line": 10
+      }
     }
   ],
   "preExisting": [],
