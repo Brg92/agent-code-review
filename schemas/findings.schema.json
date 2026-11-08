@@ -315,7 +315,6 @@
         "path",
         "side",
         "line",
-        "message",
         "references",
         "placement"
       ],
@@ -351,6 +350,21 @@
         },
         "message": {
           "description": "Explanation in Markdown: what is wrong, why it matters, how to fix it.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "title": {
+          "description": "What is wrong, in one line.",
+          "type": "string",
+          "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$"
+        },
+        "why": {
+          "description": "The consequence: what goes wrong if the code ships as it is, in Markdown.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "fix": {
+          "description": "The smallest safe correction, in Markdown. A finding without a fix is not a finding.",
           "type": "string",
           "pattern": "\\S"
         },
