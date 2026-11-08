@@ -70,7 +70,11 @@ func Finalize(r Review, j Judgement) (Result, error) {
 	if err := ValidateJudgement(r, j); err != nil {
 		return Result{}, err
 	}
-	res := Result{CR: r.CR, HeadSHA: r.HeadSHA, Summary: j.Summary, Questions: j.Questions, Notes: j.Notes, NotVerified: j.NotVerified}
+	res := Result{
+		CR: r.CR, HeadSHA: r.HeadSHA, Summary: j.Summary, Questions: j.Questions, Notes: j.Notes, NotVerified: j.NotVerified,
+		// Empty, not nil: the findings contract wants arrays.
+		Findings: []Finding{}, PreExisting: []Finding{},
+	}
 	decisions := map[string]SignalDecision{}
 	for _, d := range j.Signals {
 		decisions[d.ID] = d

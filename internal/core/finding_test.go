@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -246,5 +247,28 @@ func TestFinalizeErrors(t *testing.T) {
 	r.Signals = append(r.Signals, Signal{ID: "s4", Rule: "gone", Severity: Minor, Path: "app/A.kt", Line: 1, Column: 1, Origin: OriginMR})
 	if _, err := Finalize(r, testJudgement()); err == nil || !strings.Contains(err.Error(), `signal s4: rule "gone"`) {
 		t.Errorf("signal of an unknown rule: %v", err)
+	}
+}
+
+// TestFinalizeEmptyListsAreArrays checks that a change request without
+// findings writes empty arrays, as the findings contract requires, not null.
+func TestFinalizeEmptyListsAreArrays(t *testing.T) {
+	r := testReview(t)
+	r.Signals = nil
+	j := testJudgement()
+	j.Findings, j.PreExisting, j.Signals = nil, nil, nil
+	res, err := Finalize(r, j)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(struct {
+		Findings    []Finding `json:"findings"`
+		PreExisting []Finding `json:"preExisting"`
+	}{res.Findings, res.PreExisting})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != `{"findings":[],"preExisting":[]}` {
+		t.Errorf("got %s", data)
 	}
 }
