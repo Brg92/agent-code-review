@@ -61,14 +61,17 @@ type Line struct {
 	Text string
 }
 
-// Cause is a reason for the cascade to be INCOMPLETE.
+// Cause is a reason for the verdict of a cascade: a change request that is
+// BLOCKED, or a reason for the cascade to be INCOMPLETE.
 type Cause struct {
-	// Reason is a core.SkipReason that makes a cascade incomplete, or
-	// "unparsed".
+	// Reason is Blocked, a core.SkipReason that makes a cascade
+	// incomplete, or Unparsed.
 	Reason string
-	// CR is the change request that was skipped; zero for an unparsed line.
+	// CR is the change request that is blocked or was skipped; zero for an
+	// unparsed line.
 	CR core.Key
-	// Parent is the change request whose description holds the line.
+	// Parent is the change request whose description holds the line; zero
+	// for a blocked change request.
 	Parent core.Key
 	// Line is the 1-based line number of an unparsed line; 0 otherwise.
 	Line int
