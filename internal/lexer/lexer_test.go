@@ -11,7 +11,7 @@ import (
 // operators only; the pack tables are tested on their own.
 const (
 	testKotlinTable = `{
-  "schema": 1, "language": "kotlin", "extensions": [".kt"],
+  "schema": 1, "language": "kotlin",
   "lineComment": "//",
   "blockComment": {"open": "/*", "close": "*/", "nested": true},
   "docComment": "/**",
@@ -27,7 +27,7 @@ const (
   "operators": ["==", "===", "->", "?.", "..", "..<", "+="]
 }`
 	testJavaTable = `{
-  "schema": 1, "language": "java", "extensions": [".java"],
+  "schema": 1, "language": "java",
   "lineComment": "//",
   "blockComment": {"open": "/*", "close": "*/", "nested": false},
   "docComment": "/**",

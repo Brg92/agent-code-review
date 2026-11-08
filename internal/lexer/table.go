@@ -18,7 +18,6 @@ import (
 type Table struct {
 	Schema           int               `json:"schema"`
 	Language         string            `json:"language"`
-	Extensions       []string          `json:"extensions"`
 	LineComment      string            `json:"lineComment,omitempty"`
 	BlockComment     *BlockCommentForm `json:"blockComment,omitempty"`
 	DocComment       string            `json:"docComment,omitempty"`
@@ -86,7 +85,6 @@ type Templates struct {
 
 var (
 	languageID = regexp.MustCompile(`^[a-z0-9-]+$`)
-	extension  = regexp.MustCompile(`^\.[A-Za-z0-9]+$`)
 	word       = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 	operator   = regexp.MustCompile(`^[^\sA-Za-z0-9_]{2,}$`)
 	marker     = regexp.MustCompile(`^\S+$`)
@@ -101,7 +99,6 @@ func LoadTable(data []byte) (*Table, error) {
 	var raw struct {
 		Table
 		Schema       *int      `json:"schema"`
-		Extensions   *[]string `json:"extensions"`
 		Keywords     *[]string `json:"keywords"`
 		SoftKeywords *[]string `json:"softKeywords"`
 		// Optional markers, as pointers to tell an empty one from an
@@ -120,12 +117,12 @@ func LoadTable(data []byte) (*Table, error) {
 	if raw.Schema == nil || *raw.Schema != 1 {
 		return nil, errors.New("lexer table: schema must be 1")
 	}
-	for name, list := range map[string]*[]string{"extensions": raw.Extensions, "keywords": raw.Keywords, "softKeywords": raw.SoftKeywords} {
+	for name, list := range map[string]*[]string{"keywords": raw.Keywords, "softKeywords": raw.SoftKeywords} {
 		if list == nil {
 			return nil, fmt.Errorf("lexer table: %s is required", name)
 		}
 	}
-	t.Schema, t.Extensions, t.Keywords, t.SoftKeywords = *raw.Schema, *raw.Extensions, *raw.Keywords, *raw.SoftKeywords
+	t.Schema, t.Keywords, t.SoftKeywords = *raw.Schema, *raw.Keywords, *raw.SoftKeywords
 	for name, m := range map[string]*string{"lineComment": raw.LineComment, "docComment": raw.DocComment, "quotedIdentifier": raw.QuotedIdentifier} {
 		if m != nil && !marker.MatchString(*m) {
 			return nil, fmt.Errorf("lexer table: %s %q is not a marker", name, *m)
@@ -159,12 +156,6 @@ func set(words []string) map[string]bool {
 func (t *Table) check() error {
 	if !languageID.MatchString(t.Language) {
 		return fmt.Errorf("language %q is not a lowercase identifier", t.Language)
-	}
-	if len(t.Extensions) == 0 {
-		return errors.New("extensions is empty")
-	}
-	if err := distinct("extension", t.Extensions, extension); err != nil {
-		return err
 	}
 	if err := distinct("keyword", append(append([]string{}, t.Keywords...), t.SoftKeywords...), word); err != nil {
 		return err

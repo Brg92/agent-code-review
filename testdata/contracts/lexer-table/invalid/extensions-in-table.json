@@ -1,7 +1,9 @@
 {
   "schema": 1,
   "language": "plain",
-  "extensions": [],
+  "extensions": [
+    ".pln"
+  ],
   "keywords": [
     "begin"
   ],

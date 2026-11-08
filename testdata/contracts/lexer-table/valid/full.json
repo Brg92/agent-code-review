@@ -1,10 +1,6 @@
 {
   "schema": 1,
   "language": "sample",
-  "extensions": [
-    ".smp",
-    ".smpx"
-  ],
   "lineComment": "//",
   "blockComment": {
     "open": "/*",

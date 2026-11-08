@@ -14,7 +14,6 @@
     "languages",
     "profiles",
     "rules",
-    "lexer",
     "checklists",
     "templates",
     "noise",
@@ -69,21 +68,28 @@
         "additionalProperties": false,
         "required": [
           "id",
-          "extensions"
+          "extensions",
+          "lexer"
         ],
         "properties": {
           "id": {
-            "description": "Language identifier, used by the lexer table and in work packages.",
+            "description": "Language identifier, as in the language of its lexer table and in work packages.",
             "type": "string",
             "pattern": "^[a-z0-9-]+$"
           },
           "extensions": {
-            "description": "File name extensions, with the leading dot.",
+            "description": "File name extensions of the language, with the leading dot. The manifest is the only place that maps extensions to a language.",
             "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
             "items": {
               "type": "string",
               "pattern": "^\\.[A-Za-z0-9]+$"
             }
+          },
+          "lexer": {
+            "description": "Lexer table of the language, relative to the pack directory.",
+            "$ref": "#/$defs/relativePath"
           }
         }
       }
@@ -97,10 +103,6 @@
     },
     "rules": {
       "description": "Rules catalog file, relative to the pack directory.",
-      "$ref": "#/$defs/relativePath"
-    },
-    "lexer": {
-      "description": "Lexer table file, relative to the pack directory.",
       "$ref": "#/$defs/relativePath"
     },
     "checklists": {

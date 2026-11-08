@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const minimalTable = `{"schema":1,"language":"plain","extensions":[".pln"],"keywords":["begin"],"softKeywords":[]}`
+const minimalTable = `{"schema":1,"language":"plain","keywords":["begin"],"softKeywords":[]}`
 
 // withField returns minimalTable with one more top-level field.
 func withField(field string) string {
@@ -24,8 +24,8 @@ func TestLoadTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tab.Language != "plain" || !reflect.DeepEqual(tab.Extensions, []string{".pln"}) {
-		t.Errorf("language %q, extensions %q", tab.Language, tab.Extensions)
+	if tab.Language != "plain" {
+		t.Errorf("language %q", tab.Language)
 	}
 	if tab.BlockComment == nil || !tab.BlockComment.Nested || tab.DocComment != "/**" {
 		t.Errorf("block comment %+v, doc comment %q", tab.BlockComment, tab.DocComment)
@@ -54,9 +54,7 @@ func TestLoadTableRejects(t *testing.T) {
 		{"no version", strings.Replace(minimalTable, `"schema":1,`, ``, 1), "schema"},
 		{"no language", strings.Replace(minimalTable, `"language":"plain",`, ``, 1), "language"},
 		{"language not lowercase", strings.Replace(minimalTable, `plain`, `Plain`, 1), "language"},
-		{"no extensions", strings.Replace(minimalTable, `".pln"`, ``, 1), "extensions"},
-		{"extension without dot", strings.Replace(minimalTable, `".pln"`, `"pln"`, 1), "extension"},
-		{"duplicate extension", strings.Replace(minimalTable, `".pln"`, `".pln",".pln"`, 1), "extension"},
+		{"extensions belong to the manifest", withField(`"extensions":[".pln"]`), "unknown field"},
 		{"no keywords", strings.Replace(minimalTable, `"keywords":["begin"],`, ``, 1), "keywords"},
 		{"no soft keywords", strings.Replace(minimalTable, `,"softKeywords":[]`, ``, 1), "softKeywords"},
 		{"bad keyword", strings.Replace(minimalTable, `"begin"`, `"go to"`, 1), "keyword"},

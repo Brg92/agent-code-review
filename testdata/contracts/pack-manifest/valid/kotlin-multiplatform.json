@@ -18,14 +18,14 @@
       "extensions": [
         ".kt",
         ".kts"
-      ]
+      ],
+      "lexer": "lexer/kotlin.json"
     }
   ],
   "profiles": [
     "kmp"
   ],
   "rules": "rules.json",
-  "lexer": "lexer.json",
   "checklists": [
     {
       "profile": "kmp",
