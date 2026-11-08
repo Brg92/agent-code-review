@@ -12,6 +12,10 @@ const (
 	OriginExisting = "existing"
 )
 
+// ReasonMatchBudget is the not-verified reason of a file a rule ran out
+// of matching steps on; the detail names the rule.
+const ReasonMatchBudget = "match-budget-exceeded"
+
 // DefaultBudget is the number of matching steps one rule may spend on one
 // file when Options.Budget is zero.
 const DefaultBudget = 2000000
@@ -64,7 +68,9 @@ type Result struct {
 
 // Run checks one file with the rules that have mechanical checks and apply
 // to its language. Signals are sorted by line, column and rule order, one
-// per rule and line.
+// per rule and line. A rule that runs out of its step budget on the file
+// stops there: its signals are dropped and the file is listed as not
+// verified for it.
 func Run(rules []*Rule, f File, opt Options) Result {
 	budget := opt.Budget
 	if budget <= 0 {
@@ -80,7 +86,12 @@ func Run(rules []*Rule, f File, opt Options) Result {
 		}
 		order[r.ID] = i
 		m := newMatcher(all, code, f.Table, budget)
-		res.Signals = append(res.Signals, r.run(m, f)...)
+		sigs := r.run(m, f)
+		if m.exceeded {
+			res.NotVerified = append(res.NotVerified, NotVerified{Path: f.Path, Reason: ReasonMatchBudget, Detail: r.ID})
+			continue
+		}
+		res.Signals = append(res.Signals, sigs...)
 	}
 	sort.SliceStable(res.Signals, func(i, j int) bool {
 		a, b := res.Signals[i], res.Signals[j]

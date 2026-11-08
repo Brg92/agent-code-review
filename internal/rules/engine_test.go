@@ -319,3 +319,53 @@ func TestRunMissingDocAddedOnly(t *testing.T) {
 		t.Errorf("signals at %q", got)
 	}
 }
+
+// slowRules has one rule that backtracks heavily and one cheap rule.
+func slowRules(t testing.TB) []*Rule {
+	t.Helper()
+	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","rules":[
+	  {"id":"slow","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],
+	   "match":{"patterns":[{"tokens":[{"repeat":[{"repeat":[{"kind":"any"}]}]},{"text":"never"}]}]}},
+	  {"id":"cheap","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],
+	   "match":{"patterns":[{"tokens":[{"text":"x"}]}]}}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c.Rules
+}
+
+func TestRunBudget(t *testing.T) {
+	src := strings.Repeat("x y z\n", 40)
+	res := Run(slowRules(t), kotlinFile(t, src), Options{Budget: 5000})
+	want := []NotVerified{{Path: "app/src/main/A.kt", Reason: ReasonMatchBudget, Detail: "slow"}}
+	if !reflect.DeepEqual(res.NotVerified, want) {
+		t.Errorf("not verified = %+v, want %+v", res.NotVerified, want)
+	}
+	for _, s := range res.Signals {
+		if s.RuleID != "cheap" {
+			t.Errorf("signal of a rule out of budget: %+v", s)
+		}
+	}
+	if len(res.Signals) != 40 {
+		t.Errorf("%d signals of the cheap rule, want 40", len(res.Signals))
+	}
+}
+
+func TestRunDepthLimit(t *testing.T) {
+	rules := oneRule(t, `[]`, patterns(`{"repeat":[{"kind":"any"}]}`, `{"text":"never"}`))
+	res := Run(rules, kotlinFile(t, strings.Repeat("x ", maxDepth+10)), Options{})
+	if len(res.NotVerified) != 1 || res.NotVerified[0].Detail != "r" {
+		t.Errorf("not verified = %+v, want the rule out of budget", res.NotVerified)
+	}
+}
+
+func TestRunDefaultBudgetFitsLegacyRules(t *testing.T) {
+	c, err := LoadCatalog(readFile(t, filepath.Join(contractDir, "valid", "legacy-signals.json")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := strings.Repeat("class A(val b: B) {\n    fun f() { try { g(x!!) } catch (e: Exception) { } }\n}\n", 2000)
+	if res := Run(c.Rules, kotlinFile(t, src), Options{}); len(res.NotVerified) != 0 {
+		t.Errorf("not verified = %+v", res.NotVerified)
+	}
+}
