@@ -34,7 +34,7 @@ type Schema struct {
 
 // annotations are keywords that do not affect validation.
 var annotations = map[string]bool{
-	"$schema": true, "$id": true, "$comment": true, "title": true, "description": true,
+	"$schema": true, "$id": true, "$comment": true, "title": true, "description": true, "default": true,
 }
 
 var typeNames = map[string]bool{

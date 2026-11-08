@@ -59,6 +59,7 @@
       "line": 8,
       "message": "displayName() throws a NullPointerException when no name has been stored.",
       "references": [],
+      "crash": true,
       "placement": "inline"
     },
     {

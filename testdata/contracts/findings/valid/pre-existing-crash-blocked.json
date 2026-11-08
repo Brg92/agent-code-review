@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+  "headSha": "0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c",
+  "verdict": "BLOCKED",
+  "findings": [
+    {
+      "id": "a1b2c3d4e5f60718",
+      "rule": "coroutines.global-scope",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 19,
+      "message": "prefetch() launches in GlobalScope, so the work is never cancelled and outlives its caller.",
+      "references": [],
+      "placement": "inline"
+    }
+  ],
+  "preExisting": [
+    {
+      "id": "0718a1b2c3d4e5f6",
+      "rule": "kotlin.not-null-assertion",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "side": "RIGHT",
+      "line": 8,
+      "message": "displayName() throws a NullPointerException when no name has been stored.",
+      "references": [],
+      "placement": "inline",
+      "crash": true
+    }
+  ],
+  "notVerified": [],
+  "ci": {
+    "state": "passing",
+    "checks": []
+  },
+  "criteria": {
+    "source": "overlay",
+    "profile": "app",
+    "packs": [
+      "android"
+    ],
+    "notes": []
+  }
+}

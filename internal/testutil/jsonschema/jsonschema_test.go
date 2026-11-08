@@ -61,7 +61,7 @@ func TestCompileRejectsInvalidSchemas(t *testing.T) {
 
 func TestCompileAcceptsAnnotations(t *testing.T) {
 	schema := `{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://example.com/x.json",` +
-		`"title":"X","description":"d","$comment":"c","type":"object"}`
+		`"title":"X","description":"d","$comment":"c","default":{},"type":"object"}`
 	if _, err := Compile([]byte(schema)); err != nil {
 		t.Errorf("Compile: %v", err)
 	}
