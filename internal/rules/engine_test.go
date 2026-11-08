@@ -267,3 +267,55 @@ func TestRunLineLengthSkipsIgnoredLines(t *testing.T) {
 		t.Errorf("signals at %q", got)
 	}
 }
+
+const missingDocMatch = `{"detector":"missing-doc","declarations":["fun","val","var","class","interface","object"],
+  "modifiers":["public","open","abstract","final","data","sealed","inline","value","suspend","operator","infix","tailrec","const","lateinit","enum"],
+  "skipModifiers":["private","internal","protected","override"],"types":["class","interface","object"],"notAfter":["::"],
+  "annotation":"@","skipAnnotations":["Inject"],"header":{"open":"(","close":")"},"body":{"open":"{","close":"}"}}`
+
+func TestRunMissingDoc(t *testing.T) {
+	src := `package a
+
+/** Doc. */
+class Documented
+data class Bare(val x: Int, private val y: Int) : Base(x) {
+    fun member() {
+        val local = 1
+    }
+    private fun hidden() {}
+    override fun toString() = ""
+    /** Doc. */
+    val documented = 1
+    @Inject lateinit var dep: Dep
+    @field:Inject
+    lateinit var other: Dep
+    companion object {
+        const val MAX = 1
+    }
+}
+@Composable
+fun Screen() {}
+/* not a doc comment */ fun plain() {}
+val k = Foo::class
+fun afterClassLiteral() {}
+val o = object : Runnable {
+    override fun run() {}
+    fun extra() {}
+}
+internal fun module() {}
+fun lambda() = run { fun nested() {} }
+@Suppress("x") /** Doc. */ fun annotatedFirst() {}
+`
+	got := at(Run(oneRule(t, `[]`, missingDocMatch), kotlinFile(t, src), Options{}).Signals)
+	want := "5:6 6:5 17:15 21:1 22:25 23:1 24:1 25:1 27:5 30:1"
+	if got != want {
+		t.Errorf("signals at\n %q, want\n %q", got, want)
+	}
+}
+
+func TestRunMissingDocAddedOnly(t *testing.T) {
+	match := strings.Replace(missingDocMatch, `"detector"`, `"lines":"added","detector"`, 1)
+	if got := at(Run(oneRule(t, `[]`, match), kotlinFile(t, "fun a() {}\nfun b() {}\n", 2), Options{}).Signals); got != "2:1" {
+		t.Errorf("signals at %q", got)
+	}
+}

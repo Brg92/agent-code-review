@@ -70,7 +70,8 @@ func Run(rules []*Rule, f File, opt Options) Result {
 	if budget <= 0 {
 		budget = DefaultBudget
 	}
-	code := codeTokens(lexer.Tokenize(f.Table, f.Source))
+	all := lexer.Tokenize(f.Table, f.Source)
+	code := codeTokens(all)
 	var res Result
 	order := map[string]int{}
 	for i, r := range rules {
@@ -78,7 +79,7 @@ func Run(rules []*Rule, f File, opt Options) Result {
 			continue
 		}
 		order[r.ID] = i
-		m := newMatcher(code, f.Table, budget)
+		m := newMatcher(all, code, f.Table, budget)
 		res.Signals = append(res.Signals, r.run(m, f)...)
 	}
 	sort.SliceStable(res.Signals, func(i, j int) bool {
@@ -172,6 +173,9 @@ func (r *Rule) run(m *matcher, f File) []Signal {
 	switch mt.detector {
 	case detectorLineLength:
 		lineLength(m, f, mt.maxLength, out)
+		return out.sigs
+	case detectorMissingDoc:
+		missingDoc(m, mt.doc, out)
 		return out.sigs
 	}
 	var excluded []span

@@ -49,7 +49,8 @@ const maxDepth = 10000
 // matcher runs patterns over the code tokens of one file within a step
 // budget. Once the budget is spent every match fails and exceeded is set.
 type matcher struct {
-	toks     []lexer.Token
+	all      []lexer.Token     // every token, comments included
+	toks     []lexer.Token     // code tokens
 	opens    map[string]string // opener -> closer
 	closers  map[string]bool
 	steps    int
@@ -58,8 +59,8 @@ type matcher struct {
 	exceeded bool
 }
 
-func newMatcher(toks []lexer.Token, table *lexer.Table, budget int) *matcher {
-	m := &matcher{toks: toks, opens: map[string]string{}, closers: map[string]bool{}, budget: budget}
+func newMatcher(all, toks []lexer.Token, table *lexer.Table, budget int) *matcher {
+	m := &matcher{all: all, toks: toks, opens: map[string]string{}, closers: map[string]bool{}, budget: budget}
 	for _, b := range table.Brackets {
 		m.opens[b.Open] = b.Close
 		m.closers[b.Close] = true
