@@ -42,6 +42,13 @@
       "items": {
         "$ref": "#/$defs/finding"
       }
+    },
+    "signals": {
+      "description": "Decisions on the signals of the work package, by id. Every signal that needs judgement must be decided; a signal that does not becomes a finding unless it is dismissed here. Absent means no decisions.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/signalDecision"
+      }
     }
   },
   "$defs": {
@@ -181,6 +188,59 @@
         "LEFT",
         "RIGHT"
       ]
+    },
+    "signalDecision": {
+      "description": "What the agent decides about one signal. A dismissed signal needs a reason and is listed in the report under the signals dismissed.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "decision"
+      ],
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "dismiss"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "severity": false,
+          "crash": false
+        }
+      },
+      "properties": {
+        "id": {
+          "description": "Id of the signal in the work package.",
+          "type": "string",
+          "pattern": "^s[1-9][0-9]*$"
+        },
+        "decision": {
+          "description": "confirm makes the signal a finding; dismiss drops it.",
+          "enum": [
+            "confirm",
+            "dismiss"
+          ]
+        },
+        "severity": {
+          "description": "Severity of the confirmed finding: required when the rule needs judgement, otherwise it overrides the rule's severity.",
+          "$ref": "#/$defs/severity"
+        },
+        "crash": {
+          "description": "True when a confirmed pre-existing signal makes the app crash; only with severity BLOCKER, checked by the judgement validation.",
+          "type": "boolean",
+          "default": false
+        },
+        "reason": {
+          "description": "Why the signal is dismissed, or a remark on a confirmed one.",
+          "type": "string",
+          "pattern": "\\S"
+        }
+      }
     }
   }
 }

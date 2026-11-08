@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "findings": [
+    {
+      "rule": "logic.always-throws",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
+      "side": "RIGHT",
+      "line": 27,
+      "message": "This change removes the warmUp() call from init, and nothing else calls warmUp(). cachedUser therefore stays null, and requireUser() always throws IllegalStateException when refresh() runs.",
+      "references": []
+    }
+  ],
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s2",
+      "decision": "confirm",
+      "severity": "BLOCKER",
+      "crash": true,
+      "reason": "displayName() is called on every start, before any name is stored."
+    },
+    {
+      "id": "s3",
+      "decision": "confirm",
+      "severity": "MINOR"
+    },
+    {
+      "id": "s5",
+      "decision": "confirm",
+      "severity": "MAJOR"
+    }
+  ]
+}
