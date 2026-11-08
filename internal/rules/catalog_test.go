@@ -3,6 +3,7 @@ package rules
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -111,6 +112,47 @@ func TestLoadCatalogRejects(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := LoadCatalog([]byte(tt.data))
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("error = %v, want one that mentions %q", err, tt.want)
+			}
+		})
+	}
+}
+
+// catalogWithField returns a catalog with one rule that has the given
+// extra JSON members.
+func catalogWithField(members string) string {
+	return `{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","description":"D",` +
+		`"languages":[],"tags":[],` + members + `}]}`
+}
+
+func TestLoadCatalogWhen(t *testing.T) {
+	c, err := LoadCatalog([]byte(catalogWithField(`"when":{"profile":["library"],"ui-toolkit":["views","both"]}`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string][]string{"profile": {"library"}, "ui-toolkit": {"views", "both"}}
+	if got := c.Rules[0].When; !reflect.DeepEqual(got, want) {
+		t.Errorf("when = %v, want %v", got, want)
+	}
+	c, err = LoadCatalog([]byte(catalogWithField(`"when":{}`)))
+	if err != nil || len(c.Rules[0].When) != 0 {
+		t.Errorf("an empty when: %v, %v", c, err)
+	}
+}
+
+func TestLoadCatalogRejectsWhen(t *testing.T) {
+	tests := []struct{ name, when, want string }{
+		{"empty list", `{"ui-toolkit":[]}`, "ui-toolkit"},
+		{"not a list", `{"ui-toolkit":"views"}`, "when"},
+		{"unknown profile", `{"profile":["desktop"]}`, "desktop"},
+		{"repeated value", `{"ui-toolkit":["views","views"]}`, "views"},
+		{"value not lowercase", `{"ui-toolkit":["Views"]}`, "Views"},
+		{"dimension not lowercase", `{"UiToolkit":["views"]}`, "UiToolkit"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := LoadCatalog([]byte(catalogWithField(`"when":` + tt.when)))
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Errorf("error = %v, want one that mentions %q", err, tt.want)
 			}

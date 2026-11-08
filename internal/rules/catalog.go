@@ -29,9 +29,16 @@ type Rule struct {
 	// Languages the rule applies to; empty means every language.
 	Languages []string
 	Tags      []string
+	// When holds the conditions for the rule to apply to a repository:
+	// the key ProfileKey lists profiles, any other key is a dimension of
+	// the pack and lists its values. Every condition must hold.
+	When map[string][]string
 
 	match *match
 }
+
+// ProfileKey is the key of the profile condition in Rule.When.
+const ProfileKey = "profile"
 
 // Matched reports whether the rule has mechanical checks; a rule without
 // them is only judged.
@@ -143,7 +150,10 @@ var (
 	marker     = regexp.MustCompile(`^\S+$`)
 	word       = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 	bracket    = regexp.MustCompile(`^[^\sA-Za-z0-9_]$`)
-	severities = map[string]bool{"BLOCKER": true, "MAJOR": true, "MINOR": true, "INFO": true}
+	// dimensionID is the form of a dimension and of its values.
+	dimensionID = packID
+	profiles    = map[string]bool{"app": true, "library": true, "kmp": true}
+	severities  = map[string]bool{"BLOCKER": true, "MAJOR": true, "MINOR": true, "INFO": true}
 )
 
 // Raw JSON forms. Pointers tell an absent field from an empty one.
@@ -159,14 +169,15 @@ type (
 		IgnoreLines []rawPattern `json:"ignoreLines"`
 	}
 	rawRule struct {
-		ID             *string   `json:"id"`
-		Title          *string   `json:"title"`
-		Severity       *string   `json:"severity"`
-		NeedsJudgement bool      `json:"needsJudgement"`
-		Description    *string   `json:"description"`
-		Languages      *[]string `json:"languages"`
-		Tags           *[]string `json:"tags"`
-		Match          *rawMatch `json:"match"`
+		ID             *string                    `json:"id"`
+		Title          *string                    `json:"title"`
+		Severity       *string                    `json:"severity"`
+		NeedsJudgement bool                       `json:"needsJudgement"`
+		Description    *string                    `json:"description"`
+		Languages      *[]string                  `json:"languages"`
+		Tags           *[]string                  `json:"tags"`
+		When           map[string]json.RawMessage `json:"when"`
+		Match          *rawMatch                  `json:"match"`
 	}
 	rawMatch struct {
 		Patterns        []rawPattern `json:"patterns"`
@@ -334,6 +345,10 @@ func compileRule(rr rawRule, defFiles files, ignore []pattern) (*Rule, error) {
 			return fail("tag %q is not lowercase", t)
 		}
 	}
+	var err error
+	if r.When, err = compileWhen(rr.When); err != nil {
+		return fail("when: %v", err)
+	}
 	if rr.Match != nil {
 		m, err := compileMatch(*rr.Match, r.Languages, defFiles, ignore)
 		if err != nil {
@@ -342,6 +357,39 @@ func compileRule(rr rawRule, defFiles files, ignore []pattern) (*Rule, error) {
 		r.match = m
 	}
 	return r, nil
+}
+
+func compileWhen(raw map[string]json.RawMessage) (map[string][]string, error) {
+	if len(raw) == 0 {
+		return nil, nil
+	}
+	when := map[string][]string{}
+	for key, data := range raw {
+		if !dimensionID.MatchString(key) {
+			return nil, fmt.Errorf("%q is not a profile or a dimension id", key)
+		}
+		var values []string
+		if err := json.Unmarshal(data, &values); err != nil {
+			return nil, fmt.Errorf("%s must be a list of strings", key)
+		}
+		if len(values) == 0 {
+			return nil, fmt.Errorf("%s is empty", key)
+		}
+		seen := map[string]bool{}
+		for _, v := range values {
+			switch {
+			case !dimensionID.MatchString(v):
+				return nil, fmt.Errorf("%s: %q is not a lowercase value", key, v)
+			case seen[v]:
+				return nil, fmt.Errorf("%s: %q is listed twice", key, v)
+			case key == ProfileKey && !profiles[v]:
+				return nil, fmt.Errorf("profile %q must be app, library or kmp", v)
+			}
+			seen[v] = true
+		}
+		when[key] = values
+	}
+	return when, nil
 }
 
 func compileMatch(rm rawMatch, languages []string, defFiles files, ignore []pattern) (*match, error) {
