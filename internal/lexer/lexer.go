@@ -137,15 +137,35 @@ func (s *scanner) end(tok Token) Token {
 
 // code scans tokens up to the end of the source.
 func (s *scanner) code() []Token {
-	var toks []Token
+	toks, _ := s.tokens("", "")
+	return toks
+}
+
+// tokens scans tokens up to the end of the source or, if close is not
+// empty, up to a close marker outside the brackets opened in between; the
+// marker is not consumed. open is the bracket that pairs with close.
+func (s *scanner) tokens(open, close string) (toks []Token, closed bool) {
+	depth := 0
 	for !s.eof() {
 		if unicode.IsSpace(s.rune()) {
 			s.advanceRune()
 			continue
 		}
-		toks = append(toks, s.next())
+		if depth == 0 && s.peek(close) {
+			return toks, true
+		}
+		tok := s.next()
+		if tok.Kind == Punct && open != "" {
+			switch tok.Text {
+			case open:
+				depth++
+			case close:
+				depth--
+			}
+		}
+		toks = append(toks, tok)
 	}
-	return toks
+	return toks, false
 }
 
 // next scans the token at the current position, which is not whitespace.
@@ -228,6 +248,10 @@ func (s *scanner) stringLiteral(f *StringForm) Token {
 			return s.end(tok)
 		case s.peek(f.Escape):
 			s.escape(f.Escape, f.Multiline)
+		case f.Templates && s.peek(s.t.Templates.Open):
+			tok.Inner = append(tok.Inner, s.expressionTemplate())
+		case f.Templates && s.peek(s.t.Templates.Identifier) && s.identifierTemplateAhead():
+			tok.Inner = append(tok.Inner, s.identifierTemplate())
 		case s.peek(f.Delimiter):
 			s.advance(len(f.Delimiter))
 			if f.GreedyClose {
@@ -241,6 +265,46 @@ func (s *scanner) stringLiteral(f *StringForm) Token {
 			s.advanceRune()
 		}
 	}
+}
+
+// expressionTemplate scans a template expression, lexed as code up to the
+// template closer. The bracket that ends the opener, { in ${, pairs with
+// the closer inside the expression.
+func (s *scanner) expressionTemplate() Token {
+	tm := s.t.Templates
+	tok := s.start(Template)
+	s.advance(len(tm.Open))
+	_, w := utf8.DecodeLastRuneInString(tm.Open)
+	inner, closed := s.tokens(tm.Open[len(tm.Open)-w:], tm.Close)
+	tok.Inner = inner
+	if closed {
+		s.advance(len(tm.Close))
+	} else {
+		tok.Unterminated = true
+	}
+	return s.end(tok)
+}
+
+// identifierTemplateAhead reports whether the identifier template prefix
+// at the current position is followed by an identifier.
+func (s *scanner) identifierTemplateAhead() bool {
+	rest := s.src[s.pos+len(s.t.Templates.Identifier):]
+	if s.t.QuotedIdentifier != "" && strings.HasPrefix(rest, s.t.QuotedIdentifier) {
+		return true
+	}
+	r, _ := utf8.DecodeRuneInString(rest)
+	return unicode.IsLetter(r) || r == '_'
+}
+
+func (s *scanner) identifierTemplate() Token {
+	tok := s.start(Template)
+	s.advance(len(s.t.Templates.Identifier))
+	if s.peek(s.t.QuotedIdentifier) {
+		tok.Inner = []Token{s.quotedIdentifier()}
+	} else {
+		tok.Inner = []Token{s.identifier()}
+	}
+	return s.end(tok)
 }
 
 // escape moves over an escape character and the character it escapes. A

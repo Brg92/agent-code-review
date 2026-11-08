@@ -22,7 +22,7 @@ const (
   "char": {"delimiter": "'", "escape": "\\"},
   "quotedIdentifier": "` + "`" + `",
   "templates": {"identifier": "$", "open": "${", "close": "}"},
-  "keywords": ["val", "fun", "if", "else", "true"],
+  "keywords": ["val", "fun", "if", "else", "true", "this"],
   "softKeywords": ["get", "set", "by"],
   "operators": ["==", "===", "->", "?.", "..", "..<", "+="]
 }`
@@ -169,6 +169,40 @@ func TestTokenizeJava(t *testing.T) {
 	})
 }
 
+// TestTokenizeTemplatesLegacy ports the template cases of the legacy
+// scanner; it only knew ${...}, so the $name cases are new.
+func TestTokenizeTemplatesLegacy(t *testing.T) {
+	runTokenCases(t, testKotlinTable, []tokenCase{
+		{"identifier template", `"a $x b"`, []string{`String "a $x b"`, "  Template $x", "    Identifier x"}},
+		{"adjacent identifier templates", `"$a$b"`, []string{`String "$a$b"`, "  Template $a", "    Identifier a", "  Template $b", "    Identifier b"}},
+		{"expression template", `"v=${a + b}"`, []string{`String "v=${a + b}"`, "  Template ${a + b}", "    Identifier a", "    Punct +", "    Identifier b"}},
+		{"closing brace inside a string in a template", `"${a + "}" + b}" x`, []string{
+			`String "${a + "}" + b}"`, `  Template ${a + "}" + b}`, "    Identifier a", "    Punct +", `    String "}"`, "    Punct +", "    Identifier b",
+			"Identifier x"}},
+		{"braces inside a template", `"${ {1} }" x`, []string{`String "${ {1} }"`, "  Template ${ {1} }", "    Punct {", "    Number 1", "    Punct }", "Identifier x"}},
+		{"lambda with a string inside a template", `"${f { "{" }}"`, []string{
+			`String "${f { "{" }}"`, `  Template ${f { "{" }}`, "    Identifier f", "    Punct {", `    String "{"`, "    Punct }"}},
+		{"nested templates", `"${"${x}"}" y`, []string{
+			`String "${"${x}"}"`, `  Template ${"${x}"}`, `    String "${x}"`, "      Template ${x}", "        Identifier x", "Identifier y"}},
+		{"templates in a raw string", `"""$x ${y}""" z`, []string{`RawString """$x ${y}"""`, "  Template $x", "    Identifier x", "  Template ${y}", "    Identifier y", "Identifier z"}},
+		{"comment inside a template", `"${a /* } */}" x`, []string{`String "${a /* } */}"`, "  Template ${a /* } */}", "    Identifier a", "    BlockComment /* } */", "Identifier x"}},
+		{"char inside a template", `"${'}'}" x`, []string{`String "${'}'}"`, "  Template ${'}'}", "    Char '}'", "Identifier x"}},
+		{"template over lines", "\"${a\n}\" x", []string{"String \"${a\n}\"", "  Template ${a\n}", "    Identifier a", "Identifier x"}},
+		{"escaped dollar", `"\$x \${y}"`, []string{`String "\$x \${y}"`}},
+		{"dollar without identifier", `"$1 $ $" x`, []string{`String "$1 $ $"`, "Identifier x"}},
+		{"keyword in a template", `"$this"`, []string{`String "$this"`, "  Template $this", "    Keyword this"}},
+		{"quoted identifier template", "\"$`a b`\"", []string{"String \"$`a b`\"", "  Template $`a b`", "    Identifier `a b`"}},
+		{"unterminated template", `"${a`, []string{`String "${a [unterminated]`, "  Template ${a [unterminated]", "    Identifier a"}},
+	})
+}
+
+func TestTokenizeJavaHasNoTemplates(t *testing.T) {
+	runTokenCases(t, testJavaTable, []tokenCase{
+		{"dollar in a string", `"$x ${y}"`, []string{`String "$x ${y}"`}},
+		{"dollar in a text block", "\"\"\"\n$x ${y}\"\"\"", []string{"RawString \"\"\"\n$x ${y}\"\"\""}},
+	})
+}
+
 func TestTokenPositions(t *testing.T) {
 	tab := mustLoad(t, testKotlinTable)
 	src := "val ü = \"ä\" // ö\r\n/* a\n b */ x\r'c'\n\"\"\"é\n\"\"\" y"
@@ -199,6 +233,29 @@ func TestTokenPositions(t *testing.T) {
 		if src[tok.Offset:tok.Offset+len(tok.Text)] != tok.Text {
 			t.Errorf("%q: offset %d does not point to the text", tok.Text, tok.Offset)
 		}
+	}
+}
+
+func TestTemplatePositions(t *testing.T) {
+	src := "\"\"\"a\nü$b ${c}\"\"\""
+	toks := Tokenize(mustLoad(t, testKotlinTable), src)
+	if len(toks) != 1 || len(toks[0].Inner) != 2 {
+		t.Fatalf("tokens: %q", describe(toks))
+	}
+	type pos struct {
+		text                 string
+		offset, line, column int
+	}
+	b, c := toks[0].Inner[0], toks[0].Inner[1]
+	got := []pos{
+		{b.Text, b.Offset, b.Line, b.Column},
+		{b.Inner[0].Text, b.Inner[0].Offset, b.Inner[0].Line, b.Inner[0].Column},
+		{c.Text, c.Offset, c.Line, c.Column},
+		{c.Inner[0].Text, c.Inner[0].Offset, c.Inner[0].Line, c.Inner[0].Column},
+	}
+	want := []pos{{"$b", 7, 2, 2}, {"b", 8, 2, 3}, {"${c}", 10, 2, 5}, {"c", 12, 2, 7}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("positions\n got: %+v\nwant: %+v", got, want)
 	}
 }
 
