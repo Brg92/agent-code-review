@@ -74,7 +74,7 @@ func Run(rules []*Rule, f File, opt Options) Result {
 	var res Result
 	order := map[string]int{}
 	for i, r := range rules {
-		if !r.Matched() || !r.appliesTo(f.Language) {
+		if !r.Matched() || !r.appliesTo(f.Language) || !r.match.files.selects(f) {
 			continue
 		}
 		order[r.ID] = i
@@ -110,16 +110,82 @@ func (p pattern) appliesTo(language string) bool {
 	return p.languages == nil || p.languages[language]
 }
 
+// selects reports whether the path and test conditions take the file.
+func (fs files) selects(f File) bool {
+	switch {
+	case fs.tests == testsSkip && f.Test, fs.tests == testsOnly && !f.Test:
+		return false
+	}
+	if fs.include != nil && !anyGlob(fs.include, f.Path) {
+		return false
+	}
+	return !anyGlob(fs.exclude, f.Path)
+}
+
+func anyGlob(globs []Glob, path string) bool {
+	for _, g := range globs {
+		if g.Match(path) {
+			return true
+		}
+	}
+	return false
+}
+
+// found reports whether any of the patterns matches somewhere.
+func found(m *matcher, f File, patterns []pattern) bool {
+	for _, p := range patterns {
+		if p.appliesTo(f.Language) && len(m.find(p)) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// ignoredLines returns the lines whose first code token starts a match of
+// one of the patterns.
+func ignoredLines(m *matcher, f File, patterns []pattern) map[int]bool {
+	ignored := map[int]bool{}
+	for i, t := range m.toks {
+		if i > 0 && m.toks[i-1].Line == t.Line || ignored[t.Line] {
+			continue
+		}
+		for _, p := range patterns {
+			if !p.appliesTo(f.Language) {
+				continue
+			}
+			if _, ok := m.matchAt(p, i); ok {
+				ignored[t.Line] = true
+				break
+			}
+		}
+	}
+	return ignored
+}
+
 // run applies the token patterns of a rule.
 func (r *Rule) run(m *matcher, f File) []Signal {
+	mt := r.match
+	if mt.files.contains != nil && !found(m, f, mt.files.contains) || found(m, f, mt.files.notContains) {
+		return nil
+	}
+	ignored := ignoredLines(m, f, mt.ignoreLines)
+	var excluded []span
+	for _, p := range mt.exclude {
+		if p.appliesTo(f.Language) {
+			excluded = append(excluded, m.find(p)...)
+		}
+	}
 	byLine := map[int]int{} // line -> index in sigs
 	var sigs []Signal
-	for _, p := range r.match.patterns {
+	for _, p := range mt.patterns {
 		if !p.appliesTo(f.Language) {
 			continue
 		}
 		for _, s := range m.find(p) {
 			tok := m.toks[s.at]
+			if ignored[tok.Line] || mt.addedOnly && !f.Added[tok.Line] || inside(s.at, excluded) {
+				continue
+			}
 			if i, ok := byLine[tok.Line]; ok {
 				if tok.Column < sigs[i].Column {
 					sigs[i].Column = tok.Column
@@ -131,6 +197,15 @@ func (r *Rule) run(m *matcher, f File) []Signal {
 		}
 	}
 	return sigs
+}
+
+func inside(i int, spans []span) bool {
+	for _, s := range spans {
+		if i >= s.start && i < s.end {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Rule) signal(f File, line, column int) Signal {

@@ -161,3 +161,78 @@ func TestRunSkipsRulesWithoutMatch(t *testing.T) {
 		t.Errorf("Run = %+v", res)
 	}
 }
+
+func TestRunFiles(t *testing.T) {
+	gs := `{"kind":"identifier","text":"GlobalScope"}`
+	withFiles := func(files string) string {
+		return `{"files":` + files + `,"patterns":[{"tokens":[` + gs + `]}]}`
+	}
+	entryPoint := `[{"tokens":[{"text":"@"},{"text":"AndroidEntryPoint"}]}]`
+	tests := []struct {
+		name, match, path string
+		test              bool
+		src               string
+		want              int
+	}{
+		{"tests skipped by default", patterns(gs), "src/test/A.kt", true, "GlobalScope\n", 0},
+		{"tests included", withFiles(`{"tests":"include"}`), "src/test/A.kt", true, "GlobalScope\n", 1},
+		{"tests only skips the rest", withFiles(`{"tests":"only"}`), "src/main/A.kt", false, "GlobalScope\n", 0},
+		{"tests only", withFiles(`{"tests":"only"}`), "src/test/A.kt", true, "GlobalScope\n", 1},
+		{"include matches", withFiles(`{"include":["**/*.gradle.kts"]}`), "app/build.gradle.kts", false, "GlobalScope\n", 1},
+		{"include misses", withFiles(`{"include":["**/*.gradle.kts"]}`), "app/A.kt", false, "GlobalScope\n", 0},
+		{"exclude", withFiles(`{"exclude":["**/*.kts"]}`), "app/build.gradle.kts", false, "GlobalScope\n", 0},
+		{"contains holds", withFiles(`{"contains":` + entryPoint + `}`), "A.kt", false, "@AndroidEntryPoint\nclass A { val s = GlobalScope }\n", 1},
+		{"contains fails", withFiles(`{"contains":` + entryPoint + `}`), "A.kt", false, "class A { val s = GlobalScope }\n", 0},
+		{"notContains holds", withFiles(`{"notContains":` + entryPoint + `}`), "A.kt", false, "class A { val s = GlobalScope }\n", 1},
+		{"notContains fails", withFiles(`{"notContains":` + entryPoint + `}`), "A.kt", false, "@AndroidEntryPoint\nclass A { val s = GlobalScope }\n", 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := kotlinFile(t, tt.src)
+			f.Path, f.Test = tt.path, tt.test
+			if got := len(Run(oneRule(t, `[]`, tt.match), f, Options{}).Signals); got != tt.want {
+				t.Errorf("%d signals, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRunDefaults(t *testing.T) {
+	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test",
+	  "defaults":{"files":{"exclude":["**/*.kts"]},"ignoreLines":[{"tokens":[{"kind":"word","oneOf":["import","package"]}]}]},
+	  "rules":[
+	    {"id":"plain","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],
+	     "match":{"patterns":[{"tokens":[{"text":"GlobalScope"}]}]}},
+	    {"id":"own-files","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],
+	     "match":{"files":{"include":["**/*.kts"]},"patterns":[{"tokens":[{"text":"GlobalScope"}]}]}}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := "package a\nimport kotlinx.coroutines.GlobalScope\nval s = GlobalScope\n"
+	kt := kotlinFile(t, src)
+	if got := Run(c.Rules, kt, Options{}).Signals; len(got) != 1 || got[0].RuleID != "plain" || got[0].Line != 3 {
+		t.Errorf("A.kt: signals %+v, want plain on line 3 only", got)
+	}
+	kts := kotlinFile(t, src)
+	kts.Path = "build.gradle.kts"
+	if got := Run(c.Rules, kts, Options{}).Signals; len(got) != 1 || got[0].RuleID != "own-files" || got[0].Line != 3 {
+		t.Errorf("build.gradle.kts: signals %+v, want own-files on line 3 only", got)
+	}
+}
+
+func TestRunExclude(t *testing.T) {
+	rules := oneRule(t, `[]`, `{"patterns":[{"tokens":[{"kind":"punct","text":"!!"}]}],
+	  "exclude":[{"tokens":[{"text":"get"},{"text":"("},{"text":")"},{"text":"="},{"kind":"identifier","regexp":"^_\\w*[Bb]inding$"},{"text":"!!"}]}]}`)
+	src := "private val binding get() = _binding!!\nval a = b!!\nval c get() = _other!!\n"
+	if got := at(Run(rules, kotlinFile(t, src), Options{}).Signals); got != "2:10 3:21" {
+		t.Errorf("signals at %q", got)
+	}
+}
+
+func TestRunAddedLinesOnly(t *testing.T) {
+	rules := oneRule(t, `[]`, `{"lines":"added","patterns":[{"tokens":[{"text":"GlobalScope"}]}]}`)
+	got := Run(rules, kotlinFile(t, "GlobalScope\nGlobalScope\n", 2), Options{}).Signals
+	if at(got) != "2:1" || got[0].Origin != OriginMR {
+		t.Errorf("signals %+v, want only line 2 with origin mr", got)
+	}
+}
