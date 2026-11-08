@@ -20,8 +20,9 @@ const (
 // moreValidExamples lists files outside testdata/contracts that must match
 // a schema.
 var moreValidExamples = map[string][]string{
-	"judgement":   {"testdata/scenarios/*/judgements/*.json"},
-	"lexer-table": {"packs/*/lexer/*.json"},
+	"judgement":     {"testdata/scenarios/*/judgements/*.json"},
+	"lexer-table":   {"packs/*/lexer/*.json"},
+	"rules-catalog": {"internal/rules/core.json"},
 }
 
 func schemaFiles(t *testing.T) map[string]string {
