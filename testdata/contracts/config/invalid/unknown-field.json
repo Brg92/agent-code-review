@@ -1,6 +1,6 @@
 {
   "schema": 1,
   "disabled": [
-    "kotlin.not-null-assertion"
+    "no-double-bang"
   ]
 }

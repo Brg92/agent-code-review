@@ -4,7 +4,7 @@
   "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
   "findings": [
     {
-      "rule": "coroutines.run-blocking",
+      "rule": "run-blocking-prod",
       "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/MainActivity.kt",
       "side": "RIGHT",
@@ -13,7 +13,7 @@
       "references": []
     },
     {
-      "rule": "coroutines.global-scope",
+      "rule": "global-scope",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
@@ -22,7 +22,7 @@
       "references": []
     },
     {
-      "rule": "kotlin.not-null-assertion",
+      "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
@@ -42,7 +42,7 @@
   ],
   "preExisting": [
     {
-      "rule": "kotlin.not-null-assertion",
+      "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "side": "RIGHT",
@@ -52,7 +52,7 @@
       "crash": true
     },
     {
-      "rule": "coroutines.global-scope",
+      "rule": "global-scope",
       "severity": "MINOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",

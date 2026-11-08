@@ -6,7 +6,7 @@
   "findings": [
     {
       "id": "3d211532409505ba",
-      "rule": "coroutines.run-blocking",
+      "rule": "run-blocking-prod",
       "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/MainActivity.kt",
       "side": "RIGHT",
@@ -17,7 +17,7 @@
     },
     {
       "id": "6b982c141107316e",
-      "rule": "coroutines.global-scope",
+      "rule": "global-scope",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
@@ -28,7 +28,7 @@
     },
     {
       "id": "91122ec00818e006",
-      "rule": "kotlin.not-null-assertion",
+      "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
@@ -52,7 +52,7 @@
   "preExisting": [
     {
       "id": "38094ca5869efe85",
-      "rule": "kotlin.not-null-assertion",
+      "rule": "no-double-bang",
       "severity": "MAJOR",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "side": "RIGHT",
@@ -64,7 +64,7 @@
     },
     {
       "id": "5aeb49767dfeef92",
-      "rule": "coroutines.global-scope",
+      "rule": "global-scope",
       "severity": "MINOR",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",

@@ -15,11 +15,11 @@ Review criteria are always read from the **target branch**, never from the branc
 - `.agent-code-review/config.json`: `schema` 1, profile `app`, pack `android`, `variants` `["free", "paid"]`;
 - `.agent-code-review/criteria.md`.
 
-The pull request adds `"disabledRules": ["kotlin.not-null-assertion"]` to its own copy of `config.json`, and adds `ProfileStore.initials()` with `prefs.getString("display_name", null)!!`.
+The pull request adds `"disabledRules": ["kotlin.not-null-assertion"]` to its own copy of `config.json` (the rule id before the rename to `no-double-bang`; the sandbox branch and its recording still use it), and adds `ProfileStore.initials()` with `prefs.getString("display_name", null)!!`.
 
 Expected:
 - **Overlay:** the change is ignored, since criteria come from `main`.
-- **Finding:** `kotlin.not-null-assertion` (MAJOR) on the added line.
+- **Finding:** `no-double-bang` (MAJOR) on the added line.
 - **Summary:** notes that the overlay changed in the pull request and was not applied.
 - **Variants:** `free` and `paid` come from `main`'s `config.json`.
 - **Verdict:** OK, since a MAJOR does not block.

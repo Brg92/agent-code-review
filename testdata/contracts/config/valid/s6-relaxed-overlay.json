@@ -3,5 +3,5 @@
   "profile": "app",
   "packs": ["android"],
   "variants": ["free", "paid"],
-  "disabledRules": ["kotlin.not-null-assertion"]
+  "disabledRules": ["no-double-bang"]
 }
