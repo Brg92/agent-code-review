@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "language": "java",
+  "lineComment": "//",
+  "blockComment": {
+    "open": "/*",
+    "close": "*/",
+    "nested": false
+  },
+  "strings": [
+    {
+      "delimiter": "\"",
+      "escape": "\\"
+    }
+  ],
+  "keywords": [
+    "class",
+    "void",
+    "public"
+  ],
+  "softKeywords": [],
+  "brackets": [
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "{",
+      "close": "}"
+    }
+  ]
+}

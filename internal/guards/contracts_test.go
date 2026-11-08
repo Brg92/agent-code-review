@@ -21,8 +21,9 @@ const (
 // a schema.
 var moreValidExamples = map[string][]string{
 	"judgement":     {"testdata/scenarios/*/judgements/*.json"},
-	"lexer-table":   {"packs/*/lexer/*.json"},
-	"rules-catalog": {"internal/rules/core.json"},
+	"lexer-table":   {"packs/*/lexer/*.json", "testdata/packs/*/lexer/*.json"},
+	"pack-manifest": {"packs/*/manifest.json", "testdata/packs/*/manifest.json"},
+	"rules-catalog": {"internal/rules/core.json", "testdata/packs/*/rules.json"},
 }
 
 func schemaFiles(t *testing.T) map[string]string {

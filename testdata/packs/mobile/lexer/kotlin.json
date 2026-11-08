@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "language": "kotlin",
+  "lineComment": "//",
+  "blockComment": {
+    "open": "/*",
+    "close": "*/",
+    "nested": true
+  },
+  "docComment": "/**",
+  "strings": [
+    {
+      "delimiter": "\"",
+      "escape": "\\"
+    }
+  ],
+  "keywords": [
+    "class",
+    "fun",
+    "val",
+    "var"
+  ],
+  "softKeywords": [
+    "private"
+  ],
+  "operators": [
+    "!!",
+    "::"
+  ],
+  "brackets": [
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "{",
+      "close": "}"
+    }
+  ]
+}
