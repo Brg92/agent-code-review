@@ -314,3 +314,21 @@ func TestLoadPackRejectsFileDimensions(t *testing.T) {
 		})
 	}
 }
+
+// TestMatchedRulesGiveTheTextOfTheirFindings checks that every rule of the
+// shipped packs that is matched writes its findings itself: the why and the
+// fix come from the catalog. A rule that needs judgement gives them too,
+// because the judgement confirms its signals without writing text.
+func TestMatchedRulesGiveTheTextOfTheirFindings(t *testing.T) {
+	for _, id := range []string{"android", "kotlin-multiplatform"} {
+		p, err := LoadPack(filepath.Join(packsDir, id))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, r := range p.Rules.Rules {
+			if r.Matched() && (r.Why == "" || r.Fix == "") {
+				t.Errorf("%s: rule %s is matched and has no why or fix", id, r.ID)
+			}
+		}
+	}
+}

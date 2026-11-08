@@ -28,6 +28,8 @@
       "title": "Strict dependency version",
       "severity": "BLOCKER",
       "description": "A strict version (`!!`, `strictly`) overrides every other request for the module in the whole build. Declare the plain version.",
+      "why": "A strict version forces every module of the build onto this version, or makes resolution fail when another module asks for a different one.",
+      "fix": "Declare the plain version, without `!!` or `strictly`.",
       "languages": [],
       "tags": [
         "dependencies"
@@ -77,6 +79,8 @@
       "title": "LiveData in new code",
       "severity": "MAJOR",
       "description": "Use `StateFlow` or `SharedFlow` instead of `LiveData`, `MutableLiveData` or `MediatorLiveData`.",
+      "why": "New code adds `LiveData` next to Flow, which splits the state model and ties it to the Android lifecycle.",
+      "fix": "Expose a `StateFlow` or `SharedFlow`, or justify the `LiveData` with a comment on its declaration.",
       "languages": [
         "kotlin",
         "java"
@@ -106,6 +110,8 @@
       "title": "In-process broadcasts",
       "severity": "MAJOR",
       "description": "Use a Flow or a Channel instead of `LocalBroadcastManager` or a `BroadcastReceiver` for in-process communication.",
+      "why": "Senders and receivers of an in-process broadcast are untyped and drift apart without a compile error, and `LocalBroadcastManager` is deprecated.",
+      "fix": "Communicate through a `Flow` or a `Channel` owned by a shared component.",
       "languages": [
         "kotlin",
         "java"
@@ -177,6 +183,8 @@
       "title": "findViewById",
       "severity": "MAJOR",
       "description": "Use view binding instead of `findViewById`.",
+      "why": "A wrong id or view type is not caught at compile time and crashes at runtime, and every call searches the hierarchy again.",
+      "fix": "Use the view binding of the layout.",
       "languages": [
         "kotlin",
         "java"
@@ -209,6 +217,8 @@
       "title": "Coroutine launched in GlobalScope",
       "severity": "BLOCKER",
       "description": "Work in `GlobalScope` escapes every lifecycle and cannot be cancelled.",
+      "why": "The work outlives the component that started it and can never be cancelled, so it leaks and keeps running after the user leaves.",
+      "fix": "Launch it in a scope tied to the component, such as `viewModelScope` or `lifecycleScope`, or take a `CoroutineScope` from the caller.",
       "languages": [
         "kotlin",
         "java"
@@ -234,6 +244,8 @@
       "title": "launchWhen* coroutine builders",
       "severity": "BLOCKER",
       "description": "`launchWhenCreated`, `launchWhenStarted` and `launchWhenResumed` suspend work instead of cancelling it; use `repeatOnLifecycle`.",
+      "why": "The collection stays alive while the view is stopped, so upstream work goes on and the observer stays attached to a destroyed view.",
+      "fix": "Collect inside `repeatOnLifecycle(Lifecycle.State.STARTED)` in `viewLifecycleOwner.lifecycleScope`.",
       "languages": [
         "kotlin",
         "java"
@@ -259,6 +271,8 @@
       "title": "AsyncTask",
       "severity": "MAJOR",
       "description": "`AsyncTask` is deprecated and leaks the enclosing instance.",
+      "why": "The task keeps the enclosing instance alive until it finishes, which leaks the Activity or Fragment, and the API is deprecated.",
+      "fix": "Replace it with a coroutine in a lifecycle-aware scope, or with an executor.",
       "languages": [
         "kotlin",
         "java"
@@ -284,6 +298,8 @@
       "title": "lateinit view binding",
       "severity": "MAJOR",
       "description": "A `lateinit var` binding outlives the view; use a nullable backing property cleared in `onDestroyView`.",
+      "why": "The binding stays a stale non-null reference after the view is destroyed, which leaks the view tree or crashes on access.",
+      "fix": "Use a nullable backing field that is cleared in `onDestroyView`.",
       "languages": [
         "kotlin",
         "java"
@@ -317,6 +333,8 @@
       "title": "Full list refresh",
       "severity": "MAJOR",
       "description": "Use `DiffUtil` or Paging instead of `notifyDataSetChanged()`.",
+      "why": "`notifyDataSetChanged` rebinds every item on each change, which wastes work and drops item animations.",
+      "fix": "Compute the changes with `DiffUtil` or `ListAdapter`, or use Paging.",
       "languages": [
         "kotlin",
         "java"
@@ -346,6 +364,8 @@
       "title": "runBlocking in production code",
       "severity": "BLOCKER",
       "description": "`runBlocking` blocks the calling thread; on the main thread it is an ANR.",
+      "why": "The calling thread stops until the block completes; on the main thread this freezes the UI and can cause an ANR.",
+      "fix": "Make the caller a suspend function, or launch the work in a lifecycle-aware scope.",
       "languages": [
         "kotlin",
         "java"
@@ -371,6 +391,8 @@
       "title": "Catching Exception or Throwable",
       "severity": "MAJOR",
       "description": "Catch specific exceptions, not `Exception` or `Throwable`, unless the boundary handles everything.",
+      "why": "Catching `Exception` or `Throwable` also swallows unexpected failures, including `CancellationException`, which breaks coroutine cancellation.",
+      "fix": "Catch the specific exceptions the call can throw, and rethrow `CancellationException`.",
       "languages": [
         "kotlin",
         "java"
@@ -525,6 +547,8 @@
       "title": "Hard-coded coroutine dispatcher",
       "severity": "MAJOR",
       "description": "Inject dispatchers so the code stays testable.",
+      "why": "Tests cannot replace the dispatcher, so the code runs on real threads under test and becomes slow or flaky.",
+      "fix": "Inject the dispatcher through the constructor and use it instead of naming `Dispatchers` in the code.",
       "languages": [
         "kotlin",
         "java"
@@ -564,6 +588,8 @@
       "severity": "MAJOR",
       "needsJudgement": true,
       "description": "BLOCKER when the value comes from outside the process or the user, MAJOR otherwise. The ViewBinding accessor `get() = _binding!!` is not reported.",
+      "why": "`!!` throws a NullPointerException as soon as the value is null, which crashes the app.",
+      "fix": "Handle null with `?.`, `?:`, a smart cast or `requireNotNull` with a message.",
       "languages": [
         "kotlin"
       ],
@@ -618,6 +644,8 @@
       "title": "Empty catch block",
       "severity": "BLOCKER",
       "description": "An error that vanishes is a bug that will be diagnosed twice.",
+      "why": "The error disappears without a trace, so the failure surfaces later somewhere else and is hard to diagnose.",
+      "fix": "Handle the error, rethrow it, or add a comment that explains why it is safe to ignore.",
       "languages": [
         "kotlin",
         "java"
@@ -664,6 +692,8 @@
       "title": "Line too long",
       "severity": "MINOR",
       "description": "Lines within the configured length.",
+      "why": "Lines over 100 characters force horizontal scrolling and make the code and its diffs harder to read.",
+      "fix": "Wrap the line within 100 characters.",
       "languages": [
         "kotlin",
         "java"
@@ -682,6 +712,8 @@
       "title": "Field injection",
       "severity": "MAJOR",
       "description": "Constructor injection over field injection. Hilt entry points, which need field injection, are not reported.",
+      "why": "The dependency is hidden from the constructor, so the class can exist half-initialised and is hard to test.",
+      "fix": "Inject the dependency through the constructor.",
       "languages": [
         "kotlin",
         "java"
@@ -852,6 +884,8 @@
       "severity": "MINOR",
       "needsJudgement": true,
       "description": "MAJOR on a public symbol of a library or of a module other modules call, MINOR otherwise.",
+      "why": "Callers have to read the source to learn what the declaration does, what it expects and what it throws.",
+      "fix": "Add KDoc that states what the declaration does, its preconditions and what it throws.",
       "languages": [
         "kotlin"
       ],
