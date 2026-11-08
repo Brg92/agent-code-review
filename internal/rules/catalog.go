@@ -155,7 +155,7 @@ var (
 	bracket    = regexp.MustCompile(`^[^\sA-Za-z0-9_]$`)
 	// dimensionID is the form of a dimension and of its values.
 	dimensionID = packID
-	profiles    = map[string]bool{"app": true, "library": true, "kmp": true}
+	profiles    = map[string]bool{"app": true, "library": true}
 	severities  = map[string]bool{"BLOCKER": true, "MAJOR": true, "MINOR": true, "INFO": true}
 )
 
@@ -393,7 +393,7 @@ func compileWhen(raw map[string]json.RawMessage) (map[string][]string, error) {
 			case seen[v]:
 				return nil, fmt.Errorf("%s: %q is listed twice", key, v)
 			case key == ProfileKey && !profiles[v]:
-				return nil, fmt.Errorf("profile %q must be app, library or kmp", v)
+				return nil, fmt.Errorf("profile %q must be app or library", v)
 			}
 			seen[v] = true
 		}

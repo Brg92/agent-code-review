@@ -126,6 +126,7 @@ func TestLoadPackRejects(t *testing.T) {
 		{"profile detection of another profile", "mobile", set("profileDetect", []any{map[string]any{"profile": "kmp", "path": "x"}}), nil, "kmp"},
 		{"default profile not supported", "mobile", set("defaultProfile", "kmp"), nil, "kmp"},
 		{"unknown profile", "mobile", set("profiles", []any{"app", "service"}), nil, "service"},
+		{"kmp is a stack, not a profile", "mobile", set("profiles", []any{"app", "kmp"}), nil, "unknown profile \"kmp\""},
 		{"bad glob", "mobile", set("noise", []any{"/build"}), nil, "glob"},
 		{"catalog of another pack", "mobile", nil, map[string]string{"rules.json": `{"schema":1,"pack":"web","rules":[]}`}, "pack"},
 		{"rule of a language the pack lacks", "mobile", nil, map[string]string{"rules.json": `{"schema":1,"pack":"mobile","rules":[` +

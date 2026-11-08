@@ -70,8 +70,8 @@ func TestChecklist(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("sections = %q, want %q", got, want)
 	}
-	if got := Checklist(rs, Context{Profile: "kmp", Dimensions: map[string]string{"ui-toolkit": "compose"}}); len(got) != 3 {
-		t.Errorf("sections of a kmp compose repository: %+v", got)
+	if got := Checklist(rs, Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "compose"}}); len(got) != 3 {
+		t.Errorf("sections of an app compose repository: %+v", got)
 	}
 	if got := Checklist(nil, Context{}); len(got) != 0 {
 		t.Errorf("sections of no rules: %+v", got)

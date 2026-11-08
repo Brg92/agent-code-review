@@ -89,7 +89,7 @@ var (
 	relativePath = regexp.MustCompile(`^(?:[^/\\.][^/\\]*|\.[^/\\.][^/\\]*)(?:/(?:[^/\\.][^/\\]*|\.[^/\\.][^/\\]*))*$`)
 	nonBlank     = regexp.MustCompile(`\S`)
 	dimensionID  = packID
-	knownProfile = map[string]bool{"app": true, "library": true, "kmp": true}
+	knownProfile = map[string]bool{"app": true, "library": true}
 )
 
 type (
