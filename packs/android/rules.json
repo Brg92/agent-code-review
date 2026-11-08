@@ -1,0 +1,655 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "defaults": {
+    "files": {
+      "exclude": [
+        "**/*.kts"
+      ],
+      "tests": "skip"
+    },
+    "ignoreLines": [
+      {
+        "tokens": [
+          {
+            "kind": "word",
+            "oneOf": [
+              "import",
+              "package"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "global-scope",
+      "title": "Coroutine launched in GlobalScope",
+      "severity": "BLOCKER",
+      "description": "Work launched in `GlobalScope` escapes every lifecycle and cannot be cancelled. Use a scope tied to the component, or one supplied by the caller.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "GlobalScope"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "async-task",
+      "title": "AsyncTask used",
+      "severity": "MAJOR",
+      "description": "`AsyncTask` is deprecated and leaks the enclosing instance. Use coroutines or an executor.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "concurrency"
+      ],
+      "group": "Coroutines and concurrency",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "AsyncTask"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-blocking-prod",
+      "title": "runBlocking in production code",
+      "severity": "BLOCKER",
+      "description": "`runBlocking` blocks the caller's thread; on the main thread it freezes the UI and can cause an ANR. Test code is not checked.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "runBlocking"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-dispatcher",
+      "title": "Dispatcher hard-coded",
+      "severity": "MAJOR",
+      "description": "Dispatchers are injected, not named in the code, so the code stays testable.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines",
+        "testability"
+      ],
+      "group": "Coroutines and concurrency",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "Dispatchers"
+              },
+              {
+                "kind": "punct",
+                "text": "."
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "IO",
+                  "Default",
+                  "Main",
+                  "Unconfined"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "blocking-on-main",
+      "title": "Blocking work on the main thread",
+      "severity": "BLOCKER",
+      "description": "No I/O, disk access or heavy computation on the main thread; move it off with `withContext(Dispatchers.IO)` or the equivalent.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "concurrency"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "unstructured-launch",
+      "title": "Coroutine launched outside a lifecycle scope",
+      "severity": "MAJOR",
+      "description": "Every coroutine starts from a scope tied to a lifecycle (`viewModelScope`, a UI scope, or one supplied by the caller). No free-floating jobs.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "async-without-concurrency",
+      "title": "async awaited at once",
+      "severity": "MINOR",
+      "description": "Use `async`/`await` for work that is really concurrent. A single `async` awaited at once is a `suspend` call with extra machinery; use `coroutineScope` or `supervisorScope` to decompose in parallel.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "flow-error-unhandled",
+      "title": "Flow errors not handled",
+      "severity": "MAJOR",
+      "description": "Errors of a stream are handled with `catch`: a failing flow must not stop emitting silently.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "coroutines",
+        "error-handling"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "missing-flow-on",
+      "title": "Cold flow without flowOn",
+      "severity": "MINOR",
+      "description": "A cold flow that does I/O declares its context with `flowOn` instead of relying on the collector's.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "coroutines"
+      ],
+      "group": "Coroutines and concurrency"
+    },
+    {
+      "id": "exposed-mutable-flow",
+      "title": "Mutable flow exposed",
+      "severity": "MAJOR",
+      "description": "`MutableStateFlow` and `MutableSharedFlow` stay private and are exposed with `asStateFlow()` or `asSharedFlow()`. A caller that can emit into your state makes the owner's invariants unenforceable.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure"
+    },
+    {
+      "id": "mutable-collection-exposed",
+      "title": "Mutable collection in a public API",
+      "severity": "MAJOR",
+      "description": "A public API exposes `List`, `Map` and `Set`, not their mutable counterparts.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "state",
+        "api"
+      ],
+      "group": "State exposure"
+    },
+    {
+      "id": "state-not-modelled",
+      "title": "Screen state not modelled",
+      "severity": "MAJOR",
+      "description": "Screen state is a sealed hierarchy or an immutable data class, not a handful of independent booleans that can contradict each other.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure"
+    },
+    {
+      "id": "events-in-state",
+      "title": "One-shot event in the state",
+      "severity": "MAJOR",
+      "description": "One-shot events (navigation, snackbar, dialog) have their own stream. In the state object, a re-emission would replay them.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure"
+    },
+    {
+      "id": "new-live-data",
+      "title": "LiveData in new code",
+      "severity": "MAJOR",
+      "description": "No `LiveData`, `MutableLiveData` or `MediatorLiveData` in new or changed code: use `StateFlow` or `SharedFlow`. Allowed only with a comment on the declaration that justifies it.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "regexp": "^(Mutable|Mediator)?LiveData$"
+              },
+              {
+                "kind": "punct",
+                "text": "<"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "local-broadcast-manager",
+      "title": "Broadcast used inside the process",
+      "severity": "MAJOR",
+      "description": "No `LocalBroadcastManager`, and no `BroadcastReceiver` for communication inside the process: use a Flow or a Channel. A receiver for system broadcasts is allowed with a comment that justifies it.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "state"
+      ],
+      "group": "State exposure",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "LocalBroadcastManager"
+              }
+            ]
+          },
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": ":"
+              },
+              {
+                "kind": "identifier",
+                "text": "BroadcastReceiver"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "extends"
+              },
+              {
+                "kind": "identifier",
+                "text": "BroadcastReceiver"
+              }
+            ]
+          },
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "registerReceiver"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "empty-catch",
+      "title": "Empty catch block",
+      "severity": "BLOCKER",
+      "description": "An error that vanishes is a bug that will be diagnosed twice. A `catch` block holds at least a handling statement or a comment that explains why the error is ignored.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "error-handling"
+      ],
+      "group": "Error handling",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "gap": {
+                  "balanced": true
+                }
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              },
+              {
+                "kind": "punct",
+                "text": "{"
+              },
+              {
+                "kind": "punct",
+                "text": "}"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-exception",
+      "title": "Generic exception caught",
+      "severity": "MAJOR",
+      "description": "Catch specific exceptions, not `Exception` or `Throwable`, unless the boundary really handles everything.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "error-handling"
+      ],
+      "group": "Error handling",
+      "match": {
+        "patterns": [
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "kind": "identifier"
+              },
+              {
+                "kind": "punct",
+                "text": ":"
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "Exception",
+                  "Throwable"
+                ]
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word",
+                    "text": "final"
+                  }
+                ],
+                "max": 1
+              },
+              {
+                "repeat": [
+                  {
+                    "repeat": [
+                      {
+                        "kind": "word"
+                      },
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "|"
+                  }
+                ]
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "kind": "punct",
+                    "text": "."
+                  }
+                ]
+              },
+              {
+                "kind": "identifier",
+                "oneOf": [
+                  "Exception",
+                  "Throwable"
+                ]
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "punct",
+                    "text": "|"
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "word"
+                      },
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier"
+                  }
+                ]
+              },
+              {
+                "kind": "identifier"
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "swallowed-error",
+      "title": "Failure logged and dropped",
+      "severity": "MAJOR",
+      "description": "Failures reach the caller or the UI, as `Resource<T>` or the error type the module declares. They are never logged and dropped.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "error-handling"
+      ],
+      "group": "Error handling"
+    },
+    {
+      "id": "no-double-bang",
+      "title": "Not-null assertion",
+      "severity": "MAJOR",
+      "needsJudgement": true,
+      "description": "BLOCKER when the value comes from outside the process or the user (network, deserialization, IPC, deep link, intent extras, platform callback, user input); MAJOR otherwise. In existing code the BLOCKER case needs a verified crash path, otherwise it is MAJOR. Resolve nullability with `?.`, `?:`, `requireNotNull` with a message, or a smart cast. Known exception: the ViewBinding accessor `get() = _binding!!` is never reported.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "nullability"
+      ],
+      "group": "Error handling",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "!!"
+              }
+            ]
+          }
+        ],
+        "exclude": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "get"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              },
+              {
+                "kind": "punct",
+                "text": "="
+              },
+              {
+                "kind": "identifier",
+                "regexp": "^_\\w*[Bb]inding$"
+              },
+              {
+                "kind": "punct",
+                "text": "!!"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "manual-throw-precondition",
+      "title": "Hand-written precondition",
+      "severity": "MINOR",
+      "description": "Use `require`, `check` or `error` for preconditions and invariants instead of `if (...) throw ...`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "error-handling",
+        "kotlin"
+      ],
+      "group": "Error handling"
+    }
+  ]
+}
