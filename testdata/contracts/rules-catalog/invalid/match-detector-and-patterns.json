@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "defaults": {
+    "files": {
+      "exclude": [
+        "**/*.kts"
+      ],
+      "tests": "skip"
+    },
+    "ignoreLines": [
+      {
+        "tokens": [
+          {
+            "kind": "word",
+            "oneOf": [
+              "import",
+              "package"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "line-too-long",
+      "title": "Line too long",
+      "severity": "MINOR",
+      "description": "Lines within the configured length.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "style"
+      ],
+      "match": {
+        "detector": "line-length",
+        "max": 100,
+        "lines": "added",
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "punct"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
