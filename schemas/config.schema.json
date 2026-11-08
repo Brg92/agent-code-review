@@ -32,6 +32,14 @@
         "pattern": "^[a-z][A-Za-z0-9]*$"
       }
     },
+    "dimensions": {
+      "description": "Values of the dimensions of the stack packs, for example the UI toolkit. A value set here wins over detection from the files.",
+      "type": "object",
+      "additionalProperties": {
+        "description": "Value of the dimension named by the key.",
+        "$ref": "#/$defs/dimensionId"
+      }
+    },
     "disabledRules": {
       "description": "Rules that are not applied in this repository.",
       "type": "array",
@@ -65,6 +73,11 @@
     }
   },
   "$defs": {
+    "dimensionId": {
+      "description": "Identifier of a dimension or of one of its values: lowercase words joined by hyphens.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
     "glob": {
       "description": "Path glob with forward slashes: '*' matches within a segment, '**' matches any number of segments.",
       "type": "string",
