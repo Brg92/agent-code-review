@@ -123,6 +123,10 @@ func TestCompileRejectsInvalidValueKeywords(t *testing.T) {
 		`{"pattern":3}`,
 		`{"pattern":"("}`,
 		`{"minimum":"1"}`,
+		`{"minItems":"1"}`,
+		`{"minItems":-1}`,
+		`{"minItems":1.5}`,
+		`{"uniqueItems":"yes"}`,
 	} {
 		if _, err := Compile([]byte(schema)); err == nil {
 			t.Errorf("Compile(%s) succeeded, want error", schema)
@@ -150,6 +154,13 @@ func TestValueKeywords(t *testing.T) {
 		{"minimum bad", `{"minimum":1}`, `0.5`, []string{" minimum"}},
 		{"minimum on non-number", `{"minimum":1}`, `"0"`, nil},
 		{"nested", `{"properties":{"l":{"items":{"minimum":0}}}}`, `{"l":[0,-1]}`, []string{"/l/1 minimum"}},
+		{"minItems ok", `{"minItems":2}`, `[1,2]`, nil},
+		{"minItems bad", `{"minItems":1}`, `[]`, []string{" minItems"}},
+		{"minItems on non-array", `{"minItems":1}`, `"x"`, nil},
+		{"uniqueItems ok", `{"uniqueItems":true}`, `["a","b",1]`, nil},
+		{"uniqueItems bad", `{"uniqueItems":true}`, `["a","b","a"]`, []string{" uniqueItems"}},
+		{"uniqueItems by value", `{"uniqueItems":true}`, `[1,1.0]`, []string{" uniqueItems"}},
+		{"uniqueItems false", `{"uniqueItems":false}`, `["a","a"]`, nil},
 	})
 }
 
