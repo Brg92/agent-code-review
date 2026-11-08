@@ -161,6 +161,29 @@
         "type": "string",
         "pattern": "^[^\\sA-Za-z0-9_]{2,}$"
       }
+    },
+    "brackets": {
+      "description": "Pairs of punctuation characters that open and close a nested group, for example ( and ). Rules use them to skip a balanced group of tokens. Every character is listed once.",
+      "type": "array",
+      "items": {
+        "description": "One pair.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "open",
+          "close"
+        ],
+        "properties": {
+          "open": {
+            "description": "Opening character.",
+            "$ref": "#/$defs/lexerBracket"
+          },
+          "close": {
+            "description": "Closing character.",
+            "$ref": "#/$defs/lexerBracket"
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -182,6 +205,11 @@
         "type": "string",
         "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
       }
+    },
+    "lexerBracket": {
+      "description": "A single punctuation character: not blank, not a letter, digit or underscore.",
+      "type": "string",
+      "pattern": "^[^\\sA-Za-z0-9_]$"
     }
   }
 }
