@@ -11,7 +11,9 @@
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 19,
-      "message": "prefetch() launches in GlobalScope, so the work is never cancelled and outlives its caller.",
+      "title": "prefetch() launches in GlobalScope",
+      "why": "The work is never cancelled and outlives its caller.",
+      "fix": "Make `prefetch()` a suspend function or take a `CoroutineScope`.",
       "references": [],
       "placement": "inline"
     }
@@ -24,7 +26,9 @@
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "side": "RIGHT",
       "line": 8,
-      "message": "displayName() throws a NullPointerException when no name has been stored.",
+      "title": "displayName() asserts a stored name with `!!`",
+      "why": "`displayName()` throws a NullPointerException when no name has been stored, which crashes the app.",
+      "fix": "Return a default name, or make `displayName()` return `String?`.",
       "references": [],
       "placement": "inline",
       "crash": "yes"

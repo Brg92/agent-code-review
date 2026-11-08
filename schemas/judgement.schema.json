@@ -114,6 +114,9 @@
         "path",
         "side",
         "line",
+        "title",
+        "why",
+        "fix",
         "references"
       ],
       "properties": {
@@ -140,11 +143,6 @@
         "startLine": {
           "description": "First line of a finding that spans several lines; absent for a single line.",
           "$ref": "#/$defs/line"
-        },
-        "message": {
-          "description": "Explanation in Markdown: what is wrong, why it matters, how to fix it.",
-          "type": "string",
-          "pattern": "\\S"
         },
         "title": {
           "description": "What is wrong, in one line.",

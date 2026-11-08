@@ -9,7 +9,9 @@
       "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
       "side": "RIGHT",
       "line": 27,
-      "message": "This change removes the warmUp() call from init, and nothing else calls warmUp(). cachedUser therefore stays null, and requireUser() always throws IllegalStateException when refresh() runs.",
+      "title": "requireUser() always throws in refresh()",
+      "why": "This change removes the `warmUp()` call from `init`, and nothing else calls `warmUp()`. `cachedUser` therefore stays null, and `requireUser()` always throws IllegalStateException when `refresh()` runs.",
+      "fix": "Keep the `repository.warmUp()` call in `init`.",
       "references": []
     }
   ],
