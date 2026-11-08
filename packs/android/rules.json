@@ -1652,6 +1652,292 @@
         "tests"
       ],
       "group": "Tests"
+    },
+    {
+      "id": "binding-not-cleared",
+      "title": "Binding kept after the view is destroyed",
+      "severity": "BLOCKER",
+      "description": "A Fragment releases its binding in `onDestroyView()`. The view hierarchy is destroyed while the Fragment instance survives; a retained binding leaks the whole view tree. XML layouts with ViewBinding instead of Jetpack Compose are accepted and never reported.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "binding",
+        "memory"
+      ],
+      "group": "Views: Binding",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "lateinit-binding",
+      "title": "lateinit binding",
+      "severity": "MAJOR",
+      "description": "No `lateinit` for a binding or any property tied to the view lifecycle: it stays a stale non-null reference after teardown. Use a nullable backing field or `by lazy`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "binding"
+      ],
+      "group": "Views: Binding",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      },
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "lateinit"
+              },
+              {
+                "kind": "word",
+                "text": "var"
+              },
+              {
+                "kind": "identifier",
+                "regexp": "[Bb]inding$"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "find-view-by-id",
+      "title": "findViewById where binding is available",
+      "severity": "MAJOR",
+      "description": "No `findViewById` where binding is available: it is unchecked at compile time and queries the hierarchy again.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "binding"
+      ],
+      "group": "Views: Binding",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      },
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "findViewById"
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  "<",
+                  "("
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "binding-outside-view-lifecycle",
+      "title": "Binding used after onDestroyView",
+      "severity": "BLOCKER",
+      "description": "No access to the binding from a callback that can fire after `onDestroyView`: a network result, a timer, a flow collected on the wrong scope.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "binding",
+        "lifecycle"
+      ],
+      "group": "Views: Binding",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "launch-when-started",
+      "title": "launchWhenStarted used",
+      "severity": "BLOCKER",
+      "description": "Collect with `viewLifecycleOwner.lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) { ... } }`, never `launchWhenStarted`: it suspends the coroutine but keeps the collection alive, so upstream work goes on and the observer stays attached to a destroyed view.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "lifecycle",
+        "coroutines"
+      ],
+      "group": "Views: Lifecycle",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      },
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "regexp": "^launchWhen(Created|Started|Resumed)$"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "wrong-lifecycle-owner",
+      "title": "Fragment owner used for UI observation",
+      "severity": "BLOCKER",
+      "description": "In a Fragment, UI collection and observation use `viewLifecycleOwner`, not `this`. The Fragment outlives its view, so the wrong owner leaks across view recreation.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "lifecycle"
+      ],
+      "group": "Views: Lifecycle",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "work-in-oncreateview",
+      "title": "Wiring in onCreateView",
+      "severity": "MINOR",
+      "description": "`onCreateView` inflates; wiring belongs in `onViewCreated`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "lifecycle"
+      ],
+      "group": "Views: Lifecycle",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "logic-in-ui-class",
+      "title": "Business logic in a UI class",
+      "severity": "BLOCKER",
+      "description": "No business logic in `Fragment`, `Activity`, `Service` or adapters: it cannot be unit tested, and it is a non-negotiable team rule.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "architecture"
+      ],
+      "group": "Views: Architecture",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "adapter-holds-context",
+      "title": "Adapter holds a Context",
+      "severity": "MAJOR",
+      "description": "An adapter or ViewHolder does not retain an `Activity` or a listener beyond the life of the view.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "architecture",
+        "memory"
+      ],
+      "group": "Views: Architecture",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "deep-view-hierarchy",
+      "title": "Deep view hierarchy",
+      "severity": "MINOR",
+      "description": "Avoid nesting layouts where a constraint-based layout would be flat: depth costs on every measure pass.",
+      "languages": [],
+      "tags": [
+        "layout"
+      ],
+      "group": "Views: Layout",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-dimension",
+      "title": "Literal in a layout",
+      "severity": "MINOR",
+      "description": "Dimensions, colours and strings come from resources, not from literals in the layout or in the code.",
+      "languages": [],
+      "tags": [
+        "layout"
+      ],
+      "group": "Views: Layout",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
+    },
+    {
+      "id": "views-missing-content-description",
+      "title": "View without content description",
+      "severity": "MINOR",
+      "description": "Meaningful views carry a content description; decorative ones are explicitly excluded.",
+      "languages": [],
+      "tags": [
+        "accessibility"
+      ],
+      "group": "Views: Layout",
+      "when": {
+        "ui-toolkit": [
+          "views",
+          "both"
+        ]
+      }
     }
   ]
 }
