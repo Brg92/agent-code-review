@@ -35,7 +35,6 @@ type Pack struct {
 	DefaultProfile string
 	Dimensions     []Dimension
 	Rules          *rules.Catalog
-	Checklists     []Checklist
 	Templates      []string
 	Noise          []rules.Glob
 	TestFiles      []rules.Glob
@@ -83,12 +82,6 @@ type Language struct {
 	Table      *lexer.Table
 }
 
-// Checklist is a review checklist for a profile.
-type Checklist struct {
-	Profile string
-	Path    string
-}
-
 var (
 	packID       = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 	languageID   = regexp.MustCompile(`^[a-z0-9-]+$`)
@@ -101,22 +94,21 @@ var (
 
 type (
 	rawManifest struct {
-		Schema           *int            `json:"schema"`
-		ID               *string         `json:"id"`
-		Name             *string         `json:"name"`
-		Description      *string         `json:"description"`
-		Detect           *[]rawSign      `json:"detect"`
-		Languages        *[]rawLanguage  `json:"languages"`
-		Profiles         *[]string       `json:"profiles"`
-		ProfileDetect    []rawProfile    `json:"profileDetect"`
-		DefaultProfile   *string         `json:"defaultProfile"`
-		Dimensions       []rawDimension  `json:"dimensions"`
-		Rules            *string         `json:"rules"`
-		Checklists       *[]rawChecklist `json:"checklists"`
-		Templates        *[]string       `json:"templates"`
-		Noise            *[]string       `json:"noise"`
-		TestFiles        []string        `json:"testFiles"`
-		GeneratedMarkers *[]string       `json:"generatedMarkers"`
+		Schema           *int           `json:"schema"`
+		ID               *string        `json:"id"`
+		Name             *string        `json:"name"`
+		Description      *string        `json:"description"`
+		Detect           *[]rawSign     `json:"detect"`
+		Languages        *[]rawLanguage `json:"languages"`
+		Profiles         *[]string      `json:"profiles"`
+		ProfileDetect    []rawProfile   `json:"profileDetect"`
+		DefaultProfile   *string        `json:"defaultProfile"`
+		Dimensions       []rawDimension `json:"dimensions"`
+		Rules            *string        `json:"rules"`
+		Templates        *[]string      `json:"templates"`
+		Noise            *[]string      `json:"noise"`
+		TestFiles        []string       `json:"testFiles"`
+		GeneratedMarkers *[]string      `json:"generatedMarkers"`
 	}
 	rawSign struct {
 		Path     *string `json:"path"`
@@ -143,10 +135,6 @@ type (
 		ID         *string   `json:"id"`
 		Extensions *[]string `json:"extensions"`
 		Lexer      *string   `json:"lexer"`
-	}
-	rawChecklist struct {
-		Profile *string `json:"profile"`
-		Path    *string `json:"path"`
 	}
 )
 
@@ -233,7 +221,7 @@ func checkRequired(raw rawManifest) error {
 	}{
 		{"schema", raw.Schema != nil}, {"id", raw.ID != nil}, {"name", raw.Name != nil}, {"description", raw.Description != nil},
 		{"detect", raw.Detect != nil}, {"languages", raw.Languages != nil}, {"profiles", raw.Profiles != nil},
-		{"rules", raw.Rules != nil}, {"checklists", raw.Checklists != nil}, {"templates", raw.Templates != nil},
+		{"rules", raw.Rules != nil}, {"templates", raw.Templates != nil},
 		{"noise", raw.Noise != nil}, {"generatedMarkers", raw.GeneratedMarkers != nil},
 	} {
 		if !f.present && missing == "" {
@@ -450,19 +438,6 @@ func (p *Pack) loadFiles(raw rawManifest) error {
 				return fmt.Errorf("%s: rule %q is for language %q, which the pack lacks", *raw.Rules, r.ID, l)
 			}
 		}
-	}
-	for _, rc := range *raw.Checklists {
-		if rc.Profile == nil || !p.supports(*rc.Profile) {
-			return fmt.Errorf("checklists: profile %s is not one of the profiles of the pack", deref(rc.Profile))
-		}
-		if rc.Path == nil {
-			return errors.New("checklists: path is required")
-		}
-		path, err := p.file("checklist", *rc.Path)
-		if err != nil {
-			return err
-		}
-		p.Checklists = append(p.Checklists, Checklist{Profile: *rc.Profile, Path: path})
 	}
 	for _, t := range *raw.Templates {
 		path, err := p.file("template", t)
