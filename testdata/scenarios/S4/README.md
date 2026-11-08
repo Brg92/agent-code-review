@@ -22,6 +22,6 @@
 
 ## Expected verdict
 
-**APPROVABLE**, with no findings. The plugin itself never approves; this only means nothing blocks.
+**OK**, with no findings. The plugin itself never approves; this only means nothing blocks.
 
 The summary still lists the unreviewed generated file.

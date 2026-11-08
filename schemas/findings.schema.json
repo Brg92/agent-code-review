@@ -30,11 +30,10 @@
       "$ref": "#/$defs/sha"
     },
     "verdict": {
-      "description": "BLOCKED with any BLOCKER, CHANGES_REQUESTED with any MAJOR, APPROVABLE otherwise. The plugin never approves; APPROVABLE only means nothing blocks.",
+      "description": "BLOCKED when at least one publishable BLOCKER comes from the change request itself (in findings, not preExisting) or at least one existing defect is a crash; OK otherwise. MAJOR, MINOR and INFO findings never block. The plugin never approves; OK only means nothing blocks. The verdict of the whole cascade is not stored here.",
       "enum": [
         "BLOCKED",
-        "CHANGES_REQUESTED",
-        "APPROVABLE"
+        "OK"
       ]
     },
     "summary": {

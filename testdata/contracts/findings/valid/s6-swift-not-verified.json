@@ -2,7 +2,7 @@
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#1",
   "headSha": "915c4dd07f7847183fc8b976497a755b48df03a9",
-  "verdict": "APPROVABLE",
+  "verdict": "OK",
   "findings": [],
   "preExisting": [],
   "notVerified": [

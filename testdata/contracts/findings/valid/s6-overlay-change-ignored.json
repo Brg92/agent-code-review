@@ -2,7 +2,7 @@
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#5",
   "headSha": "edf5ce35fec83754d0155405db423ddf92d85709",
-  "verdict": "CHANGES_REQUESTED",
+  "verdict": "OK",
   "findings": [
     {
       "id": "fd8c4f9e37b129d1",

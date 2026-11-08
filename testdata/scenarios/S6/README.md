@@ -22,6 +22,7 @@ Expected:
 - **Finding:** `kotlin.not-null-assertion` (MAJOR) on the added line.
 - **Summary:** notes that the overlay changed in the pull request and was not applied.
 - **Variants:** `free` and `paid` come from `main`'s `config.json`.
+- **Verdict:** OK, since a MAJOR does not block.
 
 The review does not fail because of the edited overlay: a change request may legitimately change its repository's criteria, which apply once it is merged.
 
@@ -40,7 +41,7 @@ Expected: the review stops before judging, with a criteria validation error: exi
 - `.github/skills/core-lib-code-review/SKILL.md`;
 - `.github/mr-review.json`, with profile `library`, a `publicApi` glob and `consumers`.
 
-Expected: the legacy files are loaded and used as the criteria, the profile is `library`, and the summary says legacy criteria are in use. The change adds `SessionManager.isSignedIn()`, so there are no findings.
+Expected: the legacy files are loaded and used as the criteria, the profile is `library`, and the summary says legacy criteria are in use. The change adds `SessionManager.isSignedIn()`, so there are no findings and the verdict is OK.
 
 ## D: no criteria and Swift files
 
@@ -51,3 +52,4 @@ Expected:
 - **`Greeting.kt` (common):** reviewed.
 - **`iosApp/iosApp/ContentView.swift`:** listed as **Not verified**, because no pack covers Swift.
 - **Findings:** none.
+- **Verdict:** OK.

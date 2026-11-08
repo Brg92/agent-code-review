@@ -43,4 +43,5 @@ S1 is reviewed at depth 1 through its `#N` entry, so its findings (see `../S1/RE
 ## Expected verdict
 
 - **Cascade:** BLOCKED, because of core-lib S2 and S1.
-- **sample-app S2 and kmp-shared S2:** no findings.
+- **core-lib S2 and S1:** BLOCKED.
+- **sample-app S2 and kmp-shared S2:** OK, no findings.

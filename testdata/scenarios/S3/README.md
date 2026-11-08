@@ -39,4 +39,4 @@ The binary file and the 100% rename produce no findings. The deleted file produc
 
 ## Expected verdict
 
-**CHANGES REQUESTED**: one MAJOR, no BLOCKER.
+**OK**: one MAJOR and one MINOR, but no BLOCKER and no existing crash, so nothing blocks.

@@ -25,6 +25,7 @@ Expected:
 - The summary reports that CI is failing (`lint`) and still running (`instrumented`).
 - The review still runs.
 - No findings in the code. The whitespace is caught by CI, not by review.
+- Verdict **OK**: the CI state is reported but does not change the verdict.
 
 ## S5 B: no checks on the head
 
@@ -38,4 +39,4 @@ The head commit message ends with `[skip ci]`, so the head has no check runs and
 Expected:
 - The summary says the head has no checks.
 - This is reported apart from "checks pending", and is not treated as passing.
-- The change only touches `README.md`, so there are no findings.
+- The change only touches `README.md`, so there are no findings and the verdict is **OK**.
