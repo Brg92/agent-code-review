@@ -48,7 +48,8 @@
       "side": "RIGHT",
       "line": 8,
       "message": "displayName() throws a NullPointerException when no name has been stored.",
-      "references": []
+      "references": [],
+      "crash": true
     },
     {
       "rule": "coroutines.global-scope",

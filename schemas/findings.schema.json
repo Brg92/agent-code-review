@@ -353,6 +353,11 @@
             "$ref": "#/$defs/reference"
           }
         },
+        "crash": {
+          "description": "True when the defect makes the app crash. Meaningful only in preExisting, where it makes the change request BLOCKED (legacy §3.5); on findings of the change request it is rejected later by the judgement validation.",
+          "type": "boolean",
+          "default": false
+        },
         "placement": {
           "description": "Where the finding is published: inline on the diff, or in the summary when its lines are outside the diff.",
           "enum": [
