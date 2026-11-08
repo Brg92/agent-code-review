@@ -116,6 +116,36 @@ func AllPullFiles(t testing.TB) []FileList {
 	return lists
 }
 
+// Pull is what the tests read of a recorded pull request.
+type Pull struct {
+	HeadSHA, BaseSHA string
+	// Author is the login of the author.
+	Author string
+}
+
+// PullRequest returns the recorded pull request number of repo in a
+// scenario.
+func PullRequest(t testing.TB, scenario, repo string, number int) Pull {
+	t.Helper()
+	want := "/repos/" + Owner + "/" + repo + "/pulls/" + strconv.Itoa(number)
+	for f, r := range recordings(t, filepath.Join(scenario, "GET_repos_*_pulls_*.json")) {
+		if r.Path != want {
+			continue
+		}
+		var body struct {
+			Head struct{ SHA string }   `json:"head"`
+			Base struct{ SHA string }   `json:"base"`
+			User struct{ Login string } `json:"user"`
+		}
+		if err := json.Unmarshal(r.Body, &body); err != nil {
+			t.Fatalf("%s: %v", f, err)
+		}
+		return Pull{HeadSHA: body.Head.SHA, BaseSHA: body.Base.SHA, Author: body.User.Login}
+	}
+	t.Fatalf("no recorded pull request %s#%d in %s", repo, number, scenario)
+	return Pull{}
+}
+
 // Content returns the recorded contents of path in repo at ref, and
 // whether they were recorded in the scenario.
 func Content(t testing.TB, scenario, repo, path, ref string) (string, bool) {

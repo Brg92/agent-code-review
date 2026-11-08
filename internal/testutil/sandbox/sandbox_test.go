@@ -48,3 +48,10 @@ func TestContent(t *testing.T) {
 		t.Error("a file that was not recorded was found")
 	}
 }
+
+func TestPullRequest(t *testing.T) {
+	p := PullRequest(t, "S1", "sample-app", 2)
+	if p.HeadSHA != "76ae5f13ca1575b65fe1567c471e8a7b51a00af4" || p.BaseSHA != "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f" || p.Author != "sandbox-author" {
+		t.Errorf("PullRequest = %+v", p)
+	}
+}
