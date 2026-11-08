@@ -218,3 +218,56 @@ func TestAndroidUIToolkitDetection(t *testing.T) {
 		})
 	}
 }
+
+// TestAndroidChecklistFollowsTheRepository checks the conditions of the
+// rules: a views-only rule does not apply under compose, a library rule
+// does not apply to an app.
+func TestAndroidChecklistFollowsTheRepository(t *testing.T) {
+	p := loadAndroid(t)
+	headings := func(profile, toolkit string) map[string]bool {
+		out := map[string]bool{}
+		ctx := rules.Context{Profile: profile, Dimensions: map[string]string{"ui-toolkit": toolkit}}
+		for _, s := range rules.Checklist(p.Rules.Rules, ctx) {
+			out[strings.SplitN(s.Heading, ":", 2)[0]] = true
+		}
+		return out
+	}
+	tests := []struct {
+		profile, toolkit        string
+		views, compose, library bool
+	}{
+		{"app", "views", true, false, false},
+		{"app", "compose", false, true, false},
+		{"app", "both", true, true, false},
+		{"library", "views", true, false, true},
+		{"library", "compose", false, true, true},
+		{"library", "both", true, true, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.profile+" "+tt.toolkit, func(t *testing.T) {
+			got := headings(tt.profile, tt.toolkit)
+			if !got["Coroutines and concurrency"] || !got["Tests"] {
+				t.Errorf("the common sections are missing: %v", got)
+			}
+			if got["Views"] != tt.views || got["Compose"] != tt.compose || got["Library"] != tt.library {
+				t.Errorf("sections %v, want views %v, compose %v, library %v", got, tt.views, tt.compose, tt.library)
+			}
+		})
+	}
+	ctx := rules.Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "compose"}}
+	for _, r := range rules.Applicable(p.Rules.Rules, ctx) {
+		if r.ID == "find-view-by-id" || r.ID == "lateinit-binding" || r.ID == "launch-when-started" {
+			t.Errorf("%s applies to a compose app", r.ID)
+		}
+	}
+	ctx = rules.Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "views"}}
+	var applies []string
+	for _, r := range rules.Applicable(p.Rules.Rules, ctx) {
+		if r.ID == "find-view-by-id" || r.ID == "state-without-remember" || r.ID == "breaking-signature-change" {
+			applies = append(applies, r.ID)
+		}
+	}
+	if !reflect.DeepEqual(applies, []string{"find-view-by-id"}) {
+		t.Errorf("rules that apply to a views app among three: %v", applies)
+	}
+}
