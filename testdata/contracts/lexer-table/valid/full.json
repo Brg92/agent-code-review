@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "language": "sample",
+  "extensions": [
+    ".smp",
+    ".smpx"
+  ],
+  "lineComment": "//",
+  "blockComment": {
+    "open": "/*",
+    "close": "*/",
+    "nested": true
+  },
+  "docComment": "/**",
+  "strings": [
+    {
+      "delimiter": "\"\"\"",
+      "raw": true,
+      "multiline": true,
+      "templates": true,
+      "greedyClose": true
+    },
+    {
+      "delimiter": "\"",
+      "escape": "\\",
+      "templates": true
+    }
+  ],
+  "char": {
+    "delimiter": "'",
+    "escape": "\\"
+  },
+  "quotedIdentifier": "`",
+  "templates": {
+    "identifier": "$",
+    "open": "${",
+    "close": "}"
+  },
+  "identifierChars": "$",
+  "keywords": [
+    "if",
+    "else",
+    "fun"
+  ],
+  "softKeywords": [
+    "get",
+    "set"
+  ],
+  "operators": [
+    "->",
+    "==",
+    "?."
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/lexer-table.schema.json",
+  "title": "Lexer table",
+  "description": "How the table-driven lexer splits the source of one language into tokens: comments, string and character literals, string templates, identifiers, keywords and operators. Whitespace is skipped; anything not described is a single-character punctuation token.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "language",
+    "extensions",
+    "keywords",
+    "softKeywords"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "language": {
+      "description": "Language identifier, as in the languages of the pack manifest.",
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "extensions": {
+      "description": "File name extensions the table applies to, with the leading dot.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^\\.[A-Za-z0-9]+$"
+      }
+    },
+    "lineComment": {
+      "description": "Opener of a comment that runs to the end of the line. Absent: the language has none.",
+      "$ref": "#/$defs/lexerMarker"
+    },
+    "blockComment": {
+      "description": "Comment between an opener and a closer, possibly over several lines. An unterminated one ends at the end of the file. Absent: the language has none.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "open",
+        "close",
+        "nested"
+      ],
+      "properties": {
+        "open": {
+          "description": "Opener, for example /*.",
+          "$ref": "#/$defs/lexerMarker"
+        },
+        "close": {
+          "description": "Closer, for example */.",
+          "$ref": "#/$defs/lexerMarker"
+        },
+        "nested": {
+          "description": "True if an opener inside the comment opens a nested comment that needs its own closer.",
+          "type": "boolean"
+        }
+      }
+    },
+    "docComment": {
+      "description": "Opener of a block comment that is a documentation comment, for example /**. It must start with the block comment opener; a comment that closes right after the opener (/**/) is a plain block comment.",
+      "$ref": "#/$defs/lexerMarker"
+    },
+    "strings": {
+      "description": "String literal forms. The longest matching delimiter wins.",
+      "type": "array",
+      "items": {
+        "description": "One string literal form, opened and closed by the same delimiter.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "delimiter"
+        ],
+        "properties": {
+          "delimiter": {
+            "description": "Opening and closing delimiter, for example \" or \"\"\".",
+            "$ref": "#/$defs/lexerMarker"
+          },
+          "escape": {
+            "description": "Escape character: it and the character after it are content. Absent: the form has no escapes.",
+            "$ref": "#/$defs/lexerEscape"
+          },
+          "raw": {
+            "description": "True if the literal is a raw string or text block token rather than a plain string token.",
+            "default": false,
+            "type": "boolean"
+          },
+          "multiline": {
+            "description": "True if the literal may span lines; it then ends at the end of the file when unterminated. False: an unterminated literal ends at the end of its line.",
+            "default": false,
+            "type": "boolean"
+          },
+          "templates": {
+            "description": "True if the literal may contain template expressions, as described by templates.",
+            "default": false,
+            "type": "boolean"
+          },
+          "greedyClose": {
+            "description": "True if delimiter characters right after a closing delimiter still belong to the literal, which then ends at the last of them (Kotlin: \"\"\"a\"\"\"\" is the raw string a\").",
+            "default": false,
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "char": {
+      "description": "Character literal. An unterminated one ends at the end of its line. Absent: the language has none.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "delimiter"
+      ],
+      "properties": {
+        "delimiter": {
+          "description": "Opening and closing delimiter, for example '.",
+          "$ref": "#/$defs/lexerMarker"
+        },
+        "escape": {
+          "description": "Escape character: it and the character after it are content.",
+          "$ref": "#/$defs/lexerEscape"
+        }
+      }
+    },
+    "quotedIdentifier": {
+      "description": "Delimiter of an identifier that may contain any character but a line break, for example the backtick in Kotlin. Absent: the language has none.",
+      "$ref": "#/$defs/lexerMarker"
+    },
+    "templates": {
+      "description": "Template expressions inside the string forms that allow them. Required if any string form has templates.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identifier",
+        "open",
+        "close"
+      ],
+      "properties": {
+        "identifier": {
+          "description": "Prefix of a template made of one identifier, for example $ in $name.",
+          "$ref": "#/$defs/lexerMarker"
+        },
+        "open": {
+          "description": "Opener of a template expression, for example ${. The expression is lexed as code.",
+          "$ref": "#/$defs/lexerMarker"
+        },
+        "close": {
+          "description": "Closer of a template expression, for example }. Braces opened inside the expression must close first.",
+          "$ref": "#/$defs/lexerMarker"
+        }
+      }
+    },
+    "identifierChars": {
+      "description": "Characters, besides letters, digits and the underscore, that may appear in an identifier, for example $ in Java.",
+      "type": "string"
+    },
+    "keywords": {
+      "description": "Reserved words: never identifiers.",
+      "$ref": "#/$defs/lexerWords"
+    },
+    "softKeywords": {
+      "description": "Words that are keywords only in some places; they are identifier tokens flagged as soft keywords.",
+      "$ref": "#/$defs/lexerWords"
+    },
+    "operators": {
+      "description": "Operators and punctuation of more than one character, matched longest first. Other punctuation is one token per character.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[^\\sA-Za-z0-9_]{2,}$"
+      }
+    }
+  },
+  "$defs": {
+    "lexerMarker": {
+      "description": "A fixed sequence of non-blank characters that opens or closes a token.",
+      "type": "string",
+      "pattern": "^\\S+$"
+    },
+    "lexerEscape": {
+      "description": "A single non-blank character.",
+      "type": "string",
+      "pattern": "^\\S$"
+    },
+    "lexerWords": {
+      "description": "Distinct words made of letters, digits and underscores, not starting with a digit.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      }
+    }
+  }
+}

@@ -216,6 +216,15 @@ func (sc *Schema) check(schema any, at string) error {
 			if _, ok := v.(json.Number); !ok {
 				return fmt.Errorf("%s: must be a number", here)
 			}
+		case k == "minItems":
+			n, ok := v.(json.Number)
+			if i, err := n.Int64(); !ok || err != nil || i < 0 {
+				return fmt.Errorf("%s: must be a non-negative integer", here)
+			}
+		case k == "uniqueItems":
+			if _, ok := v.(bool); !ok {
+				return fmt.Errorf("%s: must be a boolean", here)
+			}
 		default:
 			return fmt.Errorf("%s: unsupported keyword", here)
 		}
@@ -306,6 +315,14 @@ func (s *Schema) validate(schema, v any, path string, issues *[]Issue) {
 			add(path, "minimum", "%s is less than %s", v, m)
 		}
 	case []any:
+		if m, ok := sch["minItems"].(json.Number); ok {
+			if n, _ := m.Int64(); int64(len(v)) < n {
+				add(path, "minItems", "%d items, want at least %d", len(v), n)
+			}
+		}
+		if u, _ := sch["uniqueItems"].(bool); u && !unique(v) {
+			add(path, "uniqueItems", "items are not unique")
+		}
 		if items, ok := sch["items"]; ok {
 			for i, e := range v {
 				s.validate(items, e, fmt.Sprintf("%s/%d", path, i), issues)
@@ -344,6 +361,17 @@ func (s *Schema) validate(schema, v any, path string, issues *[]Issue) {
 		}
 		s.validate(extra, obj[k], here, issues)
 	}
+}
+
+func unique(list []any) bool {
+	for i := range list {
+		for j := i + 1; j < len(list); j++ {
+			if equal(list[i], list[j]) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func number(n json.Number) float64 {
