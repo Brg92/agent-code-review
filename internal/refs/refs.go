@@ -5,13 +5,20 @@
 // of package cascade.
 package refs
 
-import "github.com/Brg92/agent-code-review/internal/core"
+import (
+	"slices"
+
+	"github.com/Brg92/agent-code-review/internal/core"
+)
 
 // Ref is a reference to a change request found on a line.
 type Ref struct {
 	Key core.Key
 	// Pos is the byte offset of the reference in the line.
 	Pos int
+	// URL is true for a reference written as a link, false for a short
+	// form such as #N.
+	URL bool
 }
 
 // Registry recognises the references of one platform. Implementations live
@@ -23,4 +30,17 @@ type Registry interface {
 	// in line order. from is the change request whose description holds
 	// the line; it gives the host and project of short forms such as #N.
 	Parse(line string, from core.Key) []Ref
+}
+
+// Normalize sorts references by position and keeps the first of each change
+// request. Registries return their references normalized.
+func Normalize(found []Ref) []Ref {
+	slices.SortStableFunc(found, func(a, b Ref) int { return a.Pos - b.Pos })
+	var out []Ref
+	for _, r := range found {
+		if !slices.ContainsFunc(out, func(o Ref) bool { return o.Key.Same(r.Key) }) {
+			out = append(out, r)
+		}
+	}
+	return out
 }

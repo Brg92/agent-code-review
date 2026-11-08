@@ -2,7 +2,6 @@ package refs
 
 import (
 	"regexp"
-	"slices"
 	"strings"
 
 	"github.com/Brg92/agent-code-review/internal/core"
@@ -153,14 +152,11 @@ func closesFence(line, fence string) bool {
 	return len(t) >= len(fence) && strings.Trim(t, fence[:1]) == ""
 }
 
-// lineRefs orders references by position and keeps the first of each key.
+// lineRefs returns the keys of the references of a line.
 func lineRefs(found []Ref) []core.Key {
-	slices.SortStableFunc(found, func(a, b Ref) int { return a.Pos - b.Pos })
 	var keys []core.Key
-	for _, r := range found {
-		if !slices.ContainsFunc(keys, r.Key.Same) {
-			keys = append(keys, r.Key)
-		}
+	for _, r := range Normalize(found) {
+		keys = append(keys, r.Key)
 	}
 	return keys
 }
