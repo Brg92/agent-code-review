@@ -181,3 +181,32 @@ func TestRef(t *testing.T) {
 		{"root ref", `{"properties":{"self":{"$ref":"#"}},"required":["x"]}`, `{"x":1,"self":{}}`, []string{"/self required"}},
 	})
 }
+
+func TestCompileRejectsInvalidConditionals(t *testing.T) {
+	for _, schema := range []string{
+		`{"if":3}`,
+		`{"if":{"type":"nope"}}`,
+		`{"if":true,"then":"a"}`,
+		`{"if":true,"else":{"type":"nope"}}`,
+	} {
+		if _, err := Compile([]byte(schema)); err == nil {
+			t.Errorf("Compile(%s) succeeded, want error", schema)
+		}
+	}
+}
+
+func TestConditionals(t *testing.T) {
+	schema := `{"if":{"properties":{"state":{"const":"unknown"}}},` +
+		`"then":{"required":["reason"]},` +
+		`"else":{"properties":{"reason":false}}}`
+	runValidationCases(t, []validationCase{
+		{"then ok", schema, `{"state":"unknown","reason":"error"}`, nil},
+		{"then bad", schema, `{"state":"unknown"}`, []string{" required"}},
+		{"else ok", schema, `{"state":"passing"}`, nil},
+		{"else bad", schema, `{"state":"passing","reason":"error"}`, []string{"/reason false"}},
+		{"if alone", `{"if":{"type":"string"}}`, `1`, nil},
+		{"then alone", `{"if":{"type":"string"},"then":{"pattern":"^a"}}`, `"b"`, []string{" pattern"}},
+		{"then without if", `{"then":false}`, `1`, nil},
+		{"nested", `{"items":{"if":{"minimum":10},"else":{"const":0}}}`, `[10,0,3]`, []string{"/2 const"}},
+	})
+}
