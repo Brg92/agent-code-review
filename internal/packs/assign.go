@@ -20,8 +20,11 @@ type Assignment struct {
 	Path     string
 	Pack     *Pack
 	Language *Language
-	// Test reports whether the file is a test source of its pack.
+	// Test reports whether the file is a test source of an active pack.
 	Test bool
+	// Dimensions holds the value of each file dimension; nil when no pack
+	// reviews the file.
+	Dimensions map[string]string
 	// NotVerified is set when no pack reviews the file.
 	NotVerified *rules.NotVerified
 }
@@ -45,9 +48,12 @@ func (s *Set) Assign(active []*Pack, filePath string) Assignment {
 	for _, p := range active {
 		if l := p.language(ext); l != nil {
 			a.Pack, a.Language = p, l
-			for _, g := range p.TestFiles {
-				a.Test = a.Test || g.Match(filePath)
+			for _, q := range active {
+				for _, g := range q.TestFiles {
+					a.Test = a.Test || g.Match(filePath)
+				}
 			}
+			a.Dimensions = ResolveFileDimensions(active, filePath)
 			return a
 		}
 	}
@@ -83,4 +89,18 @@ func (p *Pack) language(ext string) *Language {
 // only be called when the file has a pack.
 func (a Assignment) File(source string, added map[int]bool) rules.File {
 	return rules.File{Path: a.Path, Language: a.Language.ID, Table: a.Language.Table, Source: source, Test: a.Test, Added: added}
+}
+
+// Context is what the conditions of rules are checked against for the
+// file: the profile, the dimensions of the repository and those of the
+// file.
+func (a Assignment) Context(profile string, repo []DimensionValue) rules.Context {
+	c := rules.Context{Profile: profile, Dimensions: map[string]string{}}
+	for _, d := range repo {
+		c.Dimensions[d.ID] = d.Value
+	}
+	for id, v := range a.Dimensions {
+		c.Dimensions[id] = v
+	}
+	return c
 }

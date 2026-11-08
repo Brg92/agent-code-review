@@ -64,3 +64,55 @@ func TestAssignmentFile(t *testing.T) {
 		t.Errorf("file = %+v", f)
 	}
 }
+
+func TestAssignmentDimensionsAndTestFilesOfAnyActivePack(t *testing.T) {
+	kotlin := Language{ID: "kotlin", Extensions: []string{".kt"}}
+	android := &Pack{ID: "android", Languages: []Language{kotlin}, TestFiles: []rules.Glob{glob(t, "**/src/test/**")},
+		FileDimensions: platformPack(t, "x", 0, "android").FileDimensions}
+	kmp := platformPack(t, "kmp", 10, "common", "**/src/commonMain/**", "common", "**/src/androidMain/**", "android")
+	kmp.Languages = []Language{kotlin}
+	kmp.TestFiles = []rules.Glob{glob(t, "**/src/commonTest/**")}
+	active := []*Pack{kmp, android}
+	set := &Set{Packs: active}
+	tests := []struct {
+		path     string
+		platform string
+		test     bool
+	}{
+		{"shared/src/commonMain/A.kt", "common", false},
+		{"shared/src/androidMain/A.kt", "android", false},
+		{"shared/src/commonTest/ATest.kt", "common", true},
+		{"androidApp/src/test/ATest.kt", "common", true},
+	}
+	for _, tt := range tests {
+		a := set.Assign(active, tt.path)
+		if a.Pack != kmp || a.Dimensions["platform"] != tt.platform || a.Test != tt.test {
+			t.Errorf("%s: pack %v, dimensions %v, test %v", tt.path, a.Pack, a.Dimensions, a.Test)
+		}
+	}
+	if a := set.Assign(active, "iosApp/ContentView.swift"); a.Dimensions != nil {
+		t.Errorf("a file not verified has no dimensions: %v", a.Dimensions)
+	}
+}
+
+func TestAssignmentContext(t *testing.T) {
+	a := Assignment{Dimensions: map[string]string{"platform": "ios"}}
+	repo := []DimensionValue{{ID: "ui-toolkit", Value: "compose"}}
+	got := a.Context("library", repo)
+	if got.Profile != "library" || got.Dimensions["ui-toolkit"] != "compose" || got.Dimensions["platform"] != "ios" || len(got.Dimensions) != 2 {
+		t.Errorf("context = %+v", got)
+	}
+}
+
+func TestActiveRules(t *testing.T) {
+	set := loadTestSet(t)
+	core := rules.Core().Rules
+	got := set.ActiveRules(set.Packs[:1])
+	want := len(core) + len(set.Packs[0].Rules.Rules)
+	if len(got) != want || got[0] != core[0] || got[len(core)] != set.Packs[0].Rules.Rules[0] {
+		t.Errorf("%d rules, want %d: the core rules, then those of the active pack only", len(got), want)
+	}
+	if got := set.ActiveRules(nil); len(got) != len(core) {
+		t.Errorf("without active packs: %d rules, want the %d core rules", len(got), len(core))
+	}
+}
