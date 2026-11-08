@@ -18,7 +18,7 @@
     {
       "id": "global-scope",
       "title": "Coroutine launched in GlobalScope",
-      "severity": "MAJOR",
+      "severity": "BLOCKER",
       "description": "Work launched in `GlobalScope` is never cancelled and outlives the component that started it.",
       "languages": [
         "kotlin"
