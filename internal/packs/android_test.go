@@ -99,6 +99,10 @@ func TestAndroidChecklistIsInTheCatalog(t *testing.T) {
 		"compose": {"ui-toolkit": {"compose", "both"}},
 		"library": {"profile": {"library"}},
 	}
+	platformRule := map[string]bool{}
+	for _, id := range androidPlatformRules {
+		platformRule[id] = true
+	}
 	seen := map[string]bool{}
 	for _, it := range androidChecklist {
 		r := byID[it.id]
@@ -114,8 +118,18 @@ func TestAndroidChecklistIsInTheCatalog(t *testing.T) {
 		if r.Group != it.group {
 			t.Errorf("%s: group %q, legacy %q", it.id, r.Group, it.group)
 		}
-		if !reflect.DeepEqual(r.When, when[it.kind]) {
-			t.Errorf("%s: when %v, want %v", it.id, r.When, when[it.kind])
+		want := map[string][]string{}
+		for k, v := range when[it.kind] {
+			want[k] = v
+		}
+		if platformRule[it.id] {
+			want["platform"] = []string{"android"}
+		}
+		if len(want) == 0 {
+			want = nil
+		}
+		if !reflect.DeepEqual(r.When, want) {
+			t.Errorf("%s: when %v, want %v", it.id, r.When, want)
 		}
 	}
 	for _, r := range p.Rules.Rules {
@@ -202,6 +216,10 @@ func TestAndroidUIToolkitDetection(t *testing.T) {
 		{"compose dependency", map[string]string{"app/build.gradle.kts": `implementation("androidx.compose.ui:ui")`}, nil, "compose"},
 		{"compose in groovy", map[string]string{"app/build.gradle": "buildFeatures {\n compose true\n}"}, nil, "compose"},
 		{"compose in the version catalog", map[string]string{"gradle/libs.versions.toml": `androidx-compose = { module = "androidx.compose:compose-bom" }`}, nil, "compose"},
+		{"compose multiplatform dependency", map[string]string{"shared/build.gradle.kts": `implementation("org.jetbrains.compose.ui:ui:1.7.0")`}, nil, "compose"},
+		{"compose multiplatform plugin", map[string]string{"shared/build.gradle.kts": `plugins { id("org.jetbrains.compose") }`}, nil, "compose"},
+		{"compose multiplatform in the version catalog", map[string]string{"gradle/libs.versions.toml": `jb-compose = { id = "org.jetbrains.compose" }`}, nil, "compose"},
+		{"compose multiplatform and view binding", map[string]string{"a/build.gradle.kts": "viewBinding = true", "b/build.gradle.kts": `id("org.jetbrains.compose")`}, nil, "both"},
 		{"view binding", map[string]string{"app/build.gradle.kts": "buildFeatures { viewBinding = true }"}, nil, "views"},
 		{"data binding in groovy", map[string]string{"app/build.gradle": "buildFeatures {\n dataBinding true\n}"}, nil, "views"},
 		{"both kinds in one script", map[string]string{"app/build.gradle.kts": "viewBinding = true\ncompose = true"}, nil, "both"},
@@ -228,7 +246,7 @@ func TestAndroidChecklistFollowsTheRepository(t *testing.T) {
 	p := loadAndroid(t)
 	headings := func(profile, toolkit string) map[string]bool {
 		out := map[string]bool{}
-		ctx := rules.Context{Profile: profile, Dimensions: map[string]string{"ui-toolkit": toolkit}}
+		ctx := rules.Context{Profile: profile, Dimensions: map[string]string{"ui-toolkit": toolkit, "platform": "android"}}
 		for _, s := range rules.Checklist(p.Rules.Rules, ctx) {
 			out[strings.SplitN(s.Heading, ":", 2)[0]] = true
 		}
@@ -256,13 +274,13 @@ func TestAndroidChecklistFollowsTheRepository(t *testing.T) {
 			}
 		})
 	}
-	ctx := rules.Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "compose"}}
+	ctx := rules.Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "compose", "platform": "android"}}
 	for _, r := range rules.Applicable(p.Rules.Rules, ctx) {
 		if r.ID == "find-view-by-id" || r.ID == "lateinit-binding" || r.ID == "launch-when-started" {
 			t.Errorf("%s applies to a compose app", r.ID)
 		}
 	}
-	ctx = rules.Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "views"}}
+	ctx = rules.Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "views", "platform": "android"}}
 	var applies []string
 	for _, r := range rules.Applicable(p.Rules.Rules, ctx) {
 		if r.ID == "find-view-by-id" || r.ID == "state-without-remember" || r.ID == "breaking-signature-change" {

@@ -73,6 +73,11 @@
             ]
           }
         ]
+      },
+      "when": {
+        "platform": [
+          "android"
+        ]
       }
     },
     {
@@ -291,6 +296,11 @@
             ]
           }
         ]
+      },
+      "when": {
+        "platform": [
+          "android"
+        ]
       }
     },
     {
@@ -362,6 +372,11 @@
               }
             ]
           }
+        ]
+      },
+      "when": {
+        "platform": [
+          "android"
         ]
       }
     },
@@ -847,7 +862,12 @@
       "tags": [
         "di"
       ],
-      "group": "Dependency injection"
+      "group": "Dependency injection",
+      "when": {
+        "platform": [
+          "android"
+        ]
+      }
     },
     {
       "id": "duplicate-di-module",
@@ -1229,7 +1249,12 @@
       "tags": [
         "memory"
       ],
-      "group": "Memory and performance"
+      "group": "Memory and performance",
+      "when": {
+        "platform": [
+          "android"
+        ]
+      }
     },
     {
       "id": "context-in-viewmodel",
@@ -1243,7 +1268,12 @@
       "tags": [
         "memory"
       ],
-      "group": "Memory and performance"
+      "group": "Memory and performance",
+      "when": {
+        "platform": [
+          "android"
+        ]
+      }
     },
     {
       "id": "listener-not-removed",
@@ -1285,7 +1315,12 @@
       "tags": [
         "memory"
       ],
-      "group": "Memory and performance"
+      "group": "Memory and performance",
+      "when": {
+        "platform": [
+          "android"
+        ]
+      }
     },
     {
       "id": "full-list-refresh",
@@ -1314,6 +1349,11 @@
               }
             ]
           }
+        ]
+      },
+      "when": {
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1581,7 +1621,12 @@
       "tags": [
         "security"
       ],
-      "group": "Security"
+      "group": "Security",
+      "when": {
+        "platform": [
+          "android"
+        ]
+      }
     },
     {
       "id": "insecure-storage",
@@ -1671,6 +1716,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1691,6 +1739,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       },
       "match": {
@@ -1731,6 +1782,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       },
       "match": {
@@ -1771,6 +1825,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1792,6 +1849,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       },
       "match": {
@@ -1824,6 +1884,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1844,6 +1907,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1864,6 +1930,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1885,6 +1954,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1902,6 +1974,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1919,6 +1994,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -1936,6 +2014,9 @@
         "ui-toolkit": [
           "views",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
@@ -2174,6 +2255,9 @@
         "ui-toolkit": [
           "compose",
           "both"
+        ],
+        "platform": [
+          "android"
         ]
       }
     },
