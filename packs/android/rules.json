@@ -2314,6 +2314,296 @@
           "both"
         ]
       }
+    },
+    {
+      "id": "breaking-signature-change",
+      "title": "Public symbol removed or changed",
+      "severity": "BLOCKER",
+      "description": "No removal, rename or signature change of a public symbol without a declared migration path: consumers are other repositories and will not compile.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "new-required-parameter",
+      "title": "Required parameter added",
+      "severity": "BLOCKER",
+      "description": "No new required parameter on an existing public function: add a default or an overload.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "new-abstract-member",
+      "title": "Abstract member added",
+      "severity": "BLOCKER",
+      "description": "No new abstract member on a public interface or open class that consumers implement.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "silent-behaviour-change",
+      "title": "Behaviour changed under the same signature",
+      "severity": "BLOCKER",
+      "description": "No change to the meaning of a parameter, a return value, nullability or error behaviour while the signature stays the same: nothing tells the consumer to look.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "unnecessary-public",
+      "title": "Public by default",
+      "severity": "MAJOR",
+      "description": "`internal` by default, `public` on purpose: anything public has to be supported from now on.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "consumers-not-declared",
+      "title": "Affected consumers not named",
+      "severity": "MAJOR",
+      "description": "A change to the public contract names the affected consumers in the description of the change request.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Public contract",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "depends-on-host",
+      "title": "Library depends on its host",
+      "severity": "BLOCKER",
+      "description": "No dependency on a consumer application, its resources, its build configuration or its assets.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library"
+      ],
+      "group": "Library: Independence from the host",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "hardcoded-host-value",
+      "title": "Host value baked in",
+      "severity": "MAJOR",
+      "description": "No brand names, market codes, environment URLs or product identifiers baked in: the host supplies them through configuration or injection.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library"
+      ],
+      "group": "Library: Independence from the host",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "instantiates-cross-cutting",
+      "title": "Cross-cutting concern instantiated",
+      "severity": "MAJOR",
+      "description": "Analytics, logging, tracking and similar concerns are declared as interfaces in the library and implemented by the host, never instantiated inside the library.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library"
+      ],
+      "group": "Library: Independence from the host",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "assumes-host-lifecycle",
+      "title": "Initialization order assumed",
+      "severity": "MAJOR",
+      "description": "Initialization order requirements are documented as preconditions, not assumed.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library"
+      ],
+      "group": "Library: Independence from the host",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "leaked-transitive-dependency",
+      "title": "Dependency exposed in a signature",
+      "severity": "MAJOR",
+      "description": "A dependency exposed in a public signature becomes part of the contract. Keep it `implementation` unless exposing it is deliberate.",
+      "languages": [],
+      "tags": [
+        "library",
+        "dependencies"
+      ],
+      "group": "Library: Dependencies exposed",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "deprecation-without-replacement",
+      "title": "Deprecation without a replacement",
+      "severity": "MAJOR",
+      "description": "`@Deprecated` carries a replacement and a removal timeline.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: API surface quality",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "main-safety-undeclared",
+      "title": "Threading of a suspend function undeclared",
+      "severity": "MAJOR",
+      "description": "A public suspend function is main-safe, or its threading requirement is documented.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "library",
+        "api",
+        "coroutines"
+      ],
+      "group": "Library: API surface quality",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "contract-not-pinned",
+      "title": "Public contract not pinned by a test",
+      "severity": "MAJOR",
+      "description": "A test pins the public contract, so a breaking change fails here rather than in the build of a consumer.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "library",
+        "tests"
+      ],
+      "group": "Library: Tests and versioning",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
+    },
+    {
+      "id": "version-not-bumped",
+      "title": "Version not bumped",
+      "severity": "MINOR",
+      "description": "The version reflects the nature of the change: breaking, feature or fix.",
+      "languages": [],
+      "tags": [
+        "library",
+        "api"
+      ],
+      "group": "Library: Tests and versioning",
+      "when": {
+        "profile": [
+          "library"
+        ]
+      }
     }
   ]
 }
