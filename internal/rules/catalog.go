@@ -27,8 +27,8 @@ type Rule struct {
 	NeedsJudgement bool
 	Description    string
 	// Why and Fix are the text of the findings made from the rule's
-	// signals: the consequence and the smallest safe correction. Empty
-	// when the catalog does not give them.
+	// signals: the consequence and the smallest safe correction. A matched
+	// rule that needs no judgement always has them; other rules may not.
 	Why, Fix string
 	// Languages the rule applies to; empty means every language.
 	Languages []string
@@ -382,6 +382,9 @@ func compileRule(rr rawRule, defFiles files, ignore []pattern) (*Rule, error) {
 			return fail("match: %v", err)
 		}
 		r.match = m
+	}
+	if r.match != nil && !r.NeedsJudgement && (r.Why == "" || r.Fix == "") {
+		return fail("a matched rule that needs no judgement writes its findings: why and fix are required")
 	}
 	return r, nil
 }

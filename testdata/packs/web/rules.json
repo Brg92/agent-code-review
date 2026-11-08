@@ -7,6 +7,8 @@
       "title": "eval call",
       "severity": "BLOCKER",
       "description": "Synthetic rule for tests.",
+      "why": "Evaluated strings run with the page's privileges, so injected text runs as code.",
+      "fix": "Parse the data instead of evaluating it.",
       "languages": [
         "script"
       ],

@@ -38,7 +38,7 @@ func packTable(t testing.TB, language string) *lexer.Table {
 func oneRule(t testing.TB, languages, match string) []*Rule {
 	t.Helper()
 	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR",` +
-		`"description":"D","languages":` + languages + `,"tags":[],"match":` + match + `}]}`))
+		`"description":"D","why":"W","fix":"F","languages":` + languages + `,"tags":[],"match":` + match + `}]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestRunSignal(t *testing.T) {
 
 func TestRunNeedsJudgementHasNoSeverity(t *testing.T) {
 	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","needsJudgement":true,` +
-		`"description":"D","languages":[],"tags":[],"match":` + patterns(`{"kind":"punct","text":"!!"}`) + `}]}`))
+		`"description":"D","why":"W","fix":"F","languages":[],"tags":[],"match":` + patterns(`{"kind":"punct","text":"!!"}`) + `}]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +153,7 @@ func TestRunLanguages(t *testing.T) {
 }
 
 func TestRunSkipsRulesWithoutMatch(t *testing.T) {
-	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[]}]}`))
+	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","description":"D","why":"W","fix":"F","languages":[],"tags":[]}]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,9 +201,9 @@ func TestRunDefaults(t *testing.T) {
 	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test",
 	  "defaults":{"files":{"exclude":["**/*.kts"]},"ignoreLines":[{"tokens":[{"kind":"word","oneOf":["import","package"]}]}]},
 	  "rules":[
-	    {"id":"plain","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],
+	    {"id":"plain","title":"T","severity":"MAJOR","description":"D","why":"W","fix":"F","languages":[],"tags":[],
 	     "match":{"patterns":[{"tokens":[{"text":"GlobalScope"}]}]}},
-	    {"id":"own-files","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],
+	    {"id":"own-files","title":"T","severity":"MAJOR","description":"D","why":"W","fix":"F","languages":[],"tags":[],
 	     "match":{"files":{"include":["**/*.kts"]},"patterns":[{"tokens":[{"text":"GlobalScope"}]}]}}]}`))
 	if err != nil {
 		t.Fatal(err)
@@ -259,7 +259,7 @@ func TestRunLineLength(t *testing.T) {
 
 func TestRunLineLengthSkipsIgnoredLines(t *testing.T) {
 	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","defaults":{"ignoreLines":[{"tokens":[{"text":"import"}]}]},
-	  "rules":[{"id":"r","title":"T","severity":"MINOR","description":"D","languages":[],"tags":[],"match":{"detector":"line-length","max":10}}]}`))
+	  "rules":[{"id":"r","title":"T","severity":"MINOR","description":"D","why":"W","fix":"F","languages":[],"tags":[],"match":{"detector":"line-length","max":10}}]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,9 +324,9 @@ func TestRunMissingDocAddedOnly(t *testing.T) {
 func slowRules(t testing.TB) []*Rule {
 	t.Helper()
 	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","rules":[
-	  {"id":"slow","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],
+	  {"id":"slow","title":"T","severity":"MAJOR","description":"D","why":"W","fix":"F","languages":[],"tags":[],
 	   "match":{"patterns":[{"tokens":[{"repeat":[{"repeat":[{"kind":"any"}]}]},{"text":"never"}]}]}},
-	  {"id":"cheap","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],
+	  {"id":"cheap","title":"T","severity":"MAJOR","description":"D","why":"W","fix":"F","languages":[],"tags":[],
 	   "match":{"patterns":[{"tokens":[{"text":"x"}]}]}}]}`))
 	if err != nil {
 		t.Fatal(err)

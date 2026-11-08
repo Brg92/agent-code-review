@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "rules": [
+    {
+      "id": "empty-catch",
+      "title": "Empty catch block",
+      "severity": "BLOCKER",
+      "description": "An error that vanishes is a bug that will be diagnosed twice.",
+      "why": "The error disappears without a trace, so the failure surfaces later somewhere else and is hard to diagnose.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "errors"
+      ],
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "word",
+                "text": "catch"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              },
+              {
+                "gap": {
+                  "balanced": true
+                }
+              },
+              {
+                "kind": "punct",
+                "text": ")"
+              },
+              {
+                "kind": "punct",
+                "text": "{"
+              },
+              {
+                "kind": "punct",
+                "text": "}"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
