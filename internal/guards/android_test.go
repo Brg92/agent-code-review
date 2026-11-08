@@ -19,11 +19,8 @@ func TestAndroidPackFilesMatchTheirSchemas(t *testing.T) {
 	for name, patterns := range files {
 		s := compileSchema(t, schemas[name])
 		found := globAll(t, patterns...)
-		if len(found) == 0 {
-			if name == "config" {
-				continue // templates come later
-			}
-			t.Fatalf("no %s file in the android pack", name)
+		if len(found) == 0 || (name == "config" && len(found) != 2) {
+			t.Fatalf("%d %s files in the android pack", len(found), name)
 		}
 		for _, f := range found {
 			data, err := os.ReadFile(f)
