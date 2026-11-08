@@ -26,12 +26,6 @@
     "kmp"
   ],
   "rules": "rules.json",
-  "checklists": [
-    {
-      "profile": "kmp",
-      "path": "checklists/kmp.md"
-    }
-  ],
   "templates": [],
   "noise": [
     "kotlin-js-store/yarn.lock"

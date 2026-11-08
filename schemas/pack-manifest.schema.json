@@ -14,7 +14,6 @@
     "languages",
     "profiles",
     "rules",
-    "checklists",
     "templates",
     "noise",
     "generatedMarkers"
@@ -202,29 +201,6 @@
     "rules": {
       "description": "Rules catalog file, relative to the pack directory.",
       "$ref": "#/$defs/relativePath"
-    },
-    "checklists": {
-      "description": "Review checklists, by profile.",
-      "type": "array",
-      "items": {
-        "description": "One checklist.",
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "profile",
-          "path"
-        ],
-        "properties": {
-          "profile": {
-            "description": "Profile the checklist is for.",
-            "$ref": "#/$defs/profile"
-          },
-          "path": {
-            "description": "Checklist file, relative to the pack directory.",
-            "$ref": "#/$defs/relativePath"
-          }
-        }
-      }
     },
     "templates": {
       "description": "Report and comment templates, relative to the pack directory.",

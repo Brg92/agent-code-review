@@ -85,9 +85,6 @@ func TestLoadPack(t *testing.T) {
 	if p.Rules.Pack != "mobile" || len(p.Rules.Rules) != 2 {
 		t.Errorf("rules %+v", p.Rules)
 	}
-	if len(p.Checklists) != 2 || p.Checklists[1].Profile != "library" || p.Checklists[1].Path != filepath.Join(p.Dir, "checklists", "library.md") {
-		t.Errorf("checklists %+v", p.Checklists)
-	}
 	if len(p.Templates) != 1 || p.Templates[0] != filepath.Join(p.Dir, "templates", "summary.md") {
 		t.Errorf("templates %+v", p.Templates)
 	}
@@ -124,8 +121,7 @@ func TestLoadPackRejects(t *testing.T) {
 		{"lexer table of another language", "mobile", language(1, "lexer", "lexer/kotlin.json"), nil, "language"},
 		{"extension in two languages", "mobile", language(1, "extensions", []any{".java", ".kt"}), nil, ".kt"},
 		{"no extensions", "mobile", language(1, "extensions", []any{}), nil, "extensions"},
-		{"missing checklist", "mobile", set("checklists", []any{map[string]any{"profile": "app", "path": "checklists/none.md"}}), nil, "none.md"},
-		{"checklist of another profile", "mobile", set("checklists", []any{map[string]any{"profile": "kmp", "path": "checklists/app.md"}}), nil, "kmp"},
+		{"checklists are generated from the catalog", "mobile", set("checklists", []any{}), nil, "unknown field"},
 		{"missing template", "mobile", set("templates", []any{"templates/none.md"}), nil, "none.md"},
 		{"profile detection of another profile", "mobile", set("profileDetect", []any{map[string]any{"profile": "kmp", "path": "x"}}), nil, "kmp"},
 		{"default profile not supported", "mobile", set("defaultProfile", "kmp"), nil, "kmp"},
