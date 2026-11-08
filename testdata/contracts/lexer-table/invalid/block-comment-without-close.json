@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "language": "plain",
+  "extensions": [
+    ".pln"
+  ],
+  "keywords": [
+    "begin"
+  ],
+  "softKeywords": [],
+  "blockComment": {
+    "open": "/*",
+    "nested": false
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "language": "plain",
+  "extensions": [
+    ".pln"
+  ],
+  "keywords": [
+    "begin"
+  ],
+  "softKeywords": [],
+  "strings": [
+    {
+      "delimiter": "\" "
+    }
+  ]
+}
