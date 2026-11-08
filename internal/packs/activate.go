@@ -3,6 +3,7 @@ package packs
 import (
 	"fmt"
 	"path"
+	"sort"
 	"strings"
 )
 
@@ -12,8 +13,10 @@ type Reader interface {
 	ReadFile(path string) ([]byte, error)
 }
 
-// Activate returns, in set order, the packs with a detect sign that
-// matches the repository, given the paths of its files.
+// Activate returns the packs with a detect sign that matches the
+// repository, given the paths of its files: the highest priority first,
+// set order among equals. It fails when two packs of the highest priority
+// for a file dimension map it differently.
 func (s *Set) Activate(paths []string, repo Reader) ([]*Pack, error) {
 	var active []*Pack
 	for _, p := range s.Packs {
@@ -27,6 +30,10 @@ func (s *Set) Activate(paths []string, repo Reader) ([]*Pack, error) {
 				break
 			}
 		}
+	}
+	sort.SliceStable(active, func(i, j int) bool { return active[i].Priority > active[j].Priority })
+	if err := checkFileDimensions(active); err != nil {
+		return nil, err
 	}
 	return active, nil
 }
