@@ -1,6 +1,8 @@
 package packs
 
 import (
+	"encoding/json"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -269,5 +271,43 @@ func TestAndroidChecklistFollowsTheRepository(t *testing.T) {
 	}
 	if !reflect.DeepEqual(applies, []string{"find-view-by-id"}) {
 		t.Errorf("rules that apply to a views app among three: %v", applies)
+	}
+}
+
+func TestAndroidTemplates(t *testing.T) {
+	p := loadAndroid(t)
+	var got []string
+	for _, path := range p.Templates {
+		rel, err := filepath.Rel(p.Dir, path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		got = append(got, filepath.ToSlash(rel))
+	}
+	want := []string{"templates/app/criteria.md", "templates/app/config.json", "templates/library/criteria.md", "templates/library/config.json"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("templates %q, want %q", got, want)
+	}
+	for _, profile := range []string{"app", "library"} {
+		data, err := os.ReadFile(filepath.Join(p.Dir, "templates", profile, "config.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var cfg struct {
+			Profile string   `json:"profile"`
+			Packs   []string `json:"packs"`
+		}
+		if err := json.Unmarshal(data, &cfg); err != nil || cfg.Profile != profile || !reflect.DeepEqual(cfg.Packs, []string{"android"}) {
+			t.Errorf("%s config = %+v, %v", profile, cfg, err)
+		}
+		doc, err := os.ReadFile(filepath.Join(p.Dir, "templates", profile, "criteria.md"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, heading := range []string{"\n## Project rules\n", "\n## Known exceptions (never reported)\n"} {
+			if !strings.Contains("\n"+string(doc), heading) {
+				t.Errorf("%s criteria: no %q section", profile, strings.TrimSpace(heading))
+			}
+		}
 	}
 }

@@ -156,7 +156,12 @@
     }
   ],
   "rules": "rules.json",
-  "templates": [],
+  "templates": [
+    "templates/app/criteria.md",
+    "templates/app/config.json",
+    "templates/library/criteria.md",
+    "templates/library/config.json"
+  ],
   "noise": [
     "gradle/verification-metadata.xml",
     "**/build/**"

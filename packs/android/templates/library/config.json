@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "profile": "library",
+  "packs": [
+    "android"
+  ],
+  "variants": [],
+  "disabledRules": [],
+  "noise": []
+}
