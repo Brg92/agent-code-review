@@ -650,6 +650,672 @@
         "kotlin"
       ],
       "group": "Error handling"
+    },
+    {
+      "id": "field-injection",
+      "title": "Field injection",
+      "severity": "MAJOR",
+      "description": "Constructor injection over field injection: it makes the dependency explicit and the class testable. Fields injected in a Hilt entry point class are allowed.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection",
+      "match": {
+        "files": {
+          "exclude": [
+            "**/*.kts"
+          ],
+          "notContains": [
+            {
+              "tokens": [
+                {
+                  "kind": "punct",
+                  "text": "@"
+                },
+                {
+                  "kind": "identifier",
+                  "oneOf": [
+                    "AndroidEntryPoint",
+                    "HiltAndroidApp"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "patterns": [
+          {
+            "languages": [
+              "kotlin"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "@"
+              },
+              {
+                "kind": "identifier",
+                "text": "Inject"
+              },
+              {
+                "gap": {
+                  "max": 16,
+                  "balanced": true,
+                  "stopAt": [
+                    {
+                      "kind": "punct",
+                      "oneOf": [
+                        "{",
+                        "}",
+                        ";",
+                        "="
+                      ]
+                    },
+                    {
+                      "kind": "word",
+                      "oneOf": [
+                        "fun",
+                        "val",
+                        "class",
+                        "constructor"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "word",
+                "text": "var",
+                "at": true
+              }
+            ]
+          },
+          {
+            "languages": [
+              "java"
+            ],
+            "tokens": [
+              {
+                "kind": "punct",
+                "text": "@"
+              },
+              {
+                "kind": "identifier",
+                "text": "Inject"
+              },
+              {
+                "repeat": [
+                  {
+                    "kind": "punct",
+                    "text": "@"
+                  },
+                  {
+                    "kind": "word"
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "punct",
+                        "text": "."
+                      },
+                      {
+                        "kind": "word"
+                      }
+                    ]
+                  },
+                  {
+                    "repeat": [
+                      {
+                        "kind": "punct",
+                        "text": "("
+                      },
+                      {
+                        "gap": {
+                          "balanced": true
+                        }
+                      },
+                      {
+                        "kind": "punct",
+                        "text": ")"
+                      }
+                    ],
+                    "max": 1
+                  }
+                ]
+              },
+              {
+                "gap": {
+                  "max": 16,
+                  "stopAt": [
+                    {
+                      "kind": "punct",
+                      "oneOf": [
+                        "(",
+                        "{",
+                        "}",
+                        ";",
+                        "=",
+                        "@"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "identifier",
+                "at": true
+              },
+              {
+                "kind": "punct",
+                "oneOf": [
+                  ";",
+                  "="
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "manual-instantiation",
+      "title": "Dependency built by hand",
+      "severity": "MAJOR",
+      "description": "No direct construction of what the graph provides: it bypasses scoping and cannot be replaced in tests.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection"
+    },
+    {
+      "id": "missing-di-annotation",
+      "title": "DI annotation missing",
+      "severity": "MAJOR",
+      "description": "ViewModels and injection entry points carry the annotations Hilt requires: `@HiltViewModel` on ViewModels, `@AndroidEntryPoint` on Fragments and Activities, `@Inject constructor` for injected classes.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection"
+    },
+    {
+      "id": "duplicate-di-module",
+      "title": "Binding provided twice",
+      "severity": "MAJOR",
+      "description": "No second module provides a binding that already exists, and modules live where the project keeps them.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection"
+    },
+    {
+      "id": "service-locator",
+      "title": "Static accessor as a hidden dependency",
+      "severity": "MAJOR",
+      "description": "No static or global accessor used as a hidden dependency.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "di"
+      ],
+      "group": "Dependency injection"
+    },
+    {
+      "id": "var-never-reassigned",
+      "title": "var never reassigned",
+      "severity": "MINOR",
+      "description": "`val` by default; `var` only where the value really changes.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "mutable-collection-default",
+      "title": "Collection built by mutation",
+      "severity": "MINOR",
+      "description": "Build collections with `listOf`, `mapOf` or `buildList` rather than creating a mutable one and filling it, unless mutation is needed.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "data-class-missing",
+      "title": "Data holder is not a data class",
+      "severity": "MINOR",
+      "description": "Pure data holders are `data class`.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "raw-type-wrapper",
+      "title": "Identifier passed as a raw type",
+      "severity": "MINOR",
+      "description": "A single-value identifier or token that crosses a boundary is a `@JvmInline value class`, so two `String` ids cannot be swapped by accident.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "manual-loop",
+      "title": "Hand-rolled loop",
+      "severity": "MINOR",
+      "description": "Collection operators (`map`, `filter`, `firstOrNull`, `associateBy`, `sumOf`) instead of hand-rolled loops.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "reimplemented-stdlib",
+      "title": "Standard library reimplemented",
+      "severity": "MINOR",
+      "description": "Use the standard library (`runCatching`, `buildList`, `takeIf`, `groupBy` and friends) instead of reimplementing it.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "sequence-for-large-pipeline",
+      "title": "Large pipeline not lazy",
+      "severity": "MINOR",
+      "description": "Use `asSequence()` for large or multi-step pipelines.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin",
+        "performance"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "non-exhaustive-when",
+      "title": "when with else over a closed type",
+      "severity": "MAJOR",
+      "description": "A `when` over a sealed type or an enum has no `else`, so a new case fails to compile until every use handles it.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "long-if-chain",
+      "title": "Long if/else-if chain",
+      "severity": "MINOR",
+      "description": "Use `when` instead of a long `if / else if` chain.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "unsafe-cast",
+      "title": "Unsafe cast",
+      "severity": "MAJOR",
+      "description": "Prefer `is` smart casts to `as`; use `as?` where a cast can fail legitimately.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "index-can-throw",
+      "title": "Indexing that can throw",
+      "severity": "MINOR",
+      "description": "Prefer `firstOrNull` and `getOrNull` to indexing that can throw.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "boolean-flag-parameter",
+      "title": "Boolean flag parameter",
+      "severity": "MAJOR",
+      "description": "No positional boolean flag that switches behaviour: use named arguments with defaults, or two functions. At the call site `doThing(true)` says nothing.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "expression-body",
+      "title": "Block body for one expression",
+      "severity": "MINOR",
+      "description": "A function of a single expression has an expression body.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "redundant-type-annotation",
+      "title": "Redundant type annotation",
+      "severity": "MINOR",
+      "description": "Let the compiler infer local types. Annotate explicitly on public or overridable signatures, where the type is part of the contract.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "utils-class-over-extension",
+      "title": "Utils holder instead of extension",
+      "severity": "MINOR",
+      "description": "Write an extension function rather than another member of a static-style `Utils` holder.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "nested-scope-functions",
+      "title": "Scope functions nested",
+      "severity": "MINOR",
+      "description": "One purpose per scope function (`let` for a non-null value, `apply` to configure, `also` for side effects, `run` or `with` to produce a result), and no nesting that hurts readability.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "kotlin"
+      ],
+      "group": "Idiomatic Kotlin"
+    },
+    {
+      "id": "java-in-new-code",
+      "title": "Java in new code",
+      "severity": "MAJOR",
+      "description": "New code is Kotlin, unless it changes an area that is deliberately Java-only.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "out-of-scope-refactor",
+      "title": "Refactoring outside the ticket",
+      "severity": "MAJOR",
+      "description": "The change does what the ticket says. A broad rewrite of untouched code by the author hides the real change in noise. It applies only to refactoring done by the author, never to reporting existing defects.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "logic-in-wrong-layer",
+      "title": "Business logic in the wrong layer",
+      "severity": "MAJOR",
+      "description": "Business logic sits in the domain or presentation layer, not in mappers or data sources. UI classes have more specific rules in the Views and Compose checklists.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "architecture"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "class-too-large",
+      "title": "Class with more than one responsibility",
+      "severity": "MINOR",
+      "description": "One responsibility per class: a class that needs \"and\" to be described is the finding.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "long-function",
+      "title": "Long function",
+      "severity": "MINOR",
+      "description": "Functions are short and single-purpose.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "deep-nesting",
+      "title": "Deep nesting",
+      "severity": "MINOR",
+      "description": "Nesting is shallow: prefer early returns to another level of `if`.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "duplicated-logic",
+      "title": "Logic duplicated across classes",
+      "severity": "MINOR",
+      "description": "Logic repeated across two or more classes is centralised once. Repetition inside one class is not this rule.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "line-too-long",
+      "title": "Line too long",
+      "severity": "MINOR",
+      "description": "Lines stay within 100 characters. Only lines the change adds are reported.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "style"
+      ],
+      "group": "Structure and scope",
+      "match": {
+        "detector": "line-length",
+        "max": 100,
+        "lines": "added"
+      }
+    },
+    {
+      "id": "package-organization",
+      "title": "Package structure not followed",
+      "severity": "MINOR",
+      "description": "New code follows the package structure of the project; prefer grouping by feature to a technical dumping ground.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "structure"
+      ],
+      "group": "Structure and scope"
+    },
+    {
+      "id": "context-leak",
+      "title": "Context retained beyond its lifecycle",
+      "severity": "BLOCKER",
+      "description": "No `Activity`, `Fragment` or view `Context` is retained beyond its lifecycle: not in a long-lived object, a companion or a static field. Adapters and composables have more specific rules.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "context-in-viewmodel",
+      "title": "Context in a ViewModel",
+      "severity": "MAJOR",
+      "description": "No `Context` in a ViewModel unless it is needed and a comment says why: it outlives configuration changes.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "listener-not-removed",
+      "title": "Listener never removed",
+      "severity": "MAJOR",
+      "description": "Every registered listener, observer, callback or receiver is removed on the matching teardown.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "unnecessary-weak-reference",
+      "title": "Unnecessary WeakReference",
+      "severity": "MINOR",
+      "description": "`WeakReference` only where the lifetime really needs it: used to paper over a leak it hides the real ownership problem.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "bitmap-in-model",
+      "title": "Bitmap in a model",
+      "severity": "MAJOR",
+      "description": "No `Bitmap` inside a domain or data model.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "memory"
+      ],
+      "group": "Memory and performance"
+    },
+    {
+      "id": "full-list-refresh",
+      "title": "Whole list refreshed",
+      "severity": "MAJOR",
+      "description": "Lists use `DiffUtil` or Paging, not a full refresh (`notifyDataSetChanged`) on every change.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "performance"
+      ],
+      "group": "Memory and performance",
+      "match": {
+        "patterns": [
+          {
+            "tokens": [
+              {
+                "kind": "identifier",
+                "text": "notifyDataSetChanged"
+              },
+              {
+                "kind": "punct",
+                "text": "("
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
