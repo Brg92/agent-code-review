@@ -98,6 +98,16 @@ func (r SkipReason) Valid() bool {
 	return false
 }
 
+// Incomplete reports whether skipping for r leaves part of the cascade
+// unreviewed, which makes the cascade INCOMPLETE.
+func (r SkipReason) Incomplete() bool {
+	switch r {
+	case OverDepthLimit, OverCountLimit, OtherPlatform, NotFound:
+		return true
+	}
+	return false
+}
+
 // MarshalText implements encoding.TextMarshaler.
 func (r SkipReason) MarshalText() ([]byte, error) {
 	if !r.Valid() {
