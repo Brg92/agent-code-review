@@ -5,6 +5,7 @@
 | Root | `acr-plugin-sandbox/sample-app` `feat/home-s2-session-expiry` → `main`, [sample-app#7](https://github.com/acr-plugin-sandbox/sample-app/pull/7) |
 | Depth 1 | `acr-plugin-sandbox/core-lib` `refactor/session-s2-remove-legacy-token` → `main`, [core-lib#3](https://github.com/acr-plugin-sandbox/core-lib/pull/3) |
 | Depth 2 | `acr-plugin-sandbox/kmp-shared` `feat/shared-s2-session-countdown` → `main`, [kmp-shared#2](https://github.com/acr-plugin-sandbox/kmp-shared/pull/2) |
+| Depth 3 | `acr-plugin-sandbox/feature-lib` `chore/catalog-s4-regenerate-icons` → `main`, [feature-lib#1](https://github.com/acr-plugin-sandbox/feature-lib/pull/1) (S4) |
 | Ticked | `acr-plugin-sandbox/feature-lib` `feat/toggle-s2-remote-defaults` → `main`, [feature-lib#2](https://github.com/acr-plugin-sandbox/feature-lib/pull/2) |
 
 Each change request in the cascade is reviewed with the criteria from its own repository's target branch. The exact descriptions are in `../acr-plugin-sandbox/PR_PLAN.md`.
@@ -26,7 +27,7 @@ Each change request in the cascade is reviewed with the criteria from its own re
 
 - **Heading variant:** core-lib S2 uses `## Related PRs`, which is accepted as a variant.
 - **Cycle:** core-lib S2 links back to sample-app S2. The cycle is detected and the root is not reviewed again.
-- **Over the cascade limit:** kmp-shared S2 links `feature-lib#N` (S4) at depth 3. With the default cascade limit of 2 it is listed as not reviewed, over the limit. A repository can change the limit with `cascadeLimit` in its configuration.
+- **Depth 3:** kmp-shared S2 links `feature-lib#N` (S4) at depth 3. sample-app, the root's repository, sets no limits, so the defaults apply (`maxDepth` 3, `maxChangeRequests` 10): S4 is reviewed, and the cascade reviews five change requests including the root, within `maxChangeRequests`. Its data comes from the S4 recording. A repository changes the limits with `cascade` in its configuration; overruns are tested with fakes and low limits, not with this scenario.
 
 ## Expected findings
 
@@ -38,10 +39,10 @@ Each change request in the cascade is reviewed with the criteria from its own re
 
 sample-app S2 uses `SessionManager.expiresAt()`. That method is added by core-lib S2, which is in the same cascade, so it is not a finding.
 
-S1 is reviewed at depth 1 through its `#N` entry, so its findings (see `../S1/README.md`) are part of the cascade too.
+S1 is reviewed at depth 1 through its `#N` entry, so its findings (see `../S1/README.md`) are part of the cascade too. S4 at depth 3 adds no findings (see `../S4/README.md`).
 
 ## Expected verdict
 
 - **Cascade:** BLOCKED, because of core-lib S2 and S1.
 - **core-lib S2 and S1:** BLOCKED.
-- **sample-app S2 and kmp-shared S2:** OK, no findings.
+- **sample-app S2, kmp-shared S2 and S4:** OK, no findings.
