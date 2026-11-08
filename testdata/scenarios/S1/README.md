@@ -22,7 +22,7 @@ Rule ids are provisional until the rules catalog exists.
 | `data/SessionRepository.kt` | `sessionManager.current()!!.userName` | `no-double-bang` | MAJOR | added line |
 | `ui/HomeViewModel.kt` | `repository.requireUser()` in `refresh()` | `logic.always-throws` | BLOCKER | **outside the hunks**: unchanged, but always throws now that `warmUp()` is never called |
 
-`runBlocking` blocks the main thread. The outside-hunk BLOCKER cannot be posted inline; it must appear in the summary.
+`runBlocking` blocks the main thread. The outside-hunk BLOCKER is relocated to line 16, the nearest line of the diff of `ui/HomeViewModel.kt`, and its text starts with "Refers to line 27 of `app/src/main/java/com/example/sample/ui/HomeViewModel.kt`, outside the changed lines."
 
 ## Expected pre-existing defects
 
@@ -31,9 +31,9 @@ These already exist on `main` and are unchanged by the pull request.
 | File | Code | Rule | Crash | Where |
 | --- | --- | --- | --- | --- |
 | `data/ProfileStore.kt` | `prefs.getString("display_name", null)!!` | `no-double-bang` | yes, when no name is stored | context line inside a hunk |
-| `data/SessionRepository.kt` | `GlobalScope.launch {` in `warmUp()` | `global-scope` | no | outside the hunks |
+| `data/SessionRepository.kt` | `GlobalScope.launch {` in `warmUp()` | `global-scope` | no | outside the hunks, relocated to line 15 |
 
-Pre-existing defects are reported apart from new findings. They change the verdict only when they are a crash.
+Pre-existing defects are reported apart from new findings. They change the verdict only when they are a crash, and a crash is always a BLOCKER.
 
 ## Expected verdict
 
