@@ -91,6 +91,11 @@
               "pattern": "^[a-z0-9-]+$"
             }
           },
+          "group": {
+            "description": "Section heading under which the rule is listed in the checklist generated from the catalog; rules with the same group are listed together, in catalog order. Absent: the rule is listed without a heading.",
+            "type": "string",
+            "pattern": "\\S"
+          },
           "when": {
             "description": "Conditions for the rule to apply to a repository; all must hold. profile lists the profiles; any other key is a dimension of the pack and lists its values. Absent: the rule always applies.",
             "type": "object",

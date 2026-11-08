@@ -12,7 +12,8 @@
       ],
       "tags": [
         "coroutines"
-      ]
+      ],
+      "group": "Coroutines and concurrency"
     },
     {
       "id": "global-scope",
