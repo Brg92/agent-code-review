@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/user-config.schema.json",
+  "title": "User configuration",
+  "description": "The file config.json in the agent-code-review folder of the user's configuration directory. It never holds a token: tokens come from the OS keychain or the environment. A missing file means the defaults.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "packPaths": {
+      "description": "Extra pack directories, as absolute paths, loaded after the packs that ship with the CLI.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "\\S"
+      }
+    },
+    "keepDays": {
+      "description": "Days a run's work directory is kept before the next run removes it. 0 keeps every run. The default is 7.",
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}
