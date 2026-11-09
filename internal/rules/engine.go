@@ -66,8 +66,8 @@ type Result struct {
 	NotVerified []NotVerified
 }
 
-// Run checks one file with the rules that have mechanical checks and apply
-// to its language. Signals are sorted by line, column and rule order, one
+// Run checks one file with the rules that have mechanical checks on one
+// file and apply to its language. Signals are sorted by line, column and rule order, one
 // per rule and line. A rule that runs out of its step budget on the file
 // stops there: its signals are dropped and the file is listed as not
 // verified for it.
@@ -81,7 +81,7 @@ func Run(rules []*Rule, f File, opt Options) Result {
 	var res Result
 	order := map[string]int{}
 	for i, r := range rules {
-		if !r.Matched() || !r.appliesTo(f.Language) || !r.match.files.selects(f) {
+		if !r.Matched() || r.OnChangeRequest() || !r.appliesTo(f.Language) || !r.match.files.selects(f) {
 			continue
 		}
 		order[r.ID] = i
