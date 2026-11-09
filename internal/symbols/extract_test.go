@@ -107,6 +107,7 @@ class Outer internal constructor(private val store: Store) {
 		"type com.example.core.InternalThing 12:16 hidden",
 		"function com.example.core.InternalThing.inner() 13:9 hidden",
 		"type com.example.core.Outer 16:7",
+		"property com.example.core.Outer.store 16:46 hidden",
 		"property com.example.core.Outer.cache 17:17 hidden",
 		"function com.example.core.Outer.visible(name, retries=) 19:9",
 		"function com.example.core.Outer.forSubclasses() 25:24",
@@ -234,4 +235,41 @@ func TestExtractWithoutPackageOrCode(t *testing.T) {
 	check(t, extract(t, kotlinSpec, "kotlin", "// fun commented() {}\n/* class Gone */\n"), nil)
 	// Unterminated code yields what can be read.
 	check(t, extract(t, kotlinSpec, "kotlin", "class A {\n    fun b(x: Int"), []string{"type A 1:7", "function A.b(x) 2:9"})
+}
+
+func TestExtractKotlinConstructorProperties(t *testing.T) {
+	src := `package p
+
+data class User(val id: String, var name: String = "", private val secret: String, internal val tag: Int, age: Int)
+
+class Session internal constructor(
+    @Json(name = "t") val token: String,
+    override val expiresAt: Long,
+    retries: Int = 3,
+) : Base(retries) {
+    fun refresh() {}
+}
+
+private class Hidden(val x: Int)
+
+class Plain
+fun after(y: Int) {}
+`
+	check(t, extract(t, kotlinSpec, "kotlin", src), []string{
+		"type p.User 3:12",
+		"property p.User.id 3:21",
+		"property p.User.name 3:37",
+		"property p.User.secret 3:68 hidden",
+		"property p.User.tag 3:97 hidden",
+		"type p.Session 5:7",
+		"property p.Session.token 6:27",
+		"property p.Session.expiresAt 7:18",
+		"function p.Session.refresh() 10:9",
+		"type p.Hidden 13:15 hidden",
+		"property p.Hidden.x 13:26 hidden",
+		"type p.Plain 15:7",
+		"function p.after(y) 16:5",
+	})
+	// Java record components are not properties.
+	check(t, extract(t, javaSpec, "java", "package p;\n\npublic record Point(int x, int y) {}\n"), []string{"type p.Point 3:15"})
 }

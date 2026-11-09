@@ -140,6 +140,10 @@ func TestIndexOfWholeChangeRequest(t *testing.T) {
 		"removed p.helper base a.kt:3",
 		"added q.helper head a.kt:3",
 	})
+	// A property of a primary constructor is a symbol of its type.
+	checkIndex(t, index(kt(t, "u.kt", "package p\n\ndata class U(val a: Int, val b: Int)\n", "package p\n\ndata class U(val a: Int)\n")), []string{
+		"removed p.U.b base u.kt:3",
+	})
 	// A file whose language has no symbols is not compared.
 	none := File{Path: "build.gradle", Base: "fun x() {}", Head: ""}
 	checkIndex(t, index(none), nil)

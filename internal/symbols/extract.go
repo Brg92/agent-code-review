@@ -79,6 +79,9 @@ type extractor struct {
 	// opens and closes are the bracket characters that nest inside a
 	// parameter list.
 	opens, closes map[string]bool
+	// members are the properties the header of the type read last
+	// declares, as a primary constructor does.
+	members []Decl
 }
 
 // Extract returns the named declarations of a source at top level and in
@@ -131,7 +134,13 @@ func (x *extractor) run() []Decl {
 				pending, header = nil, 0
 				if d.Kind == Type {
 					pending = &scope{typeBody: true, label: label, public: d.Public, publicInside: x.s.PublicMembersIn[x.declWord(k, end)]}
+					for _, m := range x.members {
+						m.Package, m.Containers = pkg, append(append([]string(nil), d.Containers...), label)
+						m.Public = pending.public && x.public(m.Modifiers, pending.publicInside)
+						out = append(out, m)
+					}
 				}
+				x.members = nil
 			}
 		}
 		if pending != nil {
@@ -232,11 +241,14 @@ func (x *extractor) named(k, i int, kind Kind, mods []string) (Decl, string, int
 		d.Name, d.Line, d.Column = x.toks[name].Text, x.toks[name].Line, x.toks[name].Column
 		label = d.Name
 	}
-	if kind == Function {
+	switch kind {
+	case Function:
 		d.Params = []Param{}
 		if j := x.skipTypeParameters(i); j < len(x.toks) && x.punct(x.toks[j], x.s.Parameters.Open) {
 			d.Params, end = x.params(j)
 		}
+	case Type:
+		x.members = x.headerProperties(x.skipTypeParameters(i))
 	}
 	d.EndLine = x.toks[end].Line
 	return d, label, end, true
@@ -290,15 +302,85 @@ func (x *extractor) typed(k int) (Decl, string, int, bool) {
 	return Decl{}, "", 0, false
 }
 
+// headerProperties reads the properties declared in the parameter list of
+// a type header, as by a primary constructor, when the list follows at
+// toks[i] past modifiers and annotations on the same line.
+func (x *extractor) headerProperties(i int) []Decl {
+	for i < len(x.toks) && x.toks[i].Line == x.toks[i-1].Line {
+		switch {
+		case x.punct(x.toks[i], x.s.Annotation):
+			i = x.annotations(i)
+		case x.isWord(i) && !x.isDeclWord(i):
+			i++
+		case x.punct(x.toks[i], x.s.Parameters.Open):
+			var out []Decl
+			segs, _ := x.segments(i)
+			for _, seg := range segs {
+				if d, ok := x.headerProperty(seg); ok {
+					out = append(out, d)
+				}
+			}
+			return out
+		default:
+			return nil
+		}
+	}
+	return nil
+}
+
+// headerProperty reads a property from the tokens of a header parameter
+// outside brackets: annotations and modifiers, a declaration word of a
+// property, then its name.
+func (x *extractor) headerProperty(seg []lexer.Token) (Decl, bool) {
+	var mods []string
+	for i := 0; i < len(seg); i++ {
+		t := seg[i]
+		switch {
+		case x.punct(t, x.s.Annotation):
+			i++ // the annotation name
+			for i+2 < len(seg) && (x.qualifier(seg[i+1]) || x.punct(seg[i+1], x.s.ParameterType)) {
+				i += 2
+			}
+		case t.Kind == lexer.Identifier || t.Kind == lexer.Keyword:
+			if x.s.Declarations[t.Text] != Property {
+				mods = append(mods, t.Text)
+				continue
+			}
+			if i+1 >= len(seg) || seg[i+1].Kind != lexer.Identifier {
+				return Decl{}, false
+			}
+			n := seg[i+1]
+			return Decl{Kind: Property, Name: n.Text, Modifiers: mods, Line: n.Line, Column: n.Column, StartLine: seg[0].Line, EndLine: n.Line}, true
+		default:
+			return Decl{}, false
+		}
+	}
+	return Decl{}, false
+}
+
 // params reads the parameter list that opens at toks[open] and returns
 // its parameters and the index of its closing bracket, the last token
 // when it is not closed.
 func (x *extractor) params(open int) ([]Param, int) {
 	out := []Param{}
-	var seg []lexer.Token
-	flush := func() {
+	segs, end := x.segments(open)
+	for _, seg := range segs {
 		if p, ok := x.param(seg); ok {
 			out = append(out, p)
+		}
+	}
+	return out, end
+}
+
+// segments splits the parameter list that opens at toks[open] into the
+// tokens of each parameter outside brackets, and returns them with the
+// index of its closing bracket, the last token when it is not closed.
+func (x *extractor) segments(open int) ([][]lexer.Token, int) {
+	var out [][]lexer.Token
+	var seg []lexer.Token
+	flush := func() {
+		if len(seg) > 0 {
+			out = append(out, seg)
 		}
 		seg = nil
 	}
