@@ -98,6 +98,9 @@ jobs:
         run: go test -race -coverprofile=coverage.out ./...
       - name: coverage
         run: go tool cover -func=coverage.out | tail -n 1
+      - name: coverage gate
+        if: matrix.os == 'ubuntu-latest' && matrix.go == 'stable'
+        run: go run ./tools/covergate coverage.out
 
   build:
     name: build (${{ matrix.goos }}, ${{ matrix.goarch }})

@@ -8,10 +8,26 @@ The workflow `.github/workflows/ci.yml` runs on every push to `main` and on ever
 | --- | --- |
 | `lint` | `gofmt -l .` is empty, `go vet ./...` passes, `staticcheck ./...` passes |
 | `security` | `govulncheck ./...` finds no vulnerabilities; `gitleaks` finds no secrets in the whole git history |
-| `test (<os>, go <version>)` | `go test -race -coverprofile=coverage.out ./...` passes; prints the total coverage (no threshold yet) |
+| `test (<os>, go <version>)` | `go test -race -coverprofile=coverage.out ./...` passes; prints the total coverage; on `ubuntu-latest` with Go `stable`, the [coverage gate](#coverage-gate) passes |
 | `build (<goos>, <goarch>)` | `CGO_ENABLED=0 go build -trimpath` succeeds; uploads the binary as an artifact kept for 3 days |
 
 The test matrix covers `ubuntu-latest`, `macos-latest` and `windows-latest` with Go `stable` and `oldstable`. The build matrix covers `linux`, `darwin` and `windows` on `amd64` and `arm64`. CI binaries report the version `0.0.0-ci+<short sha>`.
+
+## Coverage gate
+
+`tools/covergate` (dev-only, never shipped) reads the cover profile of the test run and checks statement coverage **per package**, not on the total. Every package under `internal/` must reach at least 90%, except `internal/testutil/...` and `internal/guards`, which only hold test helpers and repository guards. The step runs in `test (ubuntu-latest, go stable)` only, so a package below the threshold fails that required check. It prints one row per gated package and, on failure, the packages below the threshold.
+
+Run it locally with:
+
+```bash
+go test -coverprofile=coverage.out ./...
+```
+
+```bash
+go run ./tools/covergate coverage.out
+```
+
+`-min`, `-include` and `-exclude` change the threshold and the gated directories; the defaults are the CI settings. Exit code 1 means a package is below the threshold, 2 a usage or input error. A package below the threshold gets real tests; the threshold is not lowered.
 
 ## Required checks
 
