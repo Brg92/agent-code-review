@@ -11,60 +11,95 @@
   "criteria": {
     "source": "legacy",
     "profile": "library",
+    "profileReason": "kind in .github/mr-review.json",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "views",
+        "reason": "android default"
+      }
+    },
     "files": [
-      "cr/core-lib-1/criteria/.github/skills/core-lib-code-review/SKILL.md",
-      "packs/android/checklists/library.md"
-    ]
+      ".github/skills/core-lib-code-review/SKILL.md",
+      ".github/mr-review.json"
+    ],
+    "ignored": []
   },
   "rules": [
     {
       "id": "logic-defect",
       "severity": "MAJOR",
-      "title": "A change removes input validation"
+      "title": "A change removes input validation",
+      "source": "core",
+      "needsJudgement": true
     },
     {
       "id": "style.redundant-if",
       "severity": "MINOR",
-      "title": "An if/else only returns its condition"
+      "title": "An if/else only returns its condition",
+      "source": "repository",
+      "needsJudgement": false
     }
   ],
+  "checklist": {
+    "sections": [
+      {
+        "rules": [
+          "logic-defect"
+        ]
+      }
+    ],
+    "repository": [
+      "style.redundant-if"
+    ]
+  },
   "files": [
     {
       "path": "src/main/java/com/example/core/session/SessionExpiry.kt",
       "status": "added",
       "language": "kotlin",
-      "patch": "cr/core-lib-1/patches/src_main_java_com_example_core_session_SessionExpiry.kt.diff",
-      "head": "cr/core-lib-1/head/src/main/java/com/example/core/session/SessionExpiry.kt"
+      "placement": "inline"
     },
     {
       "path": "src/main/java/com/example/core/session/LegacySessionStore.kt",
       "status": "removed",
       "language": "kotlin",
-      "patch": "cr/core-lib-1/patches/src_main_java_com_example_core_session_LegacySessionStore.kt.diff",
-      "base": "cr/core-lib-1/base/src/main/java/com/example/core/session/LegacySessionStore.kt"
+      "placement": "inline",
+      "diff": "@@ -1,2 +0,0 @@\n-package com.example.core.session\n-\n"
     },
     {
       "path": "src/main/java/com/example/core/session/SessionManager.kt",
       "status": "modified",
       "language": "kotlin",
-      "patch": "cr/core-lib-1/patches/src_main_java_com_example_core_session_SessionManager.kt.diff",
-      "head": "cr/core-lib-1/head/src/main/java/com/example/core/session/SessionManager.kt",
-      "base": "cr/core-lib-1/base/src/main/java/com/example/core/session/SessionManager.kt"
+      "placement": "inline"
     },
     {
       "path": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
       "previousPath": "src/main/java/com/example/core/session/TokenCodec.kt",
       "status": "renamed",
       "language": "kotlin",
-      "patch": "cr/core-lib-1/patches/src_main_java_com_example_core_session_codec_TokenCodec.kt.diff",
-      "head": "cr/core-lib-1/head/src/main/java/com/example/core/session/codec/TokenCodec.kt",
-      "base": "cr/core-lib-1/base/src/main/java/com/example/core/session/TokenCodec.kt"
+      "placement": "inline"
     }
   ],
   "signals": [],
+  "notVerified": [],
   "relatedChanges": [],
+  "cascade": {
+    "ancestors": []
+  },
+  "parts": {
+    "total": 1,
+    "changeRequestSignals": [],
+    "files": [
+      [
+        "src/main/java/com/example/core/session/SessionExpiry.kt",
+        "src/main/java/com/example/core/session/LegacySessionStore.kt",
+        "src/main/java/com/example/core/session/SessionManager.kt",
+        "src/main/java/com/example/core/session/codec/TokenCodec.kt"
+      ]
+    ]
+  },
   "judgementPath": "cr/core-lib-1/judgement.json"
 }

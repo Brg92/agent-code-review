@@ -11,31 +11,52 @@
   "criteria": {
     "source": "overlay",
     "profile": "app",
+    "profileReason": "set in .agent-code-review/config.json",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "views",
+        "reason": "android default"
+      }
+    },
     "files": [
-      "cr/sample-app-7/criteria/.agent-code-review/criteria.md"
-    ]
+      ".agent-code-review/criteria.md"
+    ],
+    "ignored": []
   },
   "rules": [
     {
       "id": "run-blocking-prod",
       "severity": "BLOCKER",
-      "title": "runBlocking on the main thread"
+      "title": "runBlocking on the main thread",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
     }
   ],
+  "checklist": {
+    "sections": [
+      {
+        "heading": "Coroutines and concurrency",
+        "rules": [
+          "run-blocking-prod"
+        ]
+      }
+    ],
+    "repository": []
+  },
   "files": [
     {
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "status": "modified",
       "language": "kotlin",
-      "patch": "cr/sample-app-7/patches/SessionRepository.kt.diff",
-      "head": "cr/sample-app-7/head/SessionRepository.kt",
-      "base": "cr/sample-app-7/base/SessionRepository.kt"
+      "placement": "inline"
     }
   ],
   "signals": [],
+  "notVerified": [],
   "relatedChanges": [
     {
       "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",
@@ -53,5 +74,17 @@
       "workPackage": "cr/kmp-shared-2/workpackage.json"
     }
   ],
+  "cascade": {
+    "ancestors": []
+  },
+  "parts": {
+    "total": 1,
+    "changeRequestSignals": [],
+    "files": [
+      [
+        "app/src/main/java/com/example/sample/data/SessionRepository.kt"
+      ]
+    ]
+  },
   "judgementPath": "cr/sample-app-7/judgement.json"
 }
