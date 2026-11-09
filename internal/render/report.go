@@ -1,8 +1,9 @@
-// Package render writes what a review shows the user: the report of each
-// change request, the summary of a cascade and the final message in chat.
-// Everything is rendered from the findings documents alone, in English,
-// with LF line endings and no trailing spaces, and the same input always
-// gives the same output. The reports are never published.
+// Package render writes what a review shows: the brief the agent judges
+// a change request from, the report of each change request, the summary
+// of a cascade and the final message in chat. The brief is rendered from
+// the work package alone, the rest from the findings documents alone,
+// in English, with LF line endings and no trailing spaces, and the same
+// input always gives the same output. Nothing here is published.
 package render
 
 import (
