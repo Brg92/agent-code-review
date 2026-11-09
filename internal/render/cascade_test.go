@@ -115,3 +115,40 @@ func TestSkipReasonsAreAllWorded(t *testing.T) {
 		}
 	}
 }
+
+func TestFinal(t *testing.T) {
+	res, reviewed := testCascade(t, false)
+	got, err := Final(res, reviewed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	summary, err := Cascade(res, reviewed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `Review completed. Nothing was written to GitHub.
+
+Reports:
+
+- acr-plugin-sandbox/kmp-shared#2 — work/kmp-shared-2/report.txt
+- acr-plugin-sandbox/core-lib#3 — work/core-lib-3/report.txt
+- acr-plugin-sandbox/sample-app#7 — work/sample-app-7/report.txt
+
+` + summary
+	if got != want {
+		t.Errorf("got\n%s\nwant\n%s", got, want)
+	}
+}
+
+func TestFinalNamesThePlatform(t *testing.T) {
+	res, reviewed := testCascade(t, false)
+	gl := mustKey(t, "gitlab:gitlab.com/group/app#7")
+	res.Entries[0].CR, res.Order[2], reviewed[0].Doc.CR = gl, gl, gl
+	got, err := Final(res, reviewed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(got, "Review completed. Nothing was written to GitLab.\n") {
+		t.Errorf("got\n%s", got)
+	}
+}

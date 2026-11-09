@@ -173,3 +173,35 @@ func overallText(v core.Verdict, causes []cascade.Cause) string {
 	}
 	return "INCOMPLETE — not reviewed: " + strings.Join(missing, ", ")
 }
+
+// platforms name the forges as the final message says them.
+var platforms = map[core.Forge]string{core.GitHub: "GitHub", core.GitLab: "GitLab"}
+
+// Final renders what the agent prints in chat at the end of a review: that
+// nothing was written to the platform, where each report is, in review
+// order, and the summary of the cascade.
+func Final(res cascade.Result, reviewed []Reviewed) (string, error) {
+	summary, err := Cascade(res, reviewed)
+	if err != nil {
+		return "", err
+	}
+	var b builder
+	forge := core.GitHub
+	if len(res.Entries) > 0 {
+		forge = res.Entries[0].CR.Forge
+	}
+	b.line("Review completed. Nothing was written to " + platforms[forge] + ".")
+	b.line("")
+	b.line("Reports:")
+	b.line("")
+	for _, k := range res.Order {
+		for _, r := range reviewed {
+			if r.Doc.CR.Same(k) {
+				b.line("- " + ref(k) + " — " + r.Report)
+				break
+			}
+		}
+	}
+	b.line("")
+	return b.String() + summary, nil
+}
