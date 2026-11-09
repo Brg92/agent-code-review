@@ -176,8 +176,9 @@ func (c *Client) Get(ctx context.Context, path, accept string) (*Response, error
 func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response, error) {
 	token, err := c.tokenValue(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("transport: token: %w", err)
 	}
+	secrets := []string{token}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
@@ -191,15 +192,18 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 	}
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, newNetworkError(u.String(), err, secrets)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, c.maxBody+1))
 	if err != nil {
-		return nil, err
+		return nil, newNetworkError(u.String(), err, secrets)
 	}
 	if int64(len(body)) > c.maxBody {
-		return nil, fmt.Errorf("transport: response body exceeds %d bytes", c.maxBody)
+		return nil, fmt.Errorf("transport: GET %s: response body exceeds %d bytes", redactURL(u.String()), c.maxBody)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return nil, &StatusError{StatusCode: resp.StatusCode, URL: redactURL(u.String()), Message: bodyMessage(body, secrets)}
 	}
 	return &Response{StatusCode: resp.StatusCode, Header: resp.Header, Body: body, URL: resp.Request.URL.String()}, nil
 }
