@@ -43,6 +43,7 @@ a **severity** and a **reason** that states the consequence.
 
 ## Known exceptions (never reported)
 
-Exceptions to the rules of this file only.
+Exceptions to the rules of this file only; an exception that names a pack rule is
+ignored and reported, since pack rules always apply.
 
 - <for example: `internal.compat` is exempt from `<lib>-swift-api-undeclared`>

@@ -53,7 +53,8 @@ the change request; `MAJOR` and `MINOR` are tracked.
 
 ## Known exceptions (never reported)
 
-Exceptions to the rules of this file only.
+Exceptions to the rules of this file only; an exception that names a pack rule is
+ignored and reported, since pack rules always apply.
 
 - <for example: `LegacyBridge` is exempt from `<app>-platform-code-in-common`
   because it wraps a platform-only SDK>

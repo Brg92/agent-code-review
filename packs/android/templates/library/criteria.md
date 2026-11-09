@@ -59,9 +59,10 @@ change request; `MAJOR` and `MINOR` are tracked.
 
 ## Known exceptions (never reported)
 
-Exceptions to the rules of this file only. The standard exceptions are already
-in the pack: `_binding!!` in the Fragment ViewBinding pattern, `kapt` instead of
-KSP, and XML layouts with ViewBinding instead of Jetpack Compose.
+Exceptions to the rules of this file only; an exception that names a pack rule is
+ignored and reported, since pack rules always apply. The standard exceptions are
+already in the pack: `_binding!!` in the Fragment ViewBinding pattern, `kapt`
+instead of KSP, and XML layouts with ViewBinding instead of Jetpack Compose.
 
 - <for example: `LegacyBridge` under `<com.example.core.legacy>` is exempt from
   `<lib>-api-outside-public-package` for the Java consumer>
