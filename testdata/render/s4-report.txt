@@ -1,0 +1,6 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/feature-lib#1 "Regenerate the icon catalog"
+Packs: android (profile library: maven-publish in build.gradle.kts · ui-toolkit views: no Compose dependency)
+No findings on 3 changed files. Pipeline: passing on head (2 checks). Verdict: OK.
+Not verified:
+  - gradle/verification-metadata.xml — noise: android
+  - src/main/java/com/example/feature/catalog/IconCatalog.kt — generated: The platform omitted the diff of this 30007-line file.

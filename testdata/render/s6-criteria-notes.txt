@@ -1,0 +1,20 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#5 "Show profile initials"
+Packs: android (profile app: set in .agent-code-review/config.json · ui-toolkit compose: androidx.compose in app/build.gradle.kts)
+Criteria: overlay .agent-code-review/ ＠main
+Scope: 2 changed files · head edf5ce35
+
+BLOCKER (0) — inline notes on publish
+
+MAJOR (1) — one issue on publish
+  [MAJOR]   app/src/main/java/com/example/sample/data/ProfileStore.kt:10 — `!!` on a name that may not be stored  [no-double-bang]
+            why: `getString` returns null when no name has been stored, so `!!` throws a NullPointerException.
+            fix: Return an empty string or make `initials()` nullable.
+
+MINOR (0) — one issue on publish
+
+Existing code in touched files (0) — not written in this change request
+
+no findings: .agent-code-review/config.json
+Pipeline: passing on head (2 checks)
+Notes: This change request edits .agent-code-review/config.json. The edit was not applied: criteria are read from the target branch.
+Verdict: OK — nothing blocks; non-blocking findings go to issues on publish.
