@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -118,7 +119,29 @@ func Install(t *testing.T, cfg Config) (store, home string) {
 	t.Setenv(envStore, store)
 	// A race-enabled helper would otherwise wait a second at every exit.
 	t.Setenv("GORACE", "atexit_sleep_ms=0")
+	checkIsolation(t, dir, helpers)
 	return store, home
+}
+
+// checkIsolation stops the test if git sees any helper but the configured
+// ones, for example one compiled into git or set by the runner: a test must
+// never reach a real keychain.
+func checkIsolation(t *testing.T, dir string, want []string) {
+	t.Helper()
+	cmd := exec.Command("git", "config", "--null", "--get-all", "credential.helper")
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	var exit *exec.ExitError
+	if err != nil && !(errors.As(err, &exit) && exit.ExitCode() == 1) {
+		t.Fatalf("git config: %v", err)
+	}
+	got := strings.Split(strings.TrimSuffix(string(out), "\x00"), "\x00")
+	if len(out) == 0 {
+		got = nil
+	}
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Fatalf("git sees credential helpers %q, want only %q: the test isolation leaks", got, want)
+	}
 }
 
 func copyFile(t *testing.T, from, to string) {
