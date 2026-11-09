@@ -50,29 +50,16 @@
       ]
     },
     {
-      "id": "logic.always-throws",
-      "title": "Code that always throws",
+      "id": "logic-defect",
+      "title": "A defect in the logic of the change",
       "severity": "BLOCKER",
-      "description": "A call that throws on every path, often because a precondition is no longer set up.",
-      "languages": [
-        "kotlin"
-      ],
-      "tags": [
-        "logic"
-      ]
-    },
-    {
-      "id": "logic.removed-validation",
-      "title": "A change removes input validation",
-      "severity": "MAJOR",
       "needsJudgement": true,
-      "description": "Removing a `require` or `check` lets invalid input through.",
-      "languages": [
-        "kotlin"
-      ],
+      "description": "The change makes the code do the wrong thing: a wrong result, a call that always throws, removed validation or unreachable code.",
+      "languages": [],
       "tags": [
         "logic"
-      ]
+      ],
+      "group": "Logic"
     },
     {
       "id": "style.redundant-if",

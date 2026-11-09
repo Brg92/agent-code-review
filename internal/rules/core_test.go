@@ -39,7 +39,7 @@ func TestMerge(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = Merge(Core(), example)
-	if err == nil || !strings.Contains(err.Error(), `"uses-removed-api"`) || !strings.Contains(err.Error(), "core") || !strings.Contains(err.Error(), "android") {
+	if err == nil || !strings.Contains(err.Error(), `"logic-defect"`) || !strings.Contains(err.Error(), "core") || !strings.Contains(err.Error(), "android") {
 		t.Errorf("Merge with a duplicate id: error %v, want one naming the rule and both packs", err)
 	}
 }

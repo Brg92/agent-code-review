@@ -41,9 +41,7 @@ func TestAndroidPackFilesMatchTheirSchemas(t *testing.T) {
 // scenarioOnlyRules are rules of the example catalog that only the
 // sandbox scenarios use; the android pack does not define them.
 var scenarioOnlyRules = map[string]bool{
-	"logic.always-throws":      true,
-	"logic.removed-validation": true,
-	"style.redundant-if":       true,
+	"style.redundant-if": true,
 }
 
 func severities(t *testing.T, path string) map[string]string {
@@ -60,8 +58,8 @@ func severities(t *testing.T, path string) map[string]string {
 
 // TestExampleCatalogAgreesWithTheAndroidPack keeps the small example
 // catalog honest: a rule it shares with the android pack has the same
-// severity there, and any other rule is a core rule or one that only the
-// scenarios use.
+// severity there, a rule it shares with the core rules has the core
+// severity, and any other rule is one that only the scenarios use.
 func TestExampleCatalogAgreesWithTheAndroidPack(t *testing.T) {
 	pack := severities(t, "packs/android/rules.json")
 	core := severities(t, "internal/rules/core.json")
@@ -69,6 +67,8 @@ func TestExampleCatalogAgreesWithTheAndroidPack(t *testing.T) {
 		switch want, ok := pack[id]; {
 		case ok && want != severity:
 			t.Errorf("%s: severity %s in the example, %s in the pack", id, severity, want)
+		case core[id] != "" && core[id] != severity:
+			t.Errorf("%s: severity %s in the example, %s in the core rules", id, severity, core[id])
 		case !ok && core[id] == "" && !scenarioOnlyRules[id]:
 			t.Errorf("%s: in the example but in neither the pack nor the core rules", id)
 		}

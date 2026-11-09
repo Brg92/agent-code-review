@@ -4,7 +4,7 @@
   "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
   "findings": [
     {
-      "rule": "logic.always-throws",
+      "rule": "logic-defect",
       "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
       "side": "RIGHT",

@@ -39,7 +39,7 @@ func testReview(t *testing.T) Review {
 		Rules: RulesOf(&rules.Catalog{Pack: "test", Rules: []*rules.Rule{
 			{ID: "empty-catch", Severity: "BLOCKER", Title: "Empty catch block", Why: "The error vanishes.", Fix: "Handle or rethrow it."},
 			{ID: "no-double-bang", Severity: "MAJOR", NeedsJudgement: true, Title: "Not-null assertion", Why: "It throws on null.", Fix: "Handle null."},
-			{ID: "logic.always-throws", Severity: "BLOCKER", Title: "Always throws", Why: "The call always fails.", Fix: "Remove the failing path."},
+			{ID: "logic-defect", Severity: "BLOCKER", Title: "Always throws", Why: "The call always fails.", Fix: "Remove the failing path."},
 			{ID: "dead-code", Severity: "MAJOR", Title: "Dead code", Why: "It hides bugs.", Fix: "Remove it."},
 		}}),
 		Signals: []Signal{
@@ -66,7 +66,7 @@ func testJudgement() Judgement {
 		CR:      testCR,
 		HeadSHA: testHead,
 		Findings: []JudgedFinding{{
-			Rule: "logic.always-throws", Severity: Blocker, Path: "app/A.kt", Side: Right, Line: 6,
+			Rule: "logic-defect", Severity: Blocker, Path: "app/A.kt", Side: Right, Line: 6,
 			Title: "f() always throws", Why: "Nothing sets the cache.", Fix: "Set the cache in init.",
 			References: []Reference{{Project: "github:github.com/acr-plugin-sandbox/core-lib", Ref: "main", Path: "src/C.kt", Line: 3}},
 		}},

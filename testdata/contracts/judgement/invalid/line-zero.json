@@ -4,7 +4,7 @@
   "headSha": "1bb2c03af22c5360e04698de42d0833c0387b499",
   "findings": [
     {
-      "rule": "logic.removed-validation",
+      "rule": "logic-defect",
       "severity": "MAJOR",
       "path": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
       "side": "LEFT",

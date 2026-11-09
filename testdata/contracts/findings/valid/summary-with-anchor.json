@@ -67,8 +67,8 @@
       }
     },
     {
-      "id": "acr:v1:logic.always-throws:app/src/main/java/com/example/sample/ui/HomeViewModel.kt:08fff5a68b5c",
-      "rule": "logic.always-throws",
+      "id": "acr:v1:logic-defect:app/src/main/java/com/example/sample/ui/HomeViewModel.kt:08fff5a68b5c",
+      "rule": "logic-defect",
       "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
       "side": "RIGHT",

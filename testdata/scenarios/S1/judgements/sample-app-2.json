@@ -37,7 +37,7 @@
       "references": []
     },
     {
-      "rule": "logic.always-throws",
+      "rule": "logic-defect",
       "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
       "side": "RIGHT",
