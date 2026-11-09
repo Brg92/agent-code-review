@@ -9,8 +9,9 @@
 > target branch, so a change takes effect once it is merged.
 
 In `config.json`, set `variants` to the build variants of the repository,
-`disabledRules` to the pack rules that do not apply here, and `dimensions` to fix
-a value that detection gets wrong. Pack rules cannot be weakened from a
+`dimensions` to fix a value that detection gets wrong, `ruleOptions` to change a
+value a pack rule allows, and `disabledRules` to the rules of this file that are
+switched off for now. Pack rules always apply and cannot be weakened from a
 repository. Rules that name a platform apply per file: a file in `commonMain`
 gets the Kotlin rules and the multiplatform rules, not the Android-only ones.
 

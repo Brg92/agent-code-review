@@ -10,8 +10,8 @@
 > target branch.
 
 In `config.json`, `profile` is `library`, so the library rules apply. Set
-`variants`, `disabledRules` and `dimensions` as for an app; pack rules cannot be
-weakened from a repository.
+`variants`, `dimensions`, `ruleOptions` and `disabledRules` as for an app; pack
+rules always apply and cannot be weakened from a repository.
 
 ## Environment
 

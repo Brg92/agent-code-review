@@ -9,9 +9,11 @@
 > effect once it is merged.
 
 In `config.json`, set `variants` to the build variants or flavors of the
-repository, `disabledRules` to the pack rules that do not apply here, and
-`dimensions` to fix a value that detection gets wrong, for example
-`{ "ui-toolkit": "compose" }`. Pack rules cannot be weakened from a repository.
+repository, `dimensions` to fix a value that detection gets wrong, for example
+`{ "ui-toolkit": "compose" }`, `ruleOptions` to change a value a pack rule
+allows, for example `{ "line-too-long": { "max": 120 } }`, and `disabledRules`
+to the rules of this file that are switched off for now. Pack rules always
+apply and cannot be weakened from a repository.
 
 ## Environment
 
