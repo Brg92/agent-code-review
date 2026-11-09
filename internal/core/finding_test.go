@@ -48,7 +48,7 @@ func TestFinalize(t *testing.T) {
 	})
 	check("pre-existing", brief(res.PreExisting), []string{
 		"no-double-bang BLOCKER app/A.kt:RIGHT5 relocated RIGHT 4 for 5 summary crash from s3",
-		"logic.always-throws MAJOR app/Old.kt:LEFT2 removed LEFT 2 summary",
+		"dead-code MAJOR app/Old.kt:LEFT2 removed LEFT 2 summary",
 	})
 	// Findings of signals take the text of their rule.
 	if f := res.Findings[0]; f.Title != "Empty catch block" || f.Why != "The error vanishes." || f.Fix != "Handle or rethrow it." || f.References == nil {
@@ -125,7 +125,7 @@ func TestFinalizeSuggestions(t *testing.T) {
 			if tt.path == "app/Big.kt" {
 				rule = "big"
 			}
-			f := JudgedFinding{Rule: rule, Severity: Minor, Path: tt.path, Side: tt.side, StartLine: tt.start, Line: tt.line,
+			f := JudgedFinding{Rule: rule, Severity: Severity(r.Rules[rule].Severity), Path: tt.path, Side: tt.side, StartLine: tt.start, Line: tt.line,
 				Title: "t", Why: "w", Fix: "Do this.", Suggestion: new("x := 1"), References: []Reference{}}
 			if tt.pre {
 				j.PreExisting = []JudgedFinding{f}
@@ -179,7 +179,7 @@ func TestFinalizeFingerprints(t *testing.T) {
 		FindingFingerprint("no-double-bang", "app/A.kt", "c", 0),
 		FindingFingerprint("logic.always-throws", "app/A.kt", "f", 0),
 		FindingFingerprint("no-double-bang", "app/A.kt", "e", 0),
-		FindingFingerprint("logic.always-throws", "app/Old.kt", "q", 0),
+		FindingFingerprint("dead-code", "app/Old.kt", "q", 0),
 	}
 	if got := idsOf(res.Findings, res.PreExisting); !reflect.DeepEqual(got, want) {
 		t.Errorf("ids\n%q\nwant\n%q", got, want)
@@ -210,7 +210,7 @@ func TestFinalizeOccurrenceIndex(t *testing.T) {
 	r.Files[1].Head = []string{"  launch {", "x", "launch   {"}
 	r.Signals = nil
 	finding := func(line int) JudgedFinding {
-		return JudgedFinding{Rule: "logic.always-throws", Severity: Major, Path: "app/New.kt", Side: Right, Line: line,
+		return JudgedFinding{Rule: "logic.always-throws", Severity: Blocker, Path: "app/New.kt", Side: Right, Line: line,
 			Title: "t", Why: "w", Fix: "f", References: []Reference{}}
 	}
 	j := testJudgement()

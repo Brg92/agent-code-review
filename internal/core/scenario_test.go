@@ -143,12 +143,12 @@ func TestScenarioS1BlockedByThePreExistingCrashAlone(t *testing.T) {
 		j.Findings = kept
 	}
 	res := finalize(t, "S1", "sample-app", 2, withoutBlockers)
-	if len(res.Findings) != 2 || res.Verdict != core.Blocked {
+	if len(res.Findings) != 1 || res.Verdict != core.Blocked {
 		t.Errorf("%d findings, verdict %s: want BLOCKED by the crash in ProfileStore.kt", len(res.Findings), res.Verdict)
 	}
 	res = finalize(t, "S1", "sample-app", 2, func(j *core.Judgement) {
 		withoutBlockers(j)
-		j.PreExisting[0].Crash = false
+		j.PreExisting[0].Crash, j.PreExisting[0].Severity = false, core.Major
 	})
 	if res.Verdict != core.OK {
 		t.Errorf("verdict %s without BLOCKERs and crashes, want OK", res.Verdict)
@@ -182,7 +182,7 @@ func TestScenarioS4(t *testing.T) {
 	// can only go to the summary.
 	res = finalize(t, "S4", "feature-lib", 1, func(j *core.Judgement) {
 		j.Findings = []core.JudgedFinding{{
-			Rule: "global-scope", Severity: core.Minor, Path: "src/main/java/com/example/feature/catalog/IconCatalog.kt", Side: core.Right, Line: 3,
+			Rule: "global-scope", Severity: core.Blocker, Path: "src/main/java/com/example/feature/catalog/IconCatalog.kt", Side: core.Right, Line: 3,
 			Title: "t", Why: "w", Fix: "f", References: []core.Reference{},
 		}}
 	})

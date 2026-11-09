@@ -173,7 +173,8 @@ type SignalDecision struct {
 	ID       string   `json:"id"`
 	Decision Decision `json:"decision"`
 	// Severity of a confirmed signal: required when its rule needs
-	// judgement, an override otherwise.
+	// judgement. Otherwise it may only repeat the rule's severity, or be
+	// BLOCKER for a pre-existing crash.
 	Severity Severity `json:"severity,omitempty"`
 	Crash    bool     `json:"crash,omitempty"`
 	// Reason is required to dismiss a signal.

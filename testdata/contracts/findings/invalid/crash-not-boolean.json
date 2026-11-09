@@ -14,7 +14,7 @@
     {
       "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:c7757c0896cb",
       "rule": "global-scope",
-      "severity": "MAJOR",
+      "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 19,

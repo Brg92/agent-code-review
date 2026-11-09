@@ -34,7 +34,7 @@
     {
       "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
       "rule": "global-scope",
-      "severity": "MAJOR",
+      "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 19,
@@ -109,7 +109,7 @@
     {
       "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:1b7430f5f46c",
       "rule": "global-scope",
-      "severity": "MINOR",
+      "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 13,

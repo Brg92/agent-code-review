@@ -40,6 +40,7 @@ func testReview(t *testing.T) Review {
 			{ID: "empty-catch", Severity: "BLOCKER", Title: "Empty catch block", Why: "The error vanishes.", Fix: "Handle or rethrow it."},
 			{ID: "no-double-bang", Severity: "MAJOR", NeedsJudgement: true, Title: "Not-null assertion", Why: "It throws on null.", Fix: "Handle null."},
 			{ID: "logic.always-throws", Severity: "BLOCKER", Title: "Always throws", Why: "The call always fails.", Fix: "Remove the failing path."},
+			{ID: "dead-code", Severity: "MAJOR", Title: "Dead code", Why: "It hides bugs.", Fix: "Remove it."},
 		}}),
 		Signals: []Signal{
 			{ID: "s1", Rule: "empty-catch", Severity: Blocker, Path: "app/A.kt", Line: 2, Column: 5, Origin: OriginMR},
@@ -70,7 +71,7 @@ func testJudgement() Judgement {
 			References: []Reference{{Project: "github:github.com/acr-plugin-sandbox/core-lib", Ref: "main", Path: "src/C.kt", Line: 3}},
 		}},
 		PreExisting: []JudgedFinding{{
-			Rule: "logic.always-throws", Severity: Major, Path: "app/Old.kt", Side: Left, Line: 2,
+			Rule: "dead-code", Severity: Major, Path: "app/Old.kt", Side: Left, Line: 2,
 			Title: "q() is unreachable", Why: "Dead code hides bugs.", Fix: "Remove it.",
 		}},
 		Signals: []SignalDecision{
@@ -136,6 +137,7 @@ func TestValidateJudgementReportsEveryError(t *testing.T) {
 		"/findings/1/title",
 		"/findings/1/why",
 		"/findings/1/fix",
+		"/findings/2/severity",
 		"/findings/2/startLine",
 		"/findings/2/crash",
 		"/findings/2/references/0/project",
@@ -188,6 +190,16 @@ func TestValidateJudgementSingleErrors(t *testing.T) {
 		{"crash on a finding of the change request", func(j *Judgement) { j.Findings[0].Crash = true }, "/findings/0/crash"},
 		{"crash on a pre-existing MAJOR", func(j *Judgement) { j.PreExisting[0].Crash = true }, "/preExisting/0/crash"},
 		{"crash on a pre-existing BLOCKER", func(j *Judgement) { j.PreExisting[0].Crash, j.PreExisting[0].Severity = true, Blocker }, ""},
+		{"severity other than the rule's", func(j *Judgement) { j.Findings[0].Severity = Major }, "/findings/0/severity"},
+		{"pre-existing BLOCKER of a MAJOR rule without a crash", func(j *Judgement) { j.PreExisting[0].Severity = Blocker }, "/preExisting/0/severity"},
+		{"pre-existing MINOR of a MAJOR rule", func(j *Judgement) { j.PreExisting[0].Severity = Minor }, "/preExisting/0/severity"},
+		{"any severity of a rule that needs judgement", func(j *Judgement) { j.Findings[0].Rule, j.Findings[0].Severity = "no-double-bang", Minor }, ""},
+		{"signal confirmed with the severity of its rule", func(j *Judgement) {
+			j.Signals = append(j.Signals, SignalDecision{ID: "s1", Decision: Confirm, Severity: Blocker})
+		}, ""},
+		{"signal confirmed with another severity", func(j *Judgement) {
+			j.Signals = append(j.Signals, SignalDecision{ID: "s1", Decision: Confirm, Severity: Major})
+		}, "/signals/2/severity"},
 		{"finding that repeats a signal", func(j *Judgement) {
 			j.Findings = append(j.Findings, JudgedFinding{Rule: "empty-catch", Severity: Blocker, Path: "app/A.kt", Side: Right, Line: 2, Title: "t", Why: "w", Fix: "f"})
 		}, "/findings/1"},
@@ -202,9 +214,6 @@ func TestValidateJudgementSingleErrors(t *testing.T) {
 		}, "/signals/1/crash"},
 		{"automatic signal dismissed with a reason", func(j *Judgement) {
 			j.Signals = append(j.Signals, SignalDecision{ID: "s1", Decision: Dismiss, Reason: "the catch logs"})
-		}, ""},
-		{"automatic signal confirmed with another severity", func(j *Judgement) {
-			j.Signals = append(j.Signals, SignalDecision{ID: "s1", Decision: Confirm, Severity: Major})
 		}, ""},
 		{"crash on a signal of the change request", func(j *Judgement) { j.Signals[0].Severity, j.Signals[0].Crash = Blocker, true }, "/signals/0/crash"},
 		{"unknown signal", func(j *Judgement) { j.Signals = append(j.Signals, SignalDecision{ID: "s4", Decision: Confirm}) }, "/signals/2/id"},
@@ -314,5 +323,40 @@ func TestSignalSeverityIsNullWhenJudged(t *testing.T) {
 	var back []Signal
 	if err := json.Unmarshal(data, &back); err != nil || back[1].Severity != "" || back[0].Severity != Blocker {
 		t.Errorf("decoded %+v, %v", back, err)
+	}
+}
+
+// TestValidateJudgementPromotesACrash checks the one change of severity a
+// judgement may make to a rule that needs no judgement: a pre-existing
+// crash is a BLOCKER, whatever the rule says.
+func TestValidateJudgementPromotesACrash(t *testing.T) {
+	r := testReview(t)
+	r.Signals = append(r.Signals, Signal{ID: "s4", Rule: "dead-code", Severity: Major, Path: "app/A.kt", Line: 6, Column: 1, Origin: OriginExisting})
+	tests := []struct {
+		name     string
+		decision SignalDecision
+		want     []string
+	}{
+		{"crash promoted to BLOCKER", SignalDecision{ID: "s4", Decision: Confirm, Severity: Blocker, Crash: true}, nil},
+		{"BLOCKER without a crash", SignalDecision{ID: "s4", Decision: Confirm, Severity: Blocker}, []string{"/signals/2/severity"}},
+		{"crash on a line of the change request", SignalDecision{ID: "s1", Decision: Confirm, Severity: Blocker, Crash: true}, []string{"/signals/2/crash"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			j := testJudgement()
+			j.Signals = append(j.Signals, tt.decision)
+			var got []string
+			if err := ValidateJudgement(r, j); err != nil {
+				got = pointers(err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("pointers %q, want %q", got, tt.want)
+			}
+		})
+	}
+	j := testJudgement()
+	j.PreExisting[0].Severity, j.PreExisting[0].Crash = Blocker, true
+	if err := ValidateJudgement(r, j); err != nil {
+		t.Errorf("pre-existing crash of a MAJOR rule promoted to BLOCKER: %v", err)
 	}
 }

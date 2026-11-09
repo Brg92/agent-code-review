@@ -18,7 +18,7 @@ Rule ids are provisional until the rules catalog exists.
 | File | Code | Rule | Severity | Where |
 | --- | --- | --- | --- | --- |
 | `MainActivity.kt` | `runBlocking { SessionManager.instance.refresh() }` | `run-blocking-prod` | BLOCKER | added line |
-| `data/SessionRepository.kt` | `GlobalScope.launch {` in `prefetch()` | `global-scope` | MAJOR | added line |
+| `data/SessionRepository.kt` | `GlobalScope.launch {` in `prefetch()` | `global-scope` | BLOCKER | added line |
 | `data/SessionRepository.kt` | `sessionManager.current()!!.userName` | `no-double-bang` | MAJOR | added line |
 | `ui/HomeViewModel.kt` | `repository.requireUser()` in `refresh()` | `logic.always-throws` | BLOCKER | **outside the hunks**: unchanged, but always throws now that `warmUp()` is never called |
 
@@ -28,13 +28,13 @@ Rule ids are provisional until the rules catalog exists.
 
 These already exist on `main` and are unchanged by the pull request.
 
-| File | Code | Rule | Crash | Where |
-| --- | --- | --- | --- | --- |
-| `data/ProfileStore.kt` | `prefs.getString("display_name", null)!!` | `no-double-bang` | yes, when no name is stored | context line inside a hunk |
-| `data/SessionRepository.kt` | `GlobalScope.launch {` in `warmUp()` | `global-scope` | no | outside the hunks, relocated to line 15 |
+| File | Code | Rule | Severity | Crash | Where |
+| --- | --- | --- | --- | --- | --- |
+| `data/ProfileStore.kt` | `prefs.getString("display_name", null)!!` | `no-double-bang` | BLOCKER | yes, when no name is stored | context line inside a hunk |
+| `data/SessionRepository.kt` | `GlobalScope.launch {` in `warmUp()` | `global-scope` | BLOCKER | no | outside the hunks, relocated to line 15 |
 
-Pre-existing defects are reported apart from new findings. They change the verdict only when they are a crash, and a crash is always a BLOCKER.
+Pre-existing defects are reported apart from new findings. They change the verdict only when they are a crash, and a crash is always a BLOCKER. A finding keeps the severity of its rule in the catalog, unless the rule needs judgement: `global-scope` is a BLOCKER both in `prefetch()` and in `warmUp()`. The pre-existing one does not block, because it is not a crash. `no-double-bang` needs judgement; the crash makes it a BLOCKER.
 
 ## Expected verdict
 
-**BLOCKED**, because of the two BLOCKERs. The pre-existing crash in `ProfileStore.kt` would block it on its own as well.
+**BLOCKED**, because of the three BLOCKERs. The pre-existing crash in `ProfileStore.kt` would block it on its own as well.
