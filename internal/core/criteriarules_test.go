@@ -44,8 +44,8 @@ func TestReadRepositoryRules(t *testing.T) {
 	if !reflect.DeepEqual(r.rules, want) {
 		t.Errorf("rules =\n%+v\nwant\n%+v", r.rules, want)
 	}
-	if len(r.notes) != 0 {
-		t.Errorf("notes = %q, want none", r.notes)
+	if len(r.notes()) != 0 {
+		t.Errorf("notes = %q, want none", r.notes())
 	}
 }
 
@@ -88,8 +88,8 @@ func TestReadRepositoryRulesIgnores(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := newRuleReader(reserved)
 			r.read(criteriaFile, tt.doc, false)
-			if len(r.rules) != 0 || !reflect.DeepEqual(r.notes, []string{tt.want}) {
-				t.Errorf("rules %+v, notes %q, want only the note %q", r.rules, r.notes, tt.want)
+			if len(r.rules) != 0 || !reflect.DeepEqual(r.notes(), []string{tt.want}) {
+				t.Errorf("rules %+v, notes %q, want only the note %q", r.rules, r.notes(), tt.want)
 			}
 		})
 	}
@@ -103,8 +103,8 @@ func TestReadRepositoryRulesDuplicateAcrossFiles(t *testing.T) {
 		t.Errorf("rules = %+v, want only the first", r.rules)
 	}
 	want := []string{"Repository criteria ignored: `app-rule` (.github/skills/app-code-review/references/more.md:3) — duplicate id, first defined at .github/skills/app-code-review/SKILL.md:1"}
-	if !reflect.DeepEqual(r.notes, want) {
-		t.Errorf("notes = %q, want %q", r.notes, want)
+	if !reflect.DeepEqual(r.notes(), want) {
+		t.Errorf("notes = %q, want %q", r.notes(), want)
 	}
 }
 
@@ -128,18 +128,18 @@ func TestReadRepositoryRulesSections(t *testing.T) {
 	}, "\n")
 	skill := newRuleReader(nil)
 	skill.read("SKILL.md", doc, false)
-	if want := []string{"Repository criteria ignored: list item (SKILL.md:12) — it has no rule id, so it cannot become a finding (warning)"}; !reflect.DeepEqual(skill.notes, want) {
-		t.Errorf("SKILL.md notes = %q, want %q", skill.notes, want)
+	if want := []string{"Repository criteria ignored: list item (SKILL.md:12) — it has no rule id, so it cannot become a finding (warning)"}; !reflect.DeepEqual(skill.notes(), want) {
+		t.Errorf("SKILL.md notes = %q, want %q", skill.notes(), want)
 	}
 	refs := newRuleReader(nil)
 	refs.read("references/x.md", doc, true)
 	var lines []string
-	for _, n := range refs.notes {
+	for _, n := range refs.notes() {
 		at := n[:strings.Index(n, ")")]
 		lines = append(lines, at[strings.LastIndex(at, ":")+1:])
 	}
 	if want := []string{"8", "12", "14"}; !reflect.DeepEqual(lines, want) {
-		t.Errorf("references notes at lines %q, want %q: %q", lines, want, refs.notes)
+		t.Errorf("references notes at lines %q, want %q: %q", lines, want, refs.notes())
 	}
 	crlf := newRuleReader(nil)
 	crlf.read(criteriaFile, "- `app-rule` — **MAJOR**. Text.\r\n  More.\r\n", false)
@@ -169,8 +169,8 @@ func TestReadRepositoryRulesExceptionsToPackRules(t *testing.T) {
 		"Repository criteria ignored: known exception for `logic-defect` (.agent-code-review/criteria.md:5) — pack and core rules always apply",
 		"Repository criteria ignored: known exception for `no-double-bang` (.agent-code-review/criteria.md:7) — pack and core rules always apply",
 	}
-	if !reflect.DeepEqual(r.notes, want) {
-		t.Errorf("notes =\n%q\nwant\n%q", r.notes, want)
+	if !reflect.DeepEqual(r.notes(), want) {
+		t.Errorf("notes =\n%q\nwant\n%q", r.notes(), want)
 	}
 	if len(r.rules) != 1 {
 		t.Errorf("rules = %+v, want app-tracker only", r.rules)
