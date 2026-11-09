@@ -16,7 +16,7 @@ func TestCore(t *testing.T) {
 		}
 		got = append(got, r.ID+" "+r.Severity)
 	}
-	want := "variant-asymmetry MAJOR, dependency-mr-undeclared MAJOR, uses-removed-api BLOCKER, missing-required-argument BLOCKER, contract-misuse MAJOR"
+	want := "logic-defect BLOCKER, variant-asymmetry MAJOR, dependency-mr-undeclared MAJOR, uses-removed-api BLOCKER, missing-required-argument BLOCKER, contract-misuse MAJOR"
 	if c.Pack != CorePack || strings.Join(got, ", ") != want {
 		t.Errorf("core %q: %s", c.Pack, strings.Join(got, ", "))
 	}
@@ -31,8 +31,8 @@ func TestMerge(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(rules) != 5+18 || rules[0].ID != "variant-asymmetry" || rules[5].ID != "strict-version-pin" {
-		t.Errorf("merged %d rules, first %s, sixth %s", len(rules), rules[0].ID, rules[5].ID)
+	if len(rules) != 6+18 || rules[0].ID != "logic-defect" || rules[6].ID != "strict-version-pin" {
+		t.Errorf("merged %d rules, first %s, seventh %s", len(rules), rules[0].ID, rules[6].ID)
 	}
 	example, err := LoadCatalog(readFile(t, filepath.Join(contractDir, "valid", "android.json")))
 	if err != nil {
@@ -41,6 +41,32 @@ func TestMerge(t *testing.T) {
 	_, err = Merge(Core(), example)
 	if err == nil || !strings.Contains(err.Error(), `"uses-removed-api"`) || !strings.Contains(err.Error(), "core") || !strings.Contains(err.Error(), "android") {
 		t.Errorf("Merge with a duplicate id: error %v, want one naming the rule and both packs", err)
+	}
+}
+
+// TestCoreLogicDefect checks the rule a judgement applies to a defect in
+// the logic of the change that no more specific rule names: it is only
+// judged, starts as a BLOCKER and tells the agent what to write.
+func TestCoreLogicDefect(t *testing.T) {
+	var rule *Rule
+	for _, r := range Core().Rules {
+		if r.ID == "logic-defect" {
+			rule = r
+		}
+	}
+	if rule == nil {
+		t.Fatal("no logic-defect rule in the core catalog")
+	}
+	if rule.Matched() || !rule.NeedsJudgement || rule.Severity != "BLOCKER" || rule.Group != "Logic" {
+		t.Errorf("logic-defect = %+v, want a judged BLOCKER in group Logic without a match", rule)
+	}
+	if rule.Why == "" || rule.Fix == "" {
+		t.Errorf("logic-defect has why %q and fix %q, want both", rule.Why, rule.Fix)
+	}
+	for _, example := range []string{"wrong result", "always throws", "validation", "unreachable"} {
+		if !strings.Contains(rule.Description, example) {
+			t.Errorf("logic-defect description does not mention %q: %s", example, rule.Description)
+		}
 	}
 }
 
