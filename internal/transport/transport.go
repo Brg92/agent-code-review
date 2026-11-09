@@ -43,6 +43,23 @@ type Config struct {
 	// MaxBodyBytes caps a response body. Zero means DefaultMaxBodyBytes.
 	MaxBodyBytes int64
 
+	// MaxRetries is how many times a request is retried after a network
+	// error, a 5xx or a rate limit. Zero means DefaultMaxRetries; a negative
+	// value disables retries.
+	MaxRetries int
+	// BaseBackoff is the first retry delay, doubled on each retry up to
+	// MaxBackoff. Zero means DefaultBaseBackoff and DefaultMaxBackoff.
+	BaseBackoff, MaxBackoff time.Duration
+	// MaxWait is the longest delay the client accepts from Retry-After or a
+	// rate-limit reset; a longer one ends the request at once. Zero means
+	// DefaultMaxWait.
+	MaxWait time.Duration
+	// Policy names the platform's rate-limit headers.
+	Policy Policy
+	// Now and Sleep replace the clock; nil means the real one.
+	Now   func() time.Time
+	Sleep func(ctx context.Context, d time.Duration) error
+
 	// base replaces the network round tripper in tests.
 	base http.RoundTripper
 }
@@ -63,6 +80,13 @@ type Client struct {
 	http     *http.Client
 	maxBody  int64
 	userAgnt string
+
+	maxRetries              int
+	baseBackoff, maxBackoff time.Duration
+	maxWait                 time.Duration
+	policy                  Policy
+	now                     func() time.Time
+	sleep                   func(context.Context, time.Duration) error
 }
 
 // New returns a Client for cfg.
@@ -83,7 +107,7 @@ func New(cfg Config) (*Client, error) {
 	if rt == nil {
 		rt = newNetworkTransport(timeout)
 	}
-	return &Client{
+	c := &Client{
 		base:     base,
 		token:    cfg.Token,
 		maxBody:  maxBody,
@@ -93,7 +117,36 @@ func New(cfg Config) (*Client, error) {
 			Timeout:       timeout,
 			CheckRedirect: checkRedirect,
 		},
-	}, nil
+		maxRetries:  cfg.MaxRetries,
+		baseBackoff: cfg.BaseBackoff,
+		maxBackoff:  cfg.MaxBackoff,
+		maxWait:     cfg.MaxWait,
+		policy:      cfg.Policy,
+		now:         cfg.Now,
+		sleep:       cfg.Sleep,
+	}
+	switch {
+	case c.maxRetries == 0:
+		c.maxRetries = DefaultMaxRetries
+	case c.maxRetries < 0:
+		c.maxRetries = 0
+	}
+	if c.baseBackoff <= 0 {
+		c.baseBackoff = DefaultBaseBackoff
+	}
+	if c.maxBackoff <= 0 {
+		c.maxBackoff = max(DefaultMaxBackoff, c.baseBackoff)
+	}
+	if c.maxWait <= 0 {
+		c.maxWait = DefaultMaxWait
+	}
+	if c.now == nil {
+		c.now = time.Now
+	}
+	if c.sleep == nil {
+		c.sleep = sleepContext
+	}
+	return c, nil
 }
 
 func parseBaseURL(raw string) (*url.URL, error) {
@@ -180,6 +233,62 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 		return nil, fmt.Errorf("transport: token: %w", err)
 	}
 	secrets := []string{token}
+	for attempt := 0; ; attempt++ {
+		resp, err := c.attempt(ctx, u, accept, token, secrets)
+		last := attempt >= c.maxRetries
+		var delay time.Duration
+		switch {
+		case err != nil:
+			var ne *NetworkError
+			if !errors.As(err, &ne) || ctx.Err() != nil || last {
+				return nil, err
+			}
+			delay = c.backoff(attempt)
+		case resp.StatusCode >= 200 && resp.StatusCode <= 299:
+			return resp, nil
+		case c.policy.rateLimited(resp):
+			d, hinted := c.hintedDelay(resp, true)
+			if !hinted {
+				d = c.backoff(attempt)
+			}
+			if last || d > c.maxWait {
+				return nil, &RateLimitError{StatusCode: resp.StatusCode, URL: redactURL(u.String()), RetryAt: c.retryAt(d, hinted)}
+			}
+			delay = d
+		case resp.StatusCode >= 500:
+			d, hinted := c.hintedDelay(resp, false)
+			if !hinted {
+				d = c.backoff(attempt)
+			}
+			if last || d > c.maxWait {
+				return nil, c.statusError(u, resp, secrets)
+			}
+			delay = d
+		default:
+			return nil, c.statusError(u, resp, secrets)
+		}
+		if err := c.sleep(ctx, delay); err != nil {
+			return nil, err
+		}
+	}
+}
+
+func (c *Client) retryAt(d time.Duration, hinted bool) time.Time {
+	if !hinted {
+		return time.Time{}
+	}
+	return c.now().Add(d)
+}
+
+func (c *Client) statusError(u *url.URL, resp *Response, secrets []string) error {
+	return &StatusError{StatusCode: resp.StatusCode, URL: redactURL(u.String()), Message: bodyMessage(resp.Body, secrets)}
+}
+
+// attempt sends one request and reads its body, whatever the status.
+func (c *Client) attempt(ctx context.Context, u *url.URL, accept, token string, secrets []string) (*Response, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
@@ -192,6 +301,12 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
 	resp, err := c.http.Do(req)
+	// A refused redirect is final: retrying would get the same answer.
+	for _, final := range []error{ErrCrossHostRedirect, errTooManyRedirects} {
+		if errors.Is(err, final) {
+			return nil, fmt.Errorf("transport: GET %s: %w", redactURL(u.String()), final)
+		}
+	}
 	if err != nil {
 		return nil, newNetworkError(u.String(), err, secrets)
 	}
@@ -202,9 +317,6 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 	}
 	if int64(len(body)) > c.maxBody {
 		return nil, fmt.Errorf("transport: GET %s: response body exceeds %d bytes", redactURL(u.String()), c.maxBody)
-	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return nil, &StatusError{StatusCode: resp.StatusCode, URL: redactURL(u.String()), Message: bodyMessage(body, secrets)}
 	}
 	return &Response{StatusCode: resp.StatusCode, Header: resp.Header, Body: body, URL: resp.Request.URL.String()}, nil
 }

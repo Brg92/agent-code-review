@@ -56,7 +56,7 @@ func TestCrossHostRedirectIsRefused(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := newTestClient(t, srv.URL, Config{Token: staticToken(testToken)})
+	c, clock := clientWithClock(t, srv.URL, Config{Token: staticToken(testToken)})
 	for _, path := range []string{"/to-other", "/to-alias"} {
 		t.Run(path, func(t *testing.T) {
 			_, err := c.Get(context.Background(), path, "")
@@ -65,6 +65,9 @@ func TestCrossHostRedirectIsRefused(t *testing.T) {
 			}
 			assertNoSecret(t, err, testToken)
 		})
+	}
+	if len(clock.sleeps) != 0 {
+		t.Errorf("refused redirects were retried: sleeps %v", clock.sleeps)
 	}
 	if otherHits.Load() != 0 || sameHits.Load() != 0 {
 		t.Errorf("redirect target reached: other %d, alias %d", otherHits.Load(), sameHits.Load())

@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -29,6 +30,23 @@ func (e *StatusError) Error() string {
 	msg := fmt.Sprintf("transport: GET %s: status %d", e.URL, e.StatusCode)
 	if e.Message != "" {
 		msg += ": " + e.Message
+	}
+	return msg
+}
+
+// RateLimitError is a request refused by the platform's rate limit after the
+// allowed retries, or with a reset too far away to wait for.
+type RateLimitError struct {
+	StatusCode int
+	URL        string
+	// RetryAt is when the platform accepts requests again; zero if unknown.
+	RetryAt time.Time
+}
+
+func (e *RateLimitError) Error() string {
+	msg := fmt.Sprintf("transport: GET %s: rate limited (status %d)", e.URL, e.StatusCode)
+	if !e.RetryAt.IsZero() {
+		msg += "; retry after " + e.RetryAt.UTC().Format(time.RFC3339)
 	}
 	return msg
 }

@@ -66,7 +66,7 @@ func TestNetworkErrorIsTypedAndRedacted(t *testing.T) {
 	url := srv.URL
 	srv.Close()
 
-	c := newTestClient(t, url, Config{Token: staticToken(testToken)})
+	c := newTestClient(t, url, Config{Token: staticToken(testToken), MaxRetries: -1})
 	_, err := c.Get(context.Background(), "/x?token=query-secret-77", "")
 	var ne *NetworkError
 	if !errors.As(err, &ne) {
@@ -89,7 +89,7 @@ func TestTimeout(t *testing.T) {
 	defer srv.Close()
 	defer close(release)
 
-	c := newTestClient(t, srv.URL, Config{Timeout: 50 * time.Millisecond, Token: staticToken(testToken)})
+	c := newTestClient(t, srv.URL, Config{Timeout: 50 * time.Millisecond, Token: staticToken(testToken), MaxRetries: -1})
 	start := time.Now()
 	_, err := c.Get(context.Background(), "/slow", "")
 	var ne *NetworkError
