@@ -159,6 +159,8 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) Result {
 			detectCounterpart(r, cr, add, fail)
 		case detectorSymbolUsage:
 			detectSymbolUsage(r, cr, emit, skip)
+		case detectorExpectActual:
+			detectExpectActual(r, cr, emit, skip)
 		}
 		if len(failed) > 0 {
 			unverified = append(unverified, failed...)
