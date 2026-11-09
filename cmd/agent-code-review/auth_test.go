@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -76,5 +77,50 @@ func TestAuthStatusBinary(t *testing.T) {
 	stdout, stderr, code = runIn(t, bin, dir, "", "auth", "status", "--host", "bad host")
 	if code != 2 || stdout != "" || !strings.Contains(stderr, "usage:") {
 		t.Errorf("status with bad host: code %d stdout %q stderr %q", code, stdout, stderr)
+	}
+}
+
+func TestAuthLoginBinary(t *testing.T) {
+	bin, dir, store := authSetup(t)
+
+	stdout, stderr, code := runIn(t, bin, dir, testToken+"\n", "auth", "login")
+	if code != 0 || !strings.Contains(stdout, "token stored") {
+		t.Fatalf("login: code %d stdout %q stderr %q", code, stdout, stderr)
+	}
+	entries, _ := credhelper.Read(t, store)
+	if len(entries) != 1 || entries[0] != (credhelper.Entry{Host: "github.com", Username: "acr-api", Password: testToken}) {
+		t.Errorf("stored entries = %+v", entries)
+	}
+	stdout, _, code = runIn(t, bin, dir, "", "auth", "status")
+	if code != 0 || !strings.Contains(stdout, "git credential helper") {
+		t.Errorf("status after login: code %d stdout %q", code, stdout)
+	}
+
+	for name, args := range map[string][]string{
+		"token argument": {"auth", "login", testToken},
+		"token flag":     {"auth", "login", "--token=" + testToken},
+	} {
+		stdout, stderr, code := runIn(t, bin, dir, "", args...)
+		if code != 2 || stdout != "" || !strings.Contains(stderr, "read from stdin") {
+			t.Errorf("%s: code %d stdout %q stderr %q", name, code, stdout, stderr)
+		}
+	}
+
+	stdout, stderr, code = runIn(t, bin, dir, "", "auth", "login", "--host", "ghe.example.invalid")
+	if code != 6 || stdout != "" || !strings.Contains(stderr, "no token") {
+		t.Errorf("login with empty stdin: code %d stdout %q stderr %q", code, stdout, stderr)
+	}
+}
+
+func TestAuthLoginBinaryRefusesPlainText(t *testing.T) {
+	requireGit(t)
+	bin := buildBinary(t, "")
+	_, home := credhelper.Install(t, credhelper.Config{Helpers: []string{"store"}})
+	stdout, stderr, code := runIn(t, bin, t.TempDir(), testToken+"\n", "auth", "login")
+	if code != 10 || stdout != "" || !strings.Contains(stderr, "plain text") {
+		t.Errorf("login with store helper: code %d stdout %q stderr %q", code, stdout, stderr)
+	}
+	if _, err := os.Stat(filepath.Join(home, ".git-credentials")); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("plain-text credentials written: %v", err)
 	}
 }

@@ -12,15 +12,19 @@ import (
 
 // Exit codes, as listed in docs/exit-codes.md.
 const (
-	exitOK    = 0
-	exitUsage = 2
-	exitAuth  = 6
+	exitOK            = 0
+	exitUnexpected    = 1
+	exitUsage         = 2
+	exitAuth          = 6
+	exitUnsafeStorage = 10
+	exitInterrupted   = 130
 )
 
 const usage = `usage: agent-code-review <command>
 
 commands:
   version | --version            print the version
+  auth login [--host <host>]     store a token read from stdin
   auth status [--host <host>]    say whether a token is available, and from where
 `
 
@@ -30,6 +34,9 @@ type env struct {
 	stdout, stderr io.Writer
 	getenv         func(string) string
 	git            auth.Runner
+	term           terminal
+	// notify relays interrupt signals to c until the returned stop is called.
+	notify func(c chan<- os.Signal) (stop func())
 }
 
 // Run executes the command in args (program name excluded) and returns its exit code.
@@ -40,6 +47,8 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		stderr: stderr,
 		getenv: os.Getenv,
 		git:    auth.GitRunner{},
+		term:   systemTerminal{},
+		notify: notifyInterrupts,
 	})
 }
 

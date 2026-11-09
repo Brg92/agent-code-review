@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -59,6 +60,12 @@ func runWith(t *testing.T, e env, args ...string) result {
 	e.stdout, e.stderr = &stdout, &stderr
 	if e.stdin == nil {
 		e.stdin = strings.NewReader("")
+	}
+	if e.term == nil {
+		e.term = &fakeTerm{}
+	}
+	if e.notify == nil {
+		e.notify = func(chan<- os.Signal) func() { return func() {} }
 	}
 	if e.getenv == nil {
 		e.getenv = func(string) string { return "" }
@@ -116,9 +123,13 @@ func TestAuthUsageErrors(t *testing.T) {
 	}{
 		{"no subcommand", []string{"auth"}, "usage: agent-code-review auth"},
 		{"unknown subcommand", []string{"auth", "frob"}, "unknown auth command \"frob\""},
-		{"unknown flag", []string{"auth", "status", "--token", "x"}, "flag provided but not defined"},
+		{"unknown flag", []string{"auth", "status", "--token", "x"}, "unknown flag"},
 		{"extra argument", []string{"auth", "status", "extra"}, "unexpected argument"},
-		{"invalid host", []string{"auth", "status", "--host", "https://github.com"}, "invalid host"},
+		{"invalid host", []string{"auth", "status", "--host", "https://github.com"}, "invalid --host"},
+		{"token as login argument", []string{"auth", "login", testToken}, "the token is read from stdin"},
+		{"token as login flag", []string{"auth", "login", "--token", testToken}, "the token is read from stdin"},
+		{"token as flag name", []string{"auth", "login", "--" + testToken}, "unknown flag"},
+		{"token as host", []string{"auth", "login", "--host", testToken + "_x"}, "invalid --host"},
 		{"missing host value", []string{"auth", "status", "--host"}, "flag needs an argument"},
 	}
 	for _, tt := range tests {
