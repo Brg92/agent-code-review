@@ -47,8 +47,8 @@ func TestFinalize(t *testing.T) {
 		"logic.always-throws BLOCKER app/A.kt:RIGHT6 relocated RIGHT 4 for 6 inline",
 	})
 	check("pre-existing", brief(res.PreExisting), []string{
-		"no-double-bang BLOCKER app/A.kt:RIGHT5 relocated RIGHT 4 for 5 inline crash from s3",
-		"logic.always-throws MAJOR app/Old.kt:LEFT2 removed LEFT 2 inline",
+		"no-double-bang BLOCKER app/A.kt:RIGHT5 relocated RIGHT 4 for 5 summary crash from s3",
+		"logic.always-throws MAJOR app/Old.kt:LEFT2 removed LEFT 2 summary",
 	})
 	// Findings of signals take the text of their rule.
 	if f := res.Findings[0]; f.Title != "Empty catch block" || f.Why != "The error vanishes." || f.Fix != "Handle or rethrow it." || f.References == nil {
@@ -105,14 +105,18 @@ func TestFinalizeSuggestions(t *testing.T) {
 		path            string
 		side            Side
 		start, line     int
-		keep            bool
+		pre, keep       bool
 		placement, show string
 	}{
-		{"added and context lines of one hunk", "app/A.kt", Right, 2, 3, true, "inline", "context RIGHT 3"},
-		{"single added line", "app/A.kt", Right, 0, 2, true, "inline", "added RIGHT 2"},
-		{"lines past the hunk", "app/A.kt", Right, 3, 5, false, "inline", "relocated RIGHT 4 for 5"},
-		{"left side", "app/Old.kt", Left, 0, 1, false, "inline", "removed LEFT 1"},
-		{"file without a patch", "app/Big.kt", Right, 0, 1, false, "summary", "none"},
+		{"added and context lines of one hunk", "app/A.kt", Right, 2, 3, false, true, "inline", "context RIGHT 3"},
+		{"single added line", "app/A.kt", Right, 0, 2, false, true, "inline", "added RIGHT 2"},
+		{"lines past the hunk", "app/A.kt", Right, 3, 5, false, false, "inline", "relocated RIGHT 4 for 5"},
+		{"left side", "app/Old.kt", Left, 0, 1, false, false, "inline", "removed LEFT 1"},
+		{"file without a patch", "app/Big.kt", Right, 0, 1, false, false, "summary", "none"},
+		// Existing code is never commented inline: its anchor stays, its
+		// suggestion becomes part of the fix.
+		{"pre-existing on lines of one hunk", "app/A.kt", Right, 2, 3, true, false, "summary", "context RIGHT 3"},
+		{"pre-existing on the left side", "app/Old.kt", Left, 0, 1, true, false, "summary", "removed LEFT 1"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -123,7 +127,7 @@ func TestFinalizeSuggestions(t *testing.T) {
 			}
 			f := JudgedFinding{Rule: rule, Severity: Minor, Path: tt.path, Side: tt.side, StartLine: tt.start, Line: tt.line,
 				Title: "t", Why: "w", Fix: "Do this.", Suggestion: new("x := 1"), References: []Reference{}}
-			if tt.side == Left {
+			if tt.pre {
 				j.PreExisting = []JudgedFinding{f}
 			} else {
 				j.Findings = []JudgedFinding{f}
@@ -133,7 +137,7 @@ func TestFinalizeSuggestions(t *testing.T) {
 				t.Fatal(err)
 			}
 			got := res.Findings[len(res.Findings)-1]
-			if tt.side == Left {
+			if tt.pre {
 				got = res.PreExisting[len(res.PreExisting)-1]
 			}
 			if string(got.Placement) != tt.placement || show(got.Anchor) != tt.show {

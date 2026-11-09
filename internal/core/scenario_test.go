@@ -95,8 +95,8 @@ func TestScenarioS1(t *testing.T) {
 		{res.Findings, "global-scope", "inline added RIGHT 19", 19},
 		{res.Findings, "no-double-bang", "inline added RIGHT 20", 20},
 		{res.Findings, "logic.always-throws", "inline relocated RIGHT 16 for 27", 27},
-		{res.PreExisting, "no-double-bang", "inline context RIGHT 8", 8},
-		{res.PreExisting, "global-scope", "inline relocated RIGHT 15 for 13", 13},
+		{res.PreExisting, "no-double-bang", "summary context RIGHT 8", 8},
+		{res.PreExisting, "global-scope", "summary relocated RIGHT 15 for 13", 13},
 	}
 	for _, tt := range tests {
 		if got := anchor(find(t, tt.list, tt.rule, tt.line)); got != tt.want {

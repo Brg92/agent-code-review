@@ -24,7 +24,8 @@ type Finding struct {
 	References []Reference `json:"references"`
 	Crash      bool        `json:"crash,omitempty"`
 	Placement  Placement   `json:"placement"`
-	// Anchor is set exactly when Placement is Inline.
+	// Anchor is set whenever the file of the finding shows a line, whatever
+	// the placement; an Inline finding always has one.
 	Anchor *Anchor `json:"anchor,omitempty"`
 	// Signal is the id of the signal the finding was made from; empty for
 	// a finding the agent added.
@@ -63,9 +64,11 @@ type Result struct {
 // pre-existing finding. The findings of the signals come first, in the
 // order of the work package, then those of the judgement. Each finding is
 // anchored on the diff, or placed in the summary when its file shows no
-// line; a suggestion that does not replace lines of one hunk on the RIGHT
-// side becomes a code block at the end of the fix. Each finding gets its
-// fingerprint as id, and the result its verdict.
+// line; a pre-existing finding always goes to the summary, keeping its
+// anchor. A suggestion that is not published inline or does not replace
+// lines of one hunk on the RIGHT side becomes a code block at the end of
+// the fix. Each finding gets its fingerprint as id, and the result its
+// verdict.
 func Finalize(r Review, j Judgement) (Result, error) {
 	if err := ValidateJudgement(r, j); err != nil {
 		return Result{}, err
@@ -113,13 +116,13 @@ func Finalize(r Review, j Judgement) (Result, error) {
 	all := make([]*Finding, 0, len(res.Findings)+len(res.PreExisting))
 	for i := range res.Findings {
 		all = append(all, &res.Findings[i])
+		file, _ := r.file(res.Findings[i].Path)
+		place(&res.Findings[i], file.Diff, false)
 	}
 	for i := range res.PreExisting {
 		all = append(all, &res.PreExisting[i])
-	}
-	for _, f := range all {
-		file, _ := r.file(f.Path)
-		place(f, file.Diff)
+		file, _ := r.file(res.PreExisting[i].Path)
+		place(&res.PreExisting[i], file.Diff, true)
 	}
 	fingerprint(r, all)
 	res.Verdict = ChangeRequestVerdict(res.Findings, res.PreExisting)
@@ -139,14 +142,17 @@ func judged(list []JudgedFinding) []Finding {
 }
 
 // place anchors a finding and keeps its suggestion only where the platform
-// can apply it.
-func place(f *Finding, d FileDiff) {
+// can apply it. A finding goes inline when its file shows a line, except a
+// pre-existing one: code that already exists is never commented inline, so
+// it goes to the summary with its anchor, and its suggestion becomes part
+// of the fix.
+func place(f *Finding, d FileDiff, preExisting bool) {
 	f.Anchor = d.Anchor(f.Side, f.Line)
 	f.Placement = Inline
-	if f.Anchor == nil {
+	if f.Anchor == nil || preExisting {
 		f.Placement = Summary
 	}
-	if f.Suggestion != nil && !d.SuggestionFits(f.Side, f.StartLine, f.Line) {
+	if f.Suggestion != nil && (f.Placement == Summary || !d.SuggestionFits(f.Side, f.StartLine, f.Line)) {
 		f.Fix += "\n\n" + CodeBlock(*f.Suggestion)
 		f.Suggestion = nil
 	}
