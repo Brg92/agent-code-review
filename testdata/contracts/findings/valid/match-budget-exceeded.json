@@ -15,7 +15,8 @@
   "notVerified": [
     {
       "path": "gradle/verification-metadata.xml",
-      "reason": "noise"
+      "reason": "noise",
+      "detail": "matches a noise glob of the android pack"
     },
     {
       "path": "src/main/java/com/example/feature/catalog/IconCatalog.kt",

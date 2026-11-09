@@ -15,12 +15,13 @@
   "notVerified": [
     {
       "path": "src/main/java/com/example/feature/catalog/IconCatalog.kt",
-      "reason": "generated",
+      "reason": "patch-unavailable",
       "detail": "The platform omitted the diff of this 30007-line file."
     },
     {
       "path": "gradle/verification-metadata.xml",
-      "reason": "noise"
+      "reason": "noise",
+      "detail": "matches a noise glob of the android pack"
     }
   ],
   "agentNotVerified": [],

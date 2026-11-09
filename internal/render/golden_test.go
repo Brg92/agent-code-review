@@ -148,8 +148,8 @@ var (
 		Dimensions: map[string]core.DimensionChoice{"ui-toolkit": {Value: "views", Reason: "no Compose dependency"}}}
 
 	featureLibNotVerified = []core.UnverifiedFile{
-		{Path: "gradle/verification-metadata.xml", Reason: "noise", Detail: "android"},
-		{Path: "src/main/java/com/example/feature/catalog/IconCatalog.kt", Reason: "generated", Detail: "The platform omitted the diff of this 30007-line file."},
+		{Path: "gradle/verification-metadata.xml", Reason: "noise", Detail: "matches a noise glob of the android pack"},
+		{Path: "src/main/java/com/example/feature/catalog/IconCatalog.kt", Reason: "patch-unavailable", Detail: "The platform omitted the diff of this 30007-line file."},
 	}
 )
 
