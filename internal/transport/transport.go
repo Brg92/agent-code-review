@@ -1,0 +1,212 @@
+// Package transport is the generic, read-only HTTP client used by the forge
+// providers. It knows no platform: base URL, token source, Accept header and
+// rate-limit policy come from the caller.
+//
+// Only GET requests can be sent. The client has no method that takes an HTTP
+// method, and its round tripper refuses anything else.
+package transport
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
+	"github.com/Brg92/agent-code-review/internal/version"
+)
+
+// Defaults applied by New for zero Config fields.
+const (
+	DefaultTimeout      = 30 * time.Second
+	DefaultMaxBodyBytes = 32 << 20
+)
+
+// TokenSource returns the token to send, or "" to send none. It is called
+// once per request, so a source may cache or refresh as it likes.
+type TokenSource func(ctx context.Context) (string, error)
+
+// Config configures a Client.
+type Config struct {
+	// BaseURL is the API root, such as https://api.github.com. Request paths
+	// are appended to it.
+	BaseURL string
+	// Token supplies the bearer token; nil sends no Authorization header.
+	Token TokenSource
+	// Timeout bounds one HTTP exchange, redirects included. Zero means
+	// DefaultTimeout.
+	Timeout time.Duration
+	// MaxBodyBytes caps a response body. Zero means DefaultMaxBodyBytes.
+	MaxBodyBytes int64
+
+	// base replaces the network round tripper in tests.
+	base http.RoundTripper
+}
+
+// Response is a fully read HTTP response.
+type Response struct {
+	StatusCode int
+	Header     http.Header
+	Body       []byte
+	// URL is the URL that answered, after redirects.
+	URL string
+}
+
+// Client sends read-only requests to one API root.
+type Client struct {
+	base     *url.URL
+	token    TokenSource
+	http     *http.Client
+	maxBody  int64
+	userAgnt string
+}
+
+// New returns a Client for cfg.
+func New(cfg Config) (*Client, error) {
+	base, err := parseBaseURL(cfg.BaseURL)
+	if err != nil {
+		return nil, err
+	}
+	timeout := cfg.Timeout
+	if timeout <= 0 {
+		timeout = DefaultTimeout
+	}
+	maxBody := cfg.MaxBodyBytes
+	if maxBody <= 0 {
+		maxBody = DefaultMaxBodyBytes
+	}
+	rt := cfg.base
+	if rt == nil {
+		rt = newNetworkTransport(timeout)
+	}
+	return &Client{
+		base:     base,
+		token:    cfg.Token,
+		maxBody:  maxBody,
+		userAgnt: "agent-code-review/" + version.Version,
+		http: &http.Client{
+			Transport: getOnly{rt},
+			Timeout:   timeout,
+		},
+	}, nil
+}
+
+func parseBaseURL(raw string) (*url.URL, error) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return nil, fmt.Errorf("transport: invalid base URL: %w", err)
+	}
+	switch {
+	case u.Scheme != "https" && u.Scheme != "http":
+		return nil, errors.New("transport: base URL must use https or http")
+	case u.Host == "":
+		return nil, errors.New("transport: base URL has no host")
+	case u.User != nil:
+		return nil, errors.New("transport: base URL must not contain credentials")
+	case u.RawQuery != "" || u.Fragment != "":
+		return nil, errors.New("transport: base URL must not contain a query or fragment")
+	}
+	u.Path = strings.TrimSuffix(u.Path, "/")
+	u.RawPath = ""
+	return u, nil
+}
+
+// newNetworkTransport uses the system TLS roots and the proxy from the
+// environment, with explicit timeouts on every phase.
+func newNetworkTransport(timeout time.Duration) *http.Transport {
+	dialer := &net.Dialer{Timeout: timeout, KeepAlive: 30 * time.Second}
+	return &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           dialer.DialContext,
+		ForceAttemptHTTP2:     true,
+		TLSHandshakeTimeout:   timeout,
+		ResponseHeaderTimeout: timeout,
+		ExpectContinueTimeout: time.Second,
+		IdleConnTimeout:       90 * time.Second,
+		MaxIdleConns:          10,
+	}
+}
+
+// getOnly refuses every request that is not a GET, whatever builds it.
+type getOnly struct{ next http.RoundTripper }
+
+// errMethodNotAllowed is returned for a request that is not a GET.
+var errMethodNotAllowed = errors.New("transport: only GET requests are allowed")
+
+func (g getOnly) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Method != http.MethodGet {
+		if req.Body != nil {
+			_ = req.Body.Close()
+		}
+		return nil, errMethodNotAllowed
+	}
+	return g.next.RoundTrip(req)
+}
+
+// resolve appends path, which must start with a single "/", to the base URL.
+func (c *Client) resolve(path string) (*url.URL, error) {
+	if !strings.HasPrefix(path, "/") || strings.HasPrefix(path, "//") {
+		return nil, fmt.Errorf("transport: request path %q must start with a single /", path)
+	}
+	rel, err := url.Parse(path)
+	if err != nil {
+		return nil, fmt.Errorf("transport: invalid request path: %w", err)
+	}
+	u := *c.base
+	u.Path = c.base.Path + rel.Path
+	u.RawPath = ""
+	u.RawQuery = rel.RawQuery
+	return &u, nil
+}
+
+// Get sends a GET for path, relative to the base URL, with the given Accept
+// header ("" sends none), and returns the response.
+func (c *Client) Get(ctx context.Context, path, accept string) (*Response, error) {
+	u, err := c.resolve(path)
+	if err != nil {
+		return nil, err
+	}
+	return c.get(ctx, u, accept)
+}
+
+func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response, error) {
+	token, err := c.tokenValue(ctx)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", c.userAgnt)
+	if accept != "" {
+		req.Header.Set("Accept", accept)
+	}
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(resp.Body, c.maxBody+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(body)) > c.maxBody {
+		return nil, fmt.Errorf("transport: response body exceeds %d bytes", c.maxBody)
+	}
+	return &Response{StatusCode: resp.StatusCode, Header: resp.Header, Body: body, URL: resp.Request.URL.String()}, nil
+}
+
+func (c *Client) tokenValue(ctx context.Context) (string, error) {
+	if c.token == nil {
+		return "", nil
+	}
+	return c.token(ctx)
+}
