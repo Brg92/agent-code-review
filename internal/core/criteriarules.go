@@ -36,8 +36,10 @@ var (
 	// separator but has no bold severity.
 	idItem   = regexp.MustCompile("^ {0,3}[-*+]\\s+`([^`]+)`\\s*(?:—|–|-|,)")
 	listItem = regexp.MustCompile(`^ {0,3}[-*+]\s+\S`)
-	heading  = regexp.MustCompile(`^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$`)
-	fence    = regexp.MustCompile("^ {0,3}(```|~~~)")
+	// backticked is a code span of a line.
+	backticked = regexp.MustCompile("`([^`]+)`")
+	heading    = regexp.MustCompile(`^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$`)
+	fence      = regexp.MustCompile("^ {0,3}(```|~~~)")
 	// continuation is a line that goes on with the text of a list item.
 	continuation  = regexp.MustCompile(`^\s+\S`)
 	kebabCase     = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
@@ -79,7 +81,8 @@ func (r *ruleReader) ignore(item, at, reason string) {
 // reported. A heading is a rules heading when its title has the word
 // rules, or, with everySection set (the references files of the legacy
 // layout), when it is below the title; its subsections are rules sections
-// too.
+// too. A known exception, a list item under a Known exceptions heading,
+// that names a pack or core rule is reported.
 func (r *ruleReader) read(file, content string, everySection bool) {
 	lines := strings.Split(strings.ReplaceAll(content, "\r\n", "\n"), "\n")
 	type open struct{ level, kind int }
@@ -119,7 +122,7 @@ func (r *ruleReader) read(file, content string, everySection bool) {
 				r.ignore(fmt.Sprintf("section %q", title), at, "pack and core rules cannot be switched off or re-weighted")
 			case exceptionHead.MatchString(title):
 				kind = sectionExceptions
-			case parent == sectionForbidden || parent == sectionRules:
+			case parent == sectionForbidden || parent == sectionRules || parent == sectionExceptions:
 				kind = parent
 			case rulesHead.MatchString(title) || everySection && level > 1:
 				kind = sectionRules
@@ -141,6 +144,10 @@ func (r *ruleReader) read(file, content string, everySection bool) {
 			r.add(m[1], strings.TrimSpace(m[2]), strings.TrimSpace(strings.Join(text, " ")), file, n)
 			continue
 		}
+		if kind == sectionExceptions && listItem.MatchString(line) {
+			r.exception(line, at)
+			continue
+		}
 		if kind != sectionRules || !listItem.MatchString(line) {
 			continue
 		}
@@ -149,6 +156,18 @@ func (r *ruleReader) read(file, content string, everySection bool) {
 			continue
 		}
 		r.ignore("list item", at, "it has no rule id, so it cannot become a finding (warning)")
+	}
+}
+
+// exception reports each pack or core rule a known exception names, once
+// per item: a repository may declare exceptions to its own rules only.
+func (r *ruleReader) exception(line, at string) {
+	seen := map[string]bool{}
+	for _, m := range backticked.FindAllStringSubmatch(line, -1) {
+		if id := strings.TrimSpace(m[1]); r.reserved[id] && !seen[id] {
+			seen[id] = true
+			r.ignore("known exception for `"+id+"`", at, "pack and core rules always apply")
+		}
 	}
 }
 

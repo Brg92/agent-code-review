@@ -147,3 +147,32 @@ func TestReadRepositoryRulesSections(t *testing.T) {
 		t.Errorf("CRLF rules = %+v", crlf.rules)
 	}
 }
+
+// TestReadRepositoryRulesExceptionsToPackRules checks that a known
+// exception may only name rules of the repository: one that names a pack
+// or core rule is reported, since pack and core rules always apply.
+func TestReadRepositoryRulesExceptionsToPackRules(t *testing.T) {
+	doc := strings.Join([]string{
+		"## Project rules",
+		"- `app-tracker` — **MAJOR**. Use the tracker.",
+		"## Known exceptions (never reported)",
+		"- `LegacyBridge` is exempt from `app-tracker`.",
+		"- `_binding!!` is fine here, not a `no-double-bang`, nor a `logic-defect` or a `no-double-bang` again.",
+		"### Generated code",
+		"- `Generated.kt` is exempt from `no-double-bang`.",
+		"Prose naming `no-double-bang` outside a list item is not an exception.",
+	}, "\n")
+	r := newRuleReader(map[string]bool{"no-double-bang": true, "logic-defect": true})
+	r.read(criteriaFile, doc, false)
+	want := []string{
+		"Repository criteria ignored: known exception for `no-double-bang` (.agent-code-review/criteria.md:5) — pack and core rules always apply",
+		"Repository criteria ignored: known exception for `logic-defect` (.agent-code-review/criteria.md:5) — pack and core rules always apply",
+		"Repository criteria ignored: known exception for `no-double-bang` (.agent-code-review/criteria.md:7) — pack and core rules always apply",
+	}
+	if !reflect.DeepEqual(r.notes, want) {
+		t.Errorf("notes =\n%q\nwant\n%q", r.notes, want)
+	}
+	if len(r.rules) != 1 {
+		t.Errorf("rules = %+v, want app-tracker only", r.rules)
+	}
+}
