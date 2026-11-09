@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"errors"
 	"path"
 	"sort"
 	"strings"
@@ -12,6 +13,29 @@ import (
 // change-request rule could not check because the repository tree at head
 // could not be read; the detail names the rule.
 const ReasonTreeUnavailable = "tree-unavailable"
+
+// ReasonSearchUnavailable is the not-verified reason of a file one of
+// whose symbols a change-request rule could not search for; the detail
+// names the rule and the symbol.
+const ReasonSearchUnavailable = "search-unavailable"
+
+// Search finds code in the repository of a project.
+type Search interface {
+	// Search returns the lines of the files of the project at ref that
+	// contain term, or why it could not search.
+	Search(project, ref, term string) ([]Match, error)
+}
+
+// Match is a line a search found.
+type Match struct {
+	// Path is relative to the repository, with forward slashes.
+	Path string
+	Line int
+}
+
+// errNoSearch is the error of a check that needs a search when there is
+// none.
+var errNoSearch = errors.New("no code search")
 
 // Tree is the repository tree at the head of a change request.
 type Tree interface {
@@ -31,6 +55,11 @@ type ChangedFile struct {
 	OldPath string
 	// Removed is set when the change request deletes the file.
 	Removed bool
+	// Base is the contents at base; empty for an added file.
+	Base string
+	// RemovedLines holds the 1-based lines of the base version that the
+	// change request removes or replaces.
+	RemovedLines map[int]bool
 }
 
 // ChangeRequest is what the change-request rules see.
@@ -40,6 +69,32 @@ type ChangeRequest struct {
 	Tree Tree
 	// Variants are the variants of the repository configuration.
 	Variants []string
+	// Project is the project key of the repository, Head the head commit
+	// and Target the target branch, where the rest of the repository is
+	// searched.
+	Project, Head, Target string
+	// Search searches the code of a project; nil: no search, and the
+	// checks that need one are not verified.
+	Search Search
+	// Ancestors are the change requests above this one in the cascade,
+	// its parent first and the root last.
+	Ancestors []Ancestor
+}
+
+// Ancestor is a change request above another in the cascade.
+type Ancestor struct {
+	// Project is the project key of its repository, Head its head commit
+	// and Target its target branch.
+	Project, Head, Target string
+	// Files are its changed files, with their contents at head.
+	Files []ChangedFile
+}
+
+func (cr ChangeRequest) search(project, ref, term string) ([]Match, error) {
+	if cr.Search == nil {
+		return nil, errNoSearch
+	}
+	return cr.Search.Search(project, ref, term)
 }
 
 func (cr ChangeRequest) list(prefix string) ([]string, error) {
@@ -72,8 +127,8 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) Result {
 		}
 		order[r.ID] = i
 		type place struct {
-			path string
-			line int
+			path, side string
+			line       int
 		}
 		seen := map[place]bool{}
 		var ruleSigs []Signal
@@ -81,21 +136,29 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) Result {
 		fail := func(f File) {
 			failed = append(failed, NotVerified{Path: f.Path, Reason: ReasonTreeUnavailable, Detail: r.ID})
 		}
-		add := func(f File, line, column int) {
-			key := place{f.Path, line}
+		// skip lists a file as not verified for one of its symbols, and
+		// keeps the other signals of the rule.
+		skip := func(path, reason, symbol string) {
+			unverified = append(unverified, NotVerified{Path: path, Reason: reason, Detail: r.ID + ": " + symbol})
+		}
+		emit := func(s Signal) {
+			key := place{s.Path, s.Side, s.Line}
 			if seen[key] {
 				return
 			}
 			seen[key] = true
-			s := r.signal(f, line, column)
-			s.Origin = OriginMR
-			ruleSigs = append(ruleSigs, s)
+			sig := r.signal(File{Path: s.Path}, s.Line, s.Column)
+			sig.Side, sig.References, sig.Origin = s.Side, s.References, OriginMR
+			ruleSigs = append(ruleSigs, sig)
 		}
+		add := func(f File, line, column int) { emit(Signal{Path: f.Path, Line: line, Column: column}) }
 		switch r.match.detector {
 		case detectorMissingTest:
 			detectMissingTest(r, cr, add, fail)
 		case detectorCounterpart:
 			detectCounterpart(r, cr, add, fail)
+		case detectorSymbolUsage:
+			detectSymbolUsage(r, cr, emit, skip)
 		}
 		if len(failed) > 0 {
 			unverified = append(unverified, failed...)

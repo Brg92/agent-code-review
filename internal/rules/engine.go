@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/Brg92/agent-code-review/internal/lexer"
+	"github.com/Brg92/agent-code-review/internal/symbols"
 )
 
 // Origins of a signal.
@@ -26,8 +27,11 @@ type File struct {
 	Path     string
 	Language string
 	// Table is the lexer table of the language.
-	Table  *lexer.Table
-	Source string
+	Table *lexer.Table
+	// Symbols tells how the declarations of the language are found; nil
+	// when its pack compares no symbols of it.
+	Symbols *symbols.Spec
+	Source  string
 	// Test reports whether the file is a test source of its pack.
 	Test bool
 	// Added holds the 1-based lines the change request adds.
