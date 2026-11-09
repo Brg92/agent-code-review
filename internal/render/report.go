@@ -47,11 +47,19 @@ const (
 	indent = "  " + "          "
 )
 
-// Report renders the report of one change request in its full form.
+// Report renders the report of one change request: the short form when
+// there is nothing to show but what could not be checked and the notes,
+// the full form otherwise.
 func Report(version string, d core.Document) string {
 	var b builder
 	b.line(headerLine(version, d))
 	b.line(packsLine(d.Criteria))
+	if short(d) {
+		b.line(fmt.Sprintf("No findings on %s. Pipeline: %s. Verdict: OK.", plural(len(d.Files), "changed file", "changed files"), pipeline(d.CI)))
+		notVerified(&b, d)
+		notes(&b, d)
+		return b.String()
+	}
 	b.line(fmt.Sprintf("Criteria: %s ＠%s", criteriaSources[d.Criteria.Source], d.BaseRef))
 	b.line(fmt.Sprintf("Scope: %s · head %s", plural(len(d.Files), "changed file", "changed files"), head8(d.HeadSHA)))
 	b.line("")
@@ -87,6 +95,12 @@ func Report(version string, d core.Document) string {
 	footer(&b, d)
 	b.line("Verdict: " + verdictText(bySeverity[core.Blocker], existing))
 	return b.String()
+}
+
+// short reports whether a change request has no finding, no pre-existing
+// defect, no dismissed signal and no question.
+func short(d core.Document) bool {
+	return len(d.Findings)+len(d.PreExisting)+len(d.SignalsDismissed)+len(d.Questions) == 0
 }
 
 func headerLine(version string, d core.Document) string {

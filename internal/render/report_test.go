@@ -251,3 +251,44 @@ func TestPipeline(t *testing.T) {
 		}
 	}
 }
+
+func TestReportShortForm(t *testing.T) {
+	d := testDocument(t)
+	d.Verdict = core.OK
+	d.Findings, d.PreExisting, d.SignalsDismissed, d.Questions = nil, nil, nil, nil
+	d.NotVerified, d.AgentNotVerified, d.Notes, d.Criteria.Notes = nil, nil, nil, nil
+	want := `agent-code-review v1.2.3 — acr-plugin-sandbox/sample-app#2 "Prefetch the session"
+Packs: android (profile app: set in config · ui-toolkit compose: found compose)
+No findings on 5 changed files. Pipeline: passing on head (2 checks). Verdict: OK.
+`
+	if got := Report("1.2.3", d); got != want {
+		t.Errorf("got\n%s\nwant\n%s", got, want)
+	}
+
+	// What could not be checked and the notes are never left out.
+	d.NotVerified = []core.UnverifiedFile{{Path: "app/D.kt", Reason: "generated"}}
+	d.AgentNotVerified = []string{"How the cache is filled."}
+	d.Criteria.Notes = []string{"The overlay changed."}
+	want += `Not verified:
+  - app/D.kt — generated
+  - How the cache is filled.
+Notes: The overlay changed.
+`
+	if got := Report("1.2.3", d); got != want {
+		t.Errorf("got\n%s\nwant\n%s", got, want)
+	}
+
+	// Anything else to show gives the full form.
+	for name, change := range map[string]func(d *core.Document){
+		"finding":      func(d *core.Document) { d.Findings = testDocument(t).Findings[:1] },
+		"pre-existing": func(d *core.Document) { d.PreExisting = testDocument(t).PreExisting },
+		"dismissed":    func(d *core.Document) { d.SignalsDismissed = testDocument(t).SignalsDismissed },
+		"question":     func(d *core.Document) { d.Questions = testDocument(t).Questions },
+	} {
+		full := d
+		change(&full)
+		if got := Report("1.2.3", full); !strings.Contains(got, "\nScope: ") {
+			t.Errorf("%s: want the full form, got\n%s", name, got)
+		}
+	}
+}
