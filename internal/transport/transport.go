@@ -71,6 +71,9 @@ type Response struct {
 	Body       []byte
 	// URL is the URL that answered, after redirects.
 	URL string
+	// FromCache is true when the server answered 304 Not Modified and the
+	// body is the one cached for the same ETag.
+	FromCache bool
 }
 
 // Client sends read-only requests to one API root.
@@ -87,6 +90,7 @@ type Client struct {
 	policy                  Policy
 	now                     func() time.Time
 	sleep                   func(context.Context, time.Duration) error
+	cache                   *etagCache
 }
 
 // New returns a Client for cfg.
@@ -124,6 +128,7 @@ func New(cfg Config) (*Client, error) {
 		policy:      cfg.Policy,
 		now:         cfg.Now,
 		sleep:       cfg.Sleep,
+		cache:       newETagCache(DefaultCacheBytes),
 	}
 	switch {
 	case c.maxRetries == 0:
@@ -233,8 +238,10 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 		return nil, fmt.Errorf("transport: token: %w", err)
 	}
 	secrets := []string{token}
+	key := cacheKey(u.String(), accept, token)
+	cached, haveCached := c.cache.get(key)
 	for attempt := 0; ; attempt++ {
-		resp, err := c.attempt(ctx, u, accept, token, secrets)
+		resp, err := c.attempt(ctx, u, accept, token, cached.etag, secrets)
 		last := attempt >= c.maxRetries
 		var delay time.Duration
 		switch {
@@ -244,7 +251,12 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 				return nil, err
 			}
 			delay = c.backoff(attempt)
+		case resp.StatusCode == http.StatusNotModified && haveCached:
+			return cached.response(), nil
 		case resp.StatusCode >= 200 && resp.StatusCode <= 299:
+			if etag := resp.Header.Get("ETag"); etag != "" {
+				c.cache.put(key, cachedResponse{etag: etag, status: resp.StatusCode, header: resp.Header.Clone(), body: append([]byte(nil), resp.Body...), url: resp.URL})
+			}
 			return resp, nil
 		case c.policy.rateLimited(resp):
 			d, hinted := c.hintedDelay(resp, true)
@@ -285,7 +297,7 @@ func (c *Client) statusError(u *url.URL, resp *Response, secrets []string) error
 }
 
 // attempt sends one request and reads its body, whatever the status.
-func (c *Client) attempt(ctx context.Context, u *url.URL, accept, token string, secrets []string) (*Response, error) {
+func (c *Client) attempt(ctx context.Context, u *url.URL, accept, token, etag string, secrets []string) (*Response, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -299,6 +311,9 @@ func (c *Client) attempt(ctx context.Context, u *url.URL, accept, token string, 
 	}
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	if etag != "" {
+		req.Header.Set("If-None-Match", etag)
 	}
 	resp, err := c.http.Do(req)
 	// A refused redirect is final: retrying would get the same answer.
