@@ -26,8 +26,8 @@ func finalize(t *testing.T, scen, repo string, number int, change func(j *core.J
 	return res
 }
 
-// checkContract checks that the findings of a result match the findings
-// contract, inside an otherwise minimal findings document.
+// checkContract checks that the findings document of a result, with a
+// minimal header, matches the findings contract.
 func checkContract(t *testing.T, res core.Result) {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join("..", "..", "schemas", "findings.schema.json"))
@@ -38,13 +38,10 @@ func checkContract(t *testing.T, res core.Result) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc, err := json.Marshal(map[string]any{
-		"schema": 1, "cr": res.CR, "title": "t", "headSha": res.HeadSHA, "baseRef": "main", "verdict": res.Verdict, "files": []any{},
-		"findings": res.Findings, "preExisting": res.PreExisting, "notVerified": []any{},
-		"agentNotVerified": []any{}, "signalsDismissed": []any{}, "questions": []any{}, "notes": []any{},
-		"ci":       map[string]any{"state": "none", "checks": []any{}},
-		"criteria": map[string]any{"source": "default", "profile": "app", "profileReason": "r", "packs": []any{}, "dimensions": map[string]any{}, "notes": []any{}},
-	})
+	doc, err := json.Marshal(res.Document(core.Header{
+		Title: "t", BaseRef: "main", CI: core.CI{State: core.CINone},
+		Criteria: core.Criteria{Source: "default", Profile: "app", ProfileReason: "r"},
+	}))
 	if err != nil {
 		t.Fatal(err)
 	}

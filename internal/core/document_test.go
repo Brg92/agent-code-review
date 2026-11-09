@@ -62,3 +62,42 @@ func TestDecodeDocumentRejects(t *testing.T) {
 		})
 	}
 }
+
+func TestResultDocument(t *testing.T) {
+	j := testJudgement()
+	j.Signals = append(j.Signals, SignalDecision{ID: "s1", Decision: Dismiss, Reason: "the catch logs through a wrapper"})
+	res, err := Finalize(testReview(t), j)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := Header{
+		Title: "Add the cache", BaseRef: "main", Files: []string{"app/A.kt", "app/New.kt", "app/Old.kt"},
+		CI:       CI{State: CINone},
+		Criteria: Criteria{Source: "default", Profile: "app", ProfileReason: "default profile of android", Packs: []string{"android"}},
+	}
+	doc := res.Document(h)
+	if doc.Schema != 1 || doc.CR != res.CR || doc.HeadSHA != testHead || doc.Verdict != res.Verdict || doc.Title != h.Title || doc.BaseRef != "main" {
+		t.Errorf("header of the document: %+v", doc)
+	}
+	if want := []Dismissal{{Rule: "empty-catch", Path: "app/A.kt", Line: 2, Reason: "the catch logs through a wrapper"}}; !reflect.DeepEqual(doc.SignalsDismissed, want) {
+		t.Errorf("dismissed %+v, want %+v", doc.SignalsDismissed, want)
+	}
+	if !reflect.DeepEqual(doc.Questions, j.Questions) || !reflect.DeepEqual(doc.Notes, j.Notes) || !reflect.DeepEqual(doc.AgentNotVerified, j.NotVerified) {
+		t.Errorf("report data not kept: %+v %+v %+v", doc.Questions, doc.Notes, doc.AgentNotVerified)
+	}
+	if !reflect.DeepEqual(doc.Findings, res.Findings) || !reflect.DeepEqual(doc.PreExisting, res.PreExisting) {
+		t.Error("findings not kept")
+	}
+}
+
+// TestResultDocumentListsAreArrays checks that empty lists encode as
+// arrays, as the findings contract requires, not null.
+func TestResultDocumentListsAreArrays(t *testing.T) {
+	data, err := json.Marshal(Result{CR: testReview(t).CR, Verdict: OK}.Document(Header{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "null") {
+		t.Errorf("null in %s", data)
+	}
+}

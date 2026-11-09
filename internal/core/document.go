@@ -118,3 +118,45 @@ func DecodeDocument(data []byte) (Document, error) {
 	}
 	return d, nil
 }
+
+// Header is what a findings document holds besides the result of
+// finalizing: the change request as the platform shows it, the files that
+// were not reviewed, the checks and the criteria.
+type Header struct {
+	Title, BaseRef string
+	// Files are the changed files, in diff order.
+	Files       []string
+	NotVerified []UnverifiedFile
+	CI          CI
+	Criteria    Criteria
+}
+
+// Document is the findings document of the result. Empty lists are empty
+// arrays, never null, as the findings contract requires.
+func (r Result) Document(h Header) Document {
+	dismissed := []Dismissal{}
+	for _, d := range r.Dismissed {
+		dismissed = append(dismissed, Dismissal{Rule: d.Signal.Rule, Path: d.Signal.Path, Line: d.Signal.Line, Reason: d.Reason})
+	}
+	crit := h.Criteria
+	crit.Packs, crit.Notes = nonNil(crit.Packs), nonNil(crit.Notes)
+	if crit.Dimensions == nil {
+		crit.Dimensions = map[string]DimensionChoice{}
+	}
+	ci := h.CI
+	ci.Checks = nonNil(ci.Checks)
+	return Document{
+		Schema: 1, CR: r.CR, Title: h.Title, HeadSHA: r.HeadSHA, BaseRef: h.BaseRef, Verdict: r.Verdict, Summary: r.Summary,
+		Files: nonNil(h.Files), Findings: nonNil(r.Findings), PreExisting: nonNil(r.PreExisting),
+		NotVerified: nonNil(h.NotVerified), AgentNotVerified: nonNil(r.AgentNotVerified),
+		SignalsDismissed: dismissed, Questions: nonNil(r.Questions), Notes: nonNil(r.Notes),
+		CI: ci, Criteria: crit,
+	}
+}
+
+func nonNil[T any](s []T) []T {
+	if s == nil {
+		return []T{}
+	}
+	return s
+}
