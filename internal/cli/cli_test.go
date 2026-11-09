@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/Brg92/agent-code-review/internal/version"
@@ -11,7 +12,7 @@ func TestRunVersion(t *testing.T) {
 	for _, arg := range []string{"version", "--version"} {
 		t.Run(arg, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			if code := Run([]string{arg}, &stdout, &stderr); code != exitOK {
+			if code := Run([]string{arg}, strings.NewReader(""), &stdout, &stderr); code != exitOK {
 				t.Errorf("Run(%q) = %d, want %d", arg, code, exitOK)
 			}
 			if want := version.Version + "\n"; stdout.String() != want {
@@ -40,7 +41,7 @@ func TestRunUsage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			if code := Run(tt.args, &stdout, &stderr); code != exitUsage {
+			if code := Run(tt.args, strings.NewReader(""), &stdout, &stderr); code != exitUsage {
 				t.Errorf("Run(%q) = %d, want %d", tt.args, code, exitUsage)
 			}
 			if stdout.Len() != 0 {

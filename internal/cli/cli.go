@@ -16,7 +16,7 @@ const (
 const usage = "usage: agent-code-review <version | --version>\n"
 
 // Run executes the command in args (program name excluded) and returns its exit code.
-func Run(args []string, stdout, stderr io.Writer) int {
+func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) == 1 && (args[0] == "version" || args[0] == "--version") {
 		fmt.Fprintln(stdout, version.Version)
 		return exitOK
