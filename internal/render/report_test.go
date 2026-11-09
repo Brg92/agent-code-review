@@ -218,3 +218,36 @@ func TestReportGroupsExistingCode(t *testing.T) {
 		t.Errorf("verdict:\n%s", got)
 	}
 }
+
+func check(name, status, concl string) core.Check {
+	c := core.Check{Name: name, Status: status}
+	if concl != "" {
+		c.Conclusion = conclusion(concl)
+	}
+	return c
+}
+
+func TestPipeline(t *testing.T) {
+	tests := []struct {
+		ci   core.CI
+		want string
+	}{
+		{core.CI{State: core.CIPassing, Checks: []core.Check{check("lint", "completed", "success")}}, "passing on head (1 check)"},
+		{core.CI{State: core.CIFailing, Checks: []core.Check{
+			check("lint", "completed", "failure"), check("test", "completed", "success"), check("instrumented", "in_progress", ""),
+			check("lint", "completed", "failure"), check("e2e", "completed", "timed_out"),
+		}}, "failing on head: lint, e2e"},
+		{core.CI{State: core.CIPending, Checks: []core.Check{
+			check("lint", "completed", "success"), check("instrumented", "in_progress", ""), check("deploy", "queued", ""),
+		}}, "pending on head: instrumented, deploy"},
+		{core.CI{State: core.CINone, Checks: []core.Check{}}, "none on head"},
+		{core.CI{State: core.CIUnknown, Reason: "forbidden", Detail: "Resource not accessible by integration", Checks: []core.Check{}},
+			"not verified (forbidden: Resource not accessible by integration)"},
+		{core.CI{State: core.CIUnknown, Reason: "error", Checks: []core.Check{}}, "not verified (error)"},
+	}
+	for _, tt := range tests {
+		if got := pipeline(tt.ci); got != tt.want {
+			t.Errorf("%s: %q, want %q", tt.ci.State, got, tt.want)
+		}
+	}
+}

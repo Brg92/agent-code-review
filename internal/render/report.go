@@ -280,12 +280,45 @@ func cleanFiles(d core.Document) []string {
 	return out
 }
 
+// failedConclusions are the conclusions of a completed check that failed.
+var failedConclusions = map[string]bool{"failure": true, "timed_out": true, "cancelled": true, "action_required": true}
+
+// pipeline says how the checks on the head commit stand. A failing or
+// pending pipeline names the checks that make it so, once each, in the
+// order of the checks.
 func pipeline(ci core.CI) string {
 	switch ci.State {
 	case core.CIPassing:
 		return "passing on head (" + plural(len(ci.Checks), "check", "checks") + ")"
+	case core.CIFailing:
+		return named("failing on head", ci.Checks, func(c core.Check) bool {
+			return c.Status == "completed" && c.Conclusion != nil && failedConclusions[*c.Conclusion]
+		})
+	case core.CIPending:
+		return named("pending on head", ci.Checks, func(c core.Check) bool { return c.Status != "completed" })
+	case core.CIUnknown:
+		why := ci.Reason
+		if d := oneLine(ci.Detail); d != "" {
+			why += ": " + d
+		}
+		return "not verified (" + why + ")"
 	}
 	return "none on head"
+}
+
+func named(state string, checks []core.Check, pick func(core.Check) bool) string {
+	var names []string
+	seen := map[string]bool{}
+	for _, c := range checks {
+		if pick(c) && !seen[c.Name] {
+			seen[c.Name] = true
+			names = append(names, c.Name)
+		}
+	}
+	if len(names) == 0 {
+		return state
+	}
+	return state + ": " + strings.Join(names, ", ")
 }
 
 // verdictText is the verdict of the report, counted from the BLOCKER
