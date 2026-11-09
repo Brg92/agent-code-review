@@ -132,16 +132,13 @@ type Checklist struct {
 
 // Checklist builds the checklist of the rule set with rules.Checklist.
 func (s Ruleset) Checklist() Checklist {
-	var plugin []*rules.Rule
 	var cl Checklist
 	for _, r := range s.Rules {
 		if r.Source == RepositorySource {
 			cl.Repository = append(cl.Repository, r)
-			continue
 		}
-		plugin = append(plugin, r.Rule)
 	}
-	cl.Sections = rules.Checklist(plugin, s.Context)
+	cl.Sections = rules.Checklist(s.PackRules(), s.Context)
 	return cl
 }
 
@@ -153,4 +150,23 @@ func (s Ruleset) ByID() map[string]*rules.Rule {
 		out[r.ID] = r.Rule
 	}
 	return out
+}
+
+// PackRules returns the core and pack rules of the set, with their
+// options, in order: those the rule engine runs.
+func (s Ruleset) PackRules() []*rules.Rule {
+	var out []*rules.Rule
+	for _, r := range s.Rules {
+		if r.Source != RepositorySource {
+			out = append(out, r.Rule)
+		}
+	}
+	return out
+}
+
+// ForFile returns the pack rules whose conditions hold for a file, given
+// its whole context: the profile, and the repository and file dimensions,
+// as packs.Assignment.Context gives it.
+func (s Ruleset) ForFile(c rules.Context) []*rules.Rule {
+	return rules.Applicable(s.PackRules(), c)
 }

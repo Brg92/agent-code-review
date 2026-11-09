@@ -237,3 +237,33 @@ func TestRulesetByID(t *testing.T) {
 		t.Error("a rule whose conditions do not hold is a rule of the change request")
 	}
 }
+
+// TestRulesetForFile checks that the rules the engine runs on a file are
+// the pack and core rules of the set whose file conditions hold there.
+func TestRulesetForFile(t *testing.T) {
+	set, active := syntheticSet(t)
+	c := repoCriteria(repoA)
+	c.RuleOptions = map[string]map[string]int{"mobile-lines": {"max": 150}}
+	rs := core.EffectiveRules(core.RulesetInput{Set: set, Active: active, Profile: "app", Criteria: c})
+	ids := func(list []*rules.Rule) string {
+		var out []string
+		for _, r := range list {
+			out = append(out, r.ID)
+		}
+		return strings.Join(out, " ")
+	}
+	plugin := ids(rs.PackRules())
+	if strings.Contains(plugin, "repo-a") || !strings.Contains(plugin, "mobile-android") {
+		t.Errorf("pack rules %s", plugin)
+	}
+	ios := ids(rs.ForFile(rules.Context{Profile: "app", Dimensions: map[string]string{"platform": "ios"}}))
+	android := ids(rs.ForFile(rules.Context{Profile: "app", Dimensions: map[string]string{"platform": "android"}}))
+	if strings.Contains(ios, "mobile-android") || !strings.Contains(android, "mobile-android") {
+		t.Errorf("ios %s\nandroid %s", ios, android)
+	}
+	for _, r := range rs.ForFile(rules.Context{Profile: "app"}) {
+		if r.ID == "mobile-lines" && r.Fix != "Wrap within 150." {
+			t.Errorf("the engine gets the rule without its option: %q", r.Fix)
+		}
+	}
+}
