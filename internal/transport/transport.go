@@ -89,8 +89,9 @@ func New(cfg Config) (*Client, error) {
 		maxBody:  maxBody,
 		userAgnt: "agent-code-review/" + version.Version,
 		http: &http.Client{
-			Transport: getOnly{rt},
-			Timeout:   timeout,
+			Transport:     getOnly{rt},
+			Timeout:       timeout,
+			CheckRedirect: checkRedirect,
 		},
 	}, nil
 }
