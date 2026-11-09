@@ -35,7 +35,7 @@
       "why": "`displayName()` throws a NullPointerException when no name has been stored, which crashes the app.",
       "fix": "Return a default name, or make `displayName()` return `String?`.",
       "references": [],
-      "placement": "inline",
+      "placement": "summary",
       "anchor": {
         "kind": "context",
         "side": "RIGHT",

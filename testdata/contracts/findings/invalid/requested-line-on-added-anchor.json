@@ -92,7 +92,7 @@
       "fix": "Return a default name, or make `displayName()` return `String?`.",
       "references": [],
       "crash": true,
-      "placement": "inline",
+      "placement": "summary",
       "anchor": {
         "kind": "context",
         "side": "RIGHT",
@@ -110,7 +110,7 @@
       "why": "The work is never cancelled.",
       "fix": "Launch it in a scope owned by the caller.",
       "references": [],
-      "placement": "inline",
+      "placement": "summary",
       "anchor": {
         "kind": "relocated",
         "side": "RIGHT",

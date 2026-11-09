@@ -52,10 +52,16 @@
       }
     },
     "preExisting": {
-      "description": "Defects already on the target branch, reported apart.",
+      "description": "Defects already on the target branch, reported apart. They are never commented inline: their placement is always summary.",
       "type": "array",
       "items": {
-        "$ref": "#/$defs/reportedFinding"
+        "$ref": "#/$defs/reportedFinding",
+        "properties": {
+          "placement": {
+            "description": "Always summary: code that already exists is never commented inline.",
+            "const": "summary"
+          }
+        }
       }
     },
     "notVerified": {
