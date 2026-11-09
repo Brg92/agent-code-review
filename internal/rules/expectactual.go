@@ -8,7 +8,9 @@ import (
 
 // detectExpectActual signals each expect declaration that the change
 // request adds or changes in a file of the common group, when a platform
-// group of its module has files at head and holds no matching actual:
+// group of its module has files at head and holds no matching actual, or,
+// for an intermediate group without files, one of its target groups that
+// has files holds none:
 // same package, containers, name and kind, with the actual modifier. An
 // actual is looked for in the changed files at head, then by a search of
 // the target branch outside them. A module whose platform groups cannot
@@ -33,15 +35,31 @@ func detectExpectActual(r *Rule, cr ChangeRequest, emit func(Signal), skip func(
 			return p
 		}
 		var p platforms
-		for _, g := range e.groups {
+		// with lists the directory of a group when it has files, and
+		// reports whether it has.
+		with := func(g string) (bool, error) {
 			dir := module + strings.Replace(e.pattern, groupPlaceholder, g, 1)
 			paths, err := cr.list(dir)
+			if err == nil && len(paths) > 0 {
+				p.dirs = append(p.dirs, dir)
+			}
+			return len(paths) > 0, err
+		}
+	groups:
+		for _, g := range e.groups {
+			has, err := with(g)
 			if err != nil {
 				p = platforms{err: err}
 				break
 			}
-			if len(paths) > 0 {
-				p.dirs = append(p.dirs, dir)
+			if has {
+				continue
+			}
+			for _, t := range e.targets[g] {
+				if _, err := with(t); err != nil {
+					p = platforms{err: err}
+					break groups
+				}
 			}
 		}
 		modules[module] = p

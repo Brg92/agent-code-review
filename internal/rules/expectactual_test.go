@@ -130,3 +130,48 @@ func TestExpectActualFailures(t *testing.T) {
 		{Path: platformPath, Reason: ReasonSearchUnavailable, Detail: "kmp-expect-without-actual: Clock"},
 	})
 }
+
+func TestExpectActualIntermediateGroups(t *testing.T) {
+	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"kotlin-multiplatform","rules":[{"id":"kmp-expect-without-actual","title":"T",` +
+		`"severity":"BLOCKER","needsJudgement":true,"description":"D","why":"W","fix":"F","languages":["kotlin"],"tags":[],"match":` +
+		strings.TrimSuffix(expectActualMatch, "}") + `,"intermediateGroups":{"iosMain":["iosArm64Main","iosX64Main","iosSimulatorArm64Main"]}}}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rule := c.Rules[0]
+	const (
+		arm64 = "shared/src/iosArm64Main/kotlin/p/Platform.arm64.kt"
+		x64   = "shared/src/iosX64Main/kotlin/p/Platform.x64.kt"
+	)
+	common := symbolFile(t, platformPath, "", "package p\n\nexpect fun platformName(): String\n", []int{1, 2, 3}, nil)
+	at := func(paths ...string) []Match {
+		var out []Match
+		for _, p := range paths {
+			out = append(out, Match{Path: p, Line: 3})
+		}
+		return out
+	}
+	tests := []struct {
+		name string
+		tree fakeTree
+		hits []Match
+		want []string
+	}{
+		{"iosMain holds the actual", fakeTree{platformPath, androidPath, iosPath, arm64}, at(androidPath, iosPath), nil},
+		{"iosMain without the actual", fakeTree{platformPath, androidPath, iosPath, arm64}, at(androidPath, arm64),
+			[]string{"RIGHT kmp-expect-without-actual " + platformPath + ":3:12"}},
+		{"every per-target set holds it", fakeTree{platformPath, androidPath, arm64, x64}, at(androidPath, arm64, x64), nil},
+		{"one per-target set lacks it", fakeTree{platformPath, androidPath, arm64, x64}, at(androidPath, arm64),
+			[]string{"RIGHT kmp-expect-without-actual " + platformPath + ":3:12"}},
+		{"per-target sets absent from the tree", fakeTree{platformPath, androidPath}, at(androidPath), nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &fakeSearch{hits: map[string][]Match{kmpShared + " main platformName": tt.hits}}
+			checkSignals(t, RunChangeRequest([]*Rule{rule}, kmpChange(tt.tree, s, common)), tt.want, nil)
+		})
+	}
+	// Without intermediate groups, per-target sets need no actual.
+	s := &fakeSearch{hits: map[string][]Match{kmpShared + " main platformName": at(androidPath)}}
+	checkSignals(t, RunChangeRequest([]*Rule{expectRule(t)}, kmpChange(fakeTree{platformPath, androidPath, arm64}, s, common)), nil, nil)
+}
