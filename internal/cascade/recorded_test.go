@@ -1,4 +1,4 @@
-package cascade
+package cascade_test
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Brg92/agent-code-review/internal/cascade"
 	"github.com/Brg92/agent-code-review/internal/core"
 	"github.com/Brg92/agent-code-review/internal/forges/github"
 	"github.com/Brg92/agent-code-review/internal/forges/gitlab"
@@ -78,23 +79,23 @@ func loadRecorded(t *testing.T, scenarios ...string) *recorded {
 	return r
 }
 
-func (r *recorded) Get(_ context.Context, key core.Key) (Item, error) {
+func (r *recorded) Get(_ context.Context, key core.Key) (cascade.Item, error) {
 	r.asked = append(r.asked, key.String())
 	pull, ok := r.byURL[fmt.Sprintf("/repos/%s/pulls/%d", key.Project, key.Number)]
 	if !ok {
-		return Item{}, fmt.Errorf("no recording of the pull request %s", key)
+		return cascade.Item{}, fmt.Errorf("no recording of the pull request %s", key)
 	}
 	if pull.Status == 200 {
-		return Item{Kind: KindChangeRequest, Title: pull.Body.Title, Description: pull.Body.Body, Head: pull.Body.Head.SHA}, nil
+		return cascade.Item{Kind: cascade.KindChangeRequest, Title: pull.Body.Title, Description: pull.Body.Body, Head: pull.Body.Head.SHA}, nil
 	}
 	issue, ok := r.byURL[fmt.Sprintf("/repos/%s/issues/%d", key.Project, key.Number)]
 	switch {
 	case !ok:
-		return Item{}, fmt.Errorf("pull request %s is missing and its issue is not recorded", key)
+		return cascade.Item{}, fmt.Errorf("pull request %s is missing and its issue is not recorded", key)
 	case issue.Status == 200:
-		return Item{Kind: KindIssue, Title: issue.Body.Title}, nil
+		return cascade.Item{Kind: cascade.KindIssue, Title: issue.Body.Title}, nil
 	}
-	return Item{Kind: KindNotFound}, nil
+	return cascade.Item{Kind: cascade.KindNotFound}, nil
 }
 
 const sandbox = "github:github.com/acr-plugin-sandbox/"
@@ -121,7 +122,7 @@ func exampleState(t *testing.T, name string) *state.State {
 func sameCascade(t *testing.T, got []core.Entry, want []core.Entry) {
 	t.Helper()
 	if len(got) != len(want) {
-		t.Fatalf("%d entries, want %d:\n%q", len(got), len(want), walk(Result{Entries: got}))
+		t.Fatalf("%d entries, want %d:\n%q", len(got), len(want), walk(cascade.Result{Entries: got}))
 	}
 	for i, w := range want {
 		g := got[i]
@@ -137,7 +138,7 @@ func sameCascade(t *testing.T, got []core.Entry, want []core.Entry) {
 func TestResolveS2(t *testing.T) {
 	src := loadRecorded(t, "S2", "S4")
 	root := k(t, sandbox+"sample-app#7")
-	res, err := Resolve(context.Background(), src, refs.Compose(github.Registry{}, gitlab.Registry{}), root, core.DefaultLimits())
+	res, err := cascade.Resolve(context.Background(), src, refs.Compose(github.Registry{}, gitlab.Registry{}), root, core.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +199,7 @@ func TestResolveS2WithLowLimits(t *testing.T) {
 	src := loadRecorded(t, "S2", "S4")
 	root := k(t, sandbox+"sample-app#7")
 	limits := core.Limits{MaxDepth: 1, MaxChangeRequests: 2}
-	res, err := Resolve(context.Background(), src, refs.Compose(github.Registry{}, gitlab.Registry{}), root, limits)
+	res, err := cascade.Resolve(context.Background(), src, refs.Compose(github.Registry{}, gitlab.Registry{}), root, limits)
 	if err != nil {
 		t.Fatal(err)
 	}

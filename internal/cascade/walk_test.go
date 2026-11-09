@@ -1,4 +1,4 @@
-package cascade
+package cascade_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Brg92/agent-code-review/internal/cascade"
 	"github.com/Brg92/agent-code-review/internal/core"
 	"github.com/Brg92/agent-code-review/internal/forges/github"
 	"github.com/Brg92/agent-code-review/internal/forges/gitlab"
@@ -20,24 +21,24 @@ const sha = "0123456789abcdef0123456789abcdef01234567"
 
 // fake is a Source over a map; it counts the requests it gets.
 type fake struct {
-	items map[string]Item
+	items map[string]cascade.Item
 	calls map[string]int
 	err   error
 }
 
-func newFake() *fake { return &fake{items: map[string]Item{}, calls: map[string]int{}} }
+func newFake() *fake { return &fake{items: map[string]cascade.Item{}, calls: map[string]int{}} }
 
 func id(k core.Key) string { return strings.ToLower(k.String()) }
 
-func (f *fake) Get(_ context.Context, k core.Key) (Item, error) {
+func (f *fake) Get(_ context.Context, k core.Key) (cascade.Item, error) {
 	f.calls[id(k)]++
 	if f.err != nil {
-		return Item{}, f.err
+		return cascade.Item{}, f.err
 	}
 	if it, ok := f.items[id(k)]; ok {
 		return it, nil
 	}
-	return Item{Kind: KindNotFound}, nil
+	return cascade.Item{Kind: cascade.KindNotFound}, nil
 }
 
 // cr adds a change request whose Related Changes section has the given lines.
@@ -46,12 +47,12 @@ func (f *fake) cr(key string, lines ...string) *fake {
 	if len(lines) > 0 {
 		desc += "\n\n## Related Changes\n\n" + strings.Join(lines, "\n")
 	}
-	f.items[strings.ToLower(key)] = Item{Kind: KindChangeRequest, Title: "Title of " + key, Description: desc, Head: sha}
+	f.items[strings.ToLower(key)] = cascade.Item{Kind: cascade.KindChangeRequest, Title: "Title of " + key, Description: desc, Head: sha}
 	return f
 }
 
 func (f *fake) issue(key string) *fake {
-	f.items[strings.ToLower(key)] = Item{Kind: KindIssue, Title: "An issue"}
+	f.items[strings.ToLower(key)] = cascade.Item{Kind: cascade.KindIssue, Title: "An issue"}
 	return f
 }
 
@@ -67,13 +68,13 @@ func k(t *testing.T, s string) core.Key {
 func gh(n int) string  { return fmt.Sprintf("github:github.com/acme/app#%d", n) }
 func lib(n int) string { return fmt.Sprintf("github:github.com/acme/lib#%d", n) }
 
-func resolve(t *testing.T, f *fake, root string, limits core.Limits) Result {
+func resolve(t *testing.T, f *fake, root string, limits core.Limits) cascade.Result {
 	t.Helper()
 	reg := refs.Compose(github.Registry{}, gitlab.Registry{})
 	if strings.HasPrefix(root, "gitlab:") {
 		reg = refs.Compose(gitlab.Registry{}, github.Registry{})
 	}
-	res, err := Resolve(context.Background(), f, reg, k(t, root), limits)
+	res, err := cascade.Resolve(context.Background(), f, reg, k(t, root), limits)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +92,7 @@ func short(k core.Key) string {
 }
 
 // walk lists the entries as "<depth> <key> <parent> <status or reason>".
-func walk(res Result) []string {
+func walk(res cascade.Result) []string {
 	var out []string
 	for _, e := range res.Entries {
 		parent := "-"
@@ -107,7 +108,7 @@ func walk(res Result) []string {
 	return out
 }
 
-func order(res Result) []string {
+func order(res cascade.Result) []string {
 	var out []string
 	for _, k := range res.Order {
 		out = append(out, short(k))
@@ -169,7 +170,7 @@ func TestResolveSkips(t *testing.T) {
 		issue(gh(3)).
 		cr(gh(4), "- [ ] #2", "- [x] #2").
 		cr(lib(5))
-	f.items[strings.ToLower(lib(1))] = Item{Kind: KindChangeRequest, Description: "never fetched", Head: sha}
+	f.items[strings.ToLower(lib(1))] = cascade.Item{Kind: cascade.KindChangeRequest, Description: "never fetched", Head: sha}
 	res := resolve(t, f, gh(1), core.DefaultLimits())
 	check(t, "entries", walk(res), []string{
 		"0 app#1 <- pending",
@@ -359,28 +360,28 @@ func TestResolveGitLab(t *testing.T) {
 
 func TestResolveErrors(t *testing.T) {
 	t.Run("root not found", func(t *testing.T) {
-		_, err := Resolve(context.Background(), newFake(), github.Registry{}, k(t, gh(1)), core.DefaultLimits())
-		var re *RootError
-		if !errors.As(err, &re) || re.Kind != KindNotFound {
+		_, err := cascade.Resolve(context.Background(), newFake(), github.Registry{}, k(t, gh(1)), core.DefaultLimits())
+		var re *cascade.RootError
+		if !errors.As(err, &re) || re.Kind != cascade.KindNotFound {
 			t.Errorf("err = %v, want a *RootError for a missing change request", err)
 		}
 	})
 	t.Run("root is an issue", func(t *testing.T) {
-		_, err := Resolve(context.Background(), newFake().issue(gh(1)), github.Registry{}, k(t, gh(1)), core.DefaultLimits())
-		var re *RootError
-		if !errors.As(err, &re) || re.Kind != KindIssue {
+		_, err := cascade.Resolve(context.Background(), newFake().issue(gh(1)), github.Registry{}, k(t, gh(1)), core.DefaultLimits())
+		var re *cascade.RootError
+		if !errors.As(err, &re) || re.Kind != cascade.KindIssue {
 			t.Errorf("err = %v, want a *RootError for an issue", err)
 		}
 	})
 	t.Run("source fails", func(t *testing.T) {
 		boom := errors.New("boom")
 		f := newFake().cr(gh(1), "- [ ] #2")
-		_, err := Resolve(context.Background(), f, github.Registry{}, k(t, gh(1)), core.DefaultLimits())
+		_, err := cascade.Resolve(context.Background(), f, github.Registry{}, k(t, gh(1)), core.DefaultLimits())
 		if err != nil {
 			t.Fatal(err)
 		}
 		f.err = boom
-		_, err = Resolve(context.Background(), f, github.Registry{}, k(t, gh(1)), core.DefaultLimits())
+		_, err = cascade.Resolve(context.Background(), f, github.Registry{}, k(t, gh(1)), core.DefaultLimits())
 		if !errors.Is(err, boom) || !strings.Contains(err.Error(), gh(1)) {
 			t.Errorf("err = %v, want boom naming the key", err)
 		}
@@ -388,19 +389,19 @@ func TestResolveErrors(t *testing.T) {
 	t.Run("source fails below the root", func(t *testing.T) {
 		boom := errors.New("boom")
 		f := &failOn{fake: newFake().cr(gh(1), "- [ ] #2").cr(gh(2)), key: gh(2), err: boom}
-		_, err := Resolve(context.Background(), f, github.Registry{}, k(t, gh(1)), core.DefaultLimits())
+		_, err := cascade.Resolve(context.Background(), f, github.Registry{}, k(t, gh(1)), core.DefaultLimits())
 		if !errors.Is(err, boom) || !strings.Contains(err.Error(), gh(2)) {
 			t.Errorf("err = %v, want boom naming %s", err, gh(2))
 		}
 	})
 	t.Run("bad limits", func(t *testing.T) {
-		_, err := Resolve(context.Background(), newFake().cr(gh(1)), github.Registry{}, k(t, gh(1)), core.Limits{MaxDepth: 1})
+		_, err := cascade.Resolve(context.Background(), newFake().cr(gh(1)), github.Registry{}, k(t, gh(1)), core.Limits{MaxDepth: 1})
 		if err == nil || !strings.Contains(err.Error(), "maxChangeRequests") {
 			t.Errorf("err = %v", err)
 		}
 	})
 	t.Run("registry of another platform", func(t *testing.T) {
-		_, err := Resolve(context.Background(), newFake().cr(gh(1)), gitlab.Registry{}, k(t, gh(1)), core.DefaultLimits())
+		_, err := cascade.Resolve(context.Background(), newFake().cr(gh(1)), gitlab.Registry{}, k(t, gh(1)), core.DefaultLimits())
 		if err == nil {
 			t.Error("a gitlab registry was accepted for a github root")
 		}
@@ -410,7 +411,7 @@ func TestResolveErrors(t *testing.T) {
 		it := f.items[strings.ToLower(gh(1))]
 		it.Head = "abc"
 		f.items[strings.ToLower(gh(1))] = it
-		_, err := Resolve(context.Background(), f, github.Registry{}, k(t, gh(1)), core.DefaultLimits())
+		_, err := cascade.Resolve(context.Background(), f, github.Registry{}, k(t, gh(1)), core.DefaultLimits())
 		if err == nil || !strings.Contains(err.Error(), "headSha") {
 			t.Errorf("err = %v", err)
 		}
@@ -418,7 +419,7 @@ func TestResolveErrors(t *testing.T) {
 	t.Run("canceled", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
-		_, err := Resolve(ctx, newFake().cr(gh(1)), github.Registry{}, k(t, gh(1)), core.DefaultLimits())
+		_, err := cascade.Resolve(ctx, newFake().cr(gh(1)), github.Registry{}, k(t, gh(1)), core.DefaultLimits())
 		if !errors.Is(err, context.Canceled) {
 			t.Errorf("err = %v", err)
 		}
@@ -432,9 +433,9 @@ type failOn struct {
 	err error
 }
 
-func (f *failOn) Get(ctx context.Context, k core.Key) (Item, error) {
+func (f *failOn) Get(ctx context.Context, k core.Key) (cascade.Item, error) {
 	if id(k) == strings.ToLower(f.key) {
-		return Item{}, f.err
+		return cascade.Item{}, f.err
 	}
 	return f.fake.Get(ctx, k)
 }
