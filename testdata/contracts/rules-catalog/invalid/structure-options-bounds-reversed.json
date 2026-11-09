@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "rules": [
+    {
+      "id": "line-too-long",
+      "title": "Line too long",
+      "severity": "MINOR",
+      "description": "Lines stay within {max} characters.",
+      "why": "Long lines are hard to read.",
+      "fix": "Wrap the line within {max} characters.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "style"
+      ],
+      "match": {
+        "detector": "line-length",
+        "max": 100,
+        "lines": "added"
+      },
+      "options": {
+        "max": {
+          "min": 200,
+          "max": 60
+        }
+      }
+    }
+  ]
+}

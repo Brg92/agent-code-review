@@ -31,8 +31,8 @@ func Key(t testing.TB, repo string, number int) core.Key {
 }
 
 // Rules are the rules the scenario judgements may apply: the core rules
-// and the example android catalog of the contracts, which repeats one core
-// rule. The example catalog has no match, so its rules have no why or fix.
+// and the example android catalog of the contracts, which repeats two core
+// rules. The example catalog has no match, so its rules have no why or fix.
 func Rules(t testing.TB) map[string]*rules.Rule {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(root(), "testdata", "contracts", "rules-catalog", "valid", "android.json"))

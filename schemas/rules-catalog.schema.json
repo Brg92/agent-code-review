@@ -156,6 +156,17 @@
           "match": {
             "description": "What the rule matches mechanically. Absent: the rule is only judged, never matched.",
             "$ref": "#/$defs/match"
+          },
+          "options": {
+            "description": "Parameters of the match a repository may override with ruleOptions in its configuration, each with the bounds of the values it may set. The value in the match is the default and lies within the bounds. In the title, description, why and fix, {<parameter>} stands for the value in use. Absent: the rule has nothing to override.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "max": {
+                "description": "line-length: bounds of max.",
+                "$ref": "#/$defs/optionBounds"
+              }
+            }
           }
         }
       }
@@ -893,6 +904,27 @@
             "header": false,
             "body": false
           }
+        }
+      }
+    },
+    "optionBounds": {
+      "description": "Smallest and largest value a repository may set for a parameter, both included.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "description": "Smallest value allowed.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "max": {
+          "description": "Largest value allowed; not less than min.",
+          "type": "integer",
+          "minimum": 1
         }
       }
     },

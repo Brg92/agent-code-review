@@ -91,7 +91,7 @@ func TestScenarioS1(t *testing.T) {
 		{res.Findings, "run-blocking-prod", "inline added RIGHT 13", 13},
 		{res.Findings, "global-scope", "inline added RIGHT 19", 19},
 		{res.Findings, "no-double-bang", "inline added RIGHT 20", 20},
-		{res.Findings, "logic.always-throws", "inline relocated RIGHT 16 for 27", 27},
+		{res.Findings, "logic-defect", "inline relocated RIGHT 16 for 27", 27},
 		{res.PreExisting, "no-double-bang", "summary context RIGHT 8", 8},
 		{res.PreExisting, "global-scope", "summary relocated RIGHT 15 for 13", 13},
 	}
@@ -100,7 +100,7 @@ func TestScenarioS1(t *testing.T) {
 			t.Errorf("%s:%d is %s, want %s", tt.rule, tt.line, got, tt.want)
 		}
 	}
-	throws := find(t, res.Findings, "logic.always-throws", 27)
+	throws := find(t, res.Findings, "logic-defect", 27)
 	if got, want := throws.Anchor.Lead(throws.Path), "Refers to line 27 of `"+s1Dir+"ui/HomeViewModel.kt`, outside the changed lines."; got != want {
 		t.Errorf("lead %q, want %q", got, want)
 	}
@@ -160,7 +160,7 @@ func TestScenarioS3(t *testing.T) {
 	if res.Verdict != core.OK {
 		t.Errorf("verdict %s, want OK: a MAJOR does not block", res.Verdict)
 	}
-	validation := find(t, res.Findings, "logic.removed-validation", 7)
+	validation := find(t, res.Findings, "logic-defect", 7)
 	if validation.Severity != core.Major || anchor(validation) != "inline removed LEFT 7" {
 		t.Errorf("removed validation: %s %s, want MAJOR on the removed line", validation.Severity, anchor(validation))
 	}

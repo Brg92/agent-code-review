@@ -39,7 +39,7 @@
       ]
     },
     {
-      "id": "logic.always-throws",
+      "id": "logic-defect",
       "title": "Code that always throws",
       "severity": "BLOCKER",
       "description": "A call that throws on every path, often because a precondition is no longer set up.",
@@ -51,7 +51,7 @@
       ]
     },
     {
-      "id": "logic.removed-validation",
+      "id": "logic-defect",
       "title": "A change removes input validation",
       "severity": "MAJOR",
       "description": "Removing a `require` or `check` lets invalid input through.",

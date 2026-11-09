@@ -10,7 +10,7 @@ BLOCKER (3) — inline notes on publish
   [BLOCKER] app/src/main/java/com/example/sample/data/SessionRepository.kt:19 — prefetch() launches in GlobalScope  [global-scope]
             why: The work is never cancelled and outlives its caller.
             fix: Make `prefetch()` a suspend function or take a `CoroutineScope`.
-  [BLOCKER] app/src/main/java/com/example/sample/ui/HomeViewModel.kt:27 (relocated to 16) — requireUser() always throws in refresh()  [logic.always-throws]
+  [BLOCKER] app/src/main/java/com/example/sample/ui/HomeViewModel.kt:27 (relocated to 16) — requireUser() always throws in refresh()  [logic-defect]
             why: This change removes the `warmUp()` call from `init`, and nothing else calls `warmUp()`. `cachedUser` therefore stays null, and `requireUser()` always throws IllegalStateException when `refresh()` runs.
             fix: Keep the `repository.warmUp()` call in `init`.
 

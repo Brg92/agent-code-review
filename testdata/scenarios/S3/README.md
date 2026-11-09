@@ -26,7 +26,7 @@ All paths below are under `src/main/`.
 
 | File | Code | Rule | Severity | Where |
 | --- | --- | --- | --- | --- |
-| `session/codec/TokenCodec.kt` | removed `require(token.isNotBlank()) { "token must not be blank" }` | `logic.removed-validation` | MAJOR | **removed line**: left side, old line 7 |
+| `session/codec/TokenCodec.kt` | removed `require(token.isNotBlank()) { "token must not be blank" }` | `logic-defect` | MAJOR (judged down from the default BLOCKER: nothing crashes) | **removed line**: left side, old line 7 |
 | `session/SessionExpiry.kt` | `if (...) { return true } else { return false }`, 5 lines | `style.redundant-if` | MINOR | added lines, with a **multi-line suggestion** |
 
 Expected multi-line suggestion, replacing the five lines of `isExpired`'s body:

@@ -43,6 +43,10 @@ type Rule struct {
 	When map[string][]string
 
 	match *match
+	// options are the overridable parameters of the match, by name; text
+	// is the rule's text with their placeholders.
+	options []Option
+	text    ruleText
 }
 
 // ProfileKey is the key of the profile condition in Rule.When.
@@ -262,6 +266,7 @@ type (
 		Group          *string                    `json:"group"`
 		When           map[string]json.RawMessage `json:"when"`
 		Match          *rawMatch                  `json:"match"`
+		Options        *rawOptions                `json:"options"`
 	}
 	rawMatch struct {
 		Patterns        []rawPattern `json:"patterns"`
@@ -476,6 +481,13 @@ func compileRule(rr rawRule, defFiles files, ignore []pattern) (*Rule, error) {
 	}
 	if r.match != nil && !r.NeedsJudgement && (r.Why == "" || r.Fix == "") {
 		return fail("a matched rule that needs no judgement writes its findings: why and fix are required")
+	}
+	r.text = ruleText{title: r.Title, description: r.Description, why: r.Why, fix: r.Fix}
+	if err := compileOptions(r, rr.Options); err != nil {
+		return fail("options: %v", err)
+	}
+	if r.options != nil {
+		r.apply()
 	}
 	return r, nil
 }

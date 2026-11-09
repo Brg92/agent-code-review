@@ -10,8 +10,8 @@
 > target branch.
 
 In `config.json`, `profile` is `library`, so the library rules apply. Set
-`variants`, `disabledRules` and `dimensions` as for an app; pack rules cannot be
-weakened from a repository.
+`variants`, `dimensions`, `ruleOptions`, `disabledRules` and `sharedLibraries`
+as for an app; pack rules always apply and cannot be weakened from a repository.
 
 ## Environment
 
@@ -43,6 +43,7 @@ a **severity** and a **reason** that states the consequence.
 
 ## Known exceptions (never reported)
 
-Exceptions to the rules of this file only.
+Exceptions to the rules of this file only; an exception that names a pack rule is
+ignored and reported, since pack rules always apply.
 
 - <for example: `internal.compat` is exempt from `<lib>-swift-api-undeclared`>

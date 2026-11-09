@@ -7,5 +7,6 @@
   ],
   "variants": [],
   "disabledRules": [],
-  "noise": []
+  "noise": [],
+  "sharedLibraries": []
 }

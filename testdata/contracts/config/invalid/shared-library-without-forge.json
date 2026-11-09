@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "profile": "app",
+  "packs": [
+    "android"
+  ],
+  "variants": [
+    "free",
+    "paid"
+  ],
+  "sharedLibraries": [
+    "acr-plugin-sandbox/core-lib"
+  ]
+}

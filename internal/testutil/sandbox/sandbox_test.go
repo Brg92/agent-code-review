@@ -55,3 +55,21 @@ func TestPullRequest(t *testing.T) {
 		t.Errorf("PullRequest = %+v", p)
 	}
 }
+
+func TestContents(t *testing.T) {
+	file := Contents(t, "S6", "core-lib", ".github/mr-review.json", "main")
+	if !file.Recorded || file.Status != 200 || !strings.Contains(string(file.File), `"profile": "library"`) || file.Dir != nil {
+		t.Errorf("mr-review.json = %+v", file)
+	}
+	dir := Contents(t, "S6", "core-lib", ".github/skills", "main")
+	if !dir.Recorded || dir.Status != 200 || len(dir.Dir) != 1 || dir.Dir[0] != (Entry{Name: "core-lib-code-review", Dir: true}) {
+		t.Errorf(".github/skills = %+v", dir)
+	}
+	missing := Contents(t, "S6", "kmp-shared", ".github/skills", "main")
+	if !missing.Recorded || missing.Status != 404 || missing.File != nil || missing.Dir != nil {
+		t.Errorf("missing .github/skills = %+v", missing)
+	}
+	if other := Contents(t, "S6", "core-lib", ".github/mr-review.json", "develop"); other.Recorded {
+		t.Errorf("a ref that was not recorded: %+v", other)
+	}
+}

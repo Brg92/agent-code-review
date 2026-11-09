@@ -8,7 +8,10 @@
     "android"
   ],
   "variants": [],
+  "dimensions": {},
   "disabledRules": [],
+  "ruleOptions": {},
+  "rules": [],
   "noise": [
     "gradle/verification-metadata.xml"
   ],
@@ -18,6 +21,7 @@
   "consumers": [
     "github:github.com/acr-plugin-sandbox/sample-app"
   ],
+  "sharedLibraries": [],
   "cascade": {},
   "files": [
     ".github/skills/core-lib-code-review/SKILL.md",

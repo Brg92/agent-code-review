@@ -11,9 +11,13 @@
     "free",
     "paid"
   ],
+  "dimensions": {},
   "disabledRules": [],
+  "ruleOptions": {},
+  "rules": [],
   "publicApi": [],
   "consumers": [],
+  "sharedLibraries": [],
   "cascade": {},
   "files": [
     ".agent-code-review/config.json",

@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "project": "github:github.com/acr-plugin-sandbox/sample-app",
+  "ref": "main",
+  "source": "overlay",
+  "profile": "app",
+  "packs": [
+    "android"
+  ],
+  "variants": [
+    "free",
+    "paid"
+  ],
+  "dimensions": {},
+  "disabledRules": [],
+  "ruleOptions": {},
+  "noise": [
+    "gradle/verification-metadata.xml"
+  ],
+  "publicApi": [],
+  "consumers": [],
+  "sharedLibraries": [],
+  "cascade": {},
+  "files": [
+    ".agent-code-review/config.json",
+    ".agent-code-review/criteria.md"
+  ],
+  "notes": []
+}

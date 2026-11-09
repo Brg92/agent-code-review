@@ -3,7 +3,7 @@
   "pack": "android",
   "rules": [
     {
-      "id": "logic.removed-validation",
+      "id": "logic-defect",
       "title": "A change removes input validation",
       "severity": "MAJOR",
       "needsJudgement": "yes",

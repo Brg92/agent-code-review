@@ -13,7 +13,10 @@
     "profile",
     "packs",
     "variants",
+    "dimensions",
     "disabledRules",
+    "ruleOptions",
+    "rules",
     "noise",
     "publicApi",
     "consumers",
@@ -58,11 +61,33 @@
         "pattern": "^[a-z][A-Za-z0-9]*$"
       }
     },
+    "dimensions": {
+      "description": "Dimension values the repository sets, by dimension id; detection decides the others.",
+      "type": "object",
+      "additionalProperties": {
+        "description": "Value of the dimension named by the key.",
+        "$ref": "#/$defs/dimensionId"
+      }
+    },
     "disabledRules": {
-      "description": "Rules that are not applied.",
+      "description": "Repository rules that are not applied.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/ruleId"
+      }
+    },
+    "ruleOptions": {
+      "description": "Option values of rules that were applied, by rule id; the ignored ones are in notes.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/optionValues"
+      }
+    },
+    "rules": {
+      "description": "Rules the repository defines in its criteria files, in file order, without the ignored ones.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/repositoryRule"
       }
     },
     "noise": {
@@ -81,6 +106,13 @@
     },
     "consumers": {
       "description": "Repositories that use this one's public API.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/projectKey"
+      }
+    },
+    "sharedLibraries": {
+      "description": "Libraries this repository consumes whose change requests it may depend on; the rule dependency-mr-undeclared reads them. Absent: none.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/projectKey"
@@ -128,10 +160,23 @@
         "default"
       ]
     },
+    "dimensionId": {
+      "description": "Identifier of a dimension or of one of its values: lowercase words joined by hyphens.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
     "glob": {
       "description": "Path glob with forward slashes: '*' matches within a segment, '**' matches any number of segments.",
       "type": "string",
       "pattern": "^[^/\\\\]+(?:/[^/\\\\]+)*$"
+    },
+    "optionValues": {
+      "description": "Values for the options of one rule, by parameter name.",
+      "type": "object",
+      "additionalProperties": {
+        "description": "Value of the parameter named by the key; it must lie within the bounds the rule declares.",
+        "type": "integer"
+      }
     },
     "packId": {
       "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
@@ -154,6 +199,52 @@
       "description": "Relative path with forward slashes, without empty, '.' or '..' segments.",
       "type": "string",
       "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
+    },
+    "repositoryRule": {
+      "description": "A rule of the repository: a list item of the form - `<id>` — **<SEVERITY>**. <text> in a criteria file.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source",
+        "severity",
+        "text",
+        "file",
+        "line"
+      ],
+      "properties": {
+        "id": {
+          "description": "Rule identifier: lowercase words joined by hyphens.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "source": {
+          "description": "Always repository: the rule comes from the repository, not from a pack.",
+          "const": "repository"
+        },
+        "severity": {
+          "description": "Severity of the rule; repository rules have no INFO.",
+          "enum": [
+            "BLOCKER",
+            "MAJOR",
+            "MINOR"
+          ]
+        },
+        "text": {
+          "description": "What the rule says, after its severity, in Markdown.",
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "file": {
+          "description": "Criteria file the rule is written in.",
+          "$ref": "#/$defs/relativePath"
+        },
+        "line": {
+          "description": "1-based line of the rule's list item.",
+          "type": "integer",
+          "minimum": 1
+        }
+      }
     },
     "ruleId": {
       "description": "Rule identifier: lowercase words joined by hyphens, optionally in dot-separated groups, for example no-double-bang.",

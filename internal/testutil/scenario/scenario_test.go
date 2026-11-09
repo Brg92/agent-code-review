@@ -20,7 +20,7 @@ func TestReview(t *testing.T) {
 			}
 		}
 	}
-	for _, id := range []string{"uses-removed-api", "logic.removed-validation", "no-double-bang"} {
+	for _, id := range []string{"uses-removed-api", "logic-defect", "no-double-bang"} {
 		if _, ok := r.Rules[id]; !ok {
 			t.Errorf("rule %s missing", id)
 		}

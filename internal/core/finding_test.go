@@ -44,7 +44,7 @@ func TestFinalize(t *testing.T) {
 	check("findings", brief(res.Findings), []string{
 		"empty-catch BLOCKER app/A.kt:RIGHT2 added RIGHT 2 inline from s1",
 		"no-double-bang MAJOR app/A.kt:RIGHT3 context RIGHT 3 inline from s2",
-		"logic.always-throws BLOCKER app/A.kt:RIGHT6 relocated RIGHT 4 for 6 inline",
+		"logic-defect BLOCKER app/A.kt:RIGHT6 relocated RIGHT 4 for 6 inline",
 	})
 	check("pre-existing", brief(res.PreExisting), []string{
 		"no-double-bang BLOCKER app/A.kt:RIGHT5 relocated RIGHT 4 for 5 summary crash from s3",
@@ -121,7 +121,7 @@ func TestFinalizeSuggestions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			j := testJudgement()
-			rule := "logic.always-throws"
+			rule := "logic-defect"
 			if tt.path == "app/Big.kt" {
 				rule = "big"
 			}
@@ -177,7 +177,7 @@ func TestFinalizeFingerprints(t *testing.T) {
 	want := []string{
 		FindingFingerprint("empty-catch", "app/A.kt", "b", 0),
 		FindingFingerprint("no-double-bang", "app/A.kt", "c", 0),
-		FindingFingerprint("logic.always-throws", "app/A.kt", "f", 0),
+		FindingFingerprint("logic-defect", "app/A.kt", "f", 0),
 		FindingFingerprint("no-double-bang", "app/A.kt", "e", 0),
 		FindingFingerprint("dead-code", "app/Old.kt", "q", 0),
 	}
@@ -210,7 +210,7 @@ func TestFinalizeOccurrenceIndex(t *testing.T) {
 	r.Files[1].Head = []string{"  launch {", "x", "launch   {"}
 	r.Signals = nil
 	finding := func(line int) JudgedFinding {
-		return JudgedFinding{Rule: "logic.always-throws", Severity: Blocker, Path: "app/New.kt", Side: Right, Line: line,
+		return JudgedFinding{Rule: "logic-defect", Severity: Blocker, Path: "app/New.kt", Side: Right, Line: line,
 			Title: "t", Why: "w", Fix: "f", References: []Reference{}}
 	}
 	j := testJudgement()
@@ -224,9 +224,9 @@ func TestFinalizeOccurrenceIndex(t *testing.T) {
 	// Lines 1 and 3 have the same normalised text: line 1 is occurrence 0
 	// and line 3 occurrence 1, whatever the order of the judgement.
 	want := []string{
-		FindingFingerprint("logic.always-throws", "app/New.kt", "launch {", 1),
-		FindingFingerprint("logic.always-throws", "app/New.kt", "x", 0),
-		FindingFingerprint("logic.always-throws", "app/New.kt", "launch {", 0),
+		FindingFingerprint("logic-defect", "app/New.kt", "launch {", 1),
+		FindingFingerprint("logic-defect", "app/New.kt", "x", 0),
+		FindingFingerprint("logic-defect", "app/New.kt", "launch {", 0),
 	}
 	if got := idsOf(res.Findings); !reflect.DeepEqual(got, want) {
 		t.Errorf("ids\n%q\nwant\n%q", got, want)

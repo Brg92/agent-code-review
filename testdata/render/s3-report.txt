@@ -6,7 +6,7 @@ Scope: 6 changed files · head 1bb2c03a
 BLOCKER (0) — inline notes on publish
 
 MAJOR (1) — one issue on publish
-  [MAJOR]   src/main/java/com/example/core/session/codec/TokenCodec.kt:7 — The move drops the blank-token check in encode()  [logic.removed-validation]
+  [MAJOR]   src/main/java/com/example/core/session/codec/TokenCodec.kt:7 — The move drops the blank-token check in encode()  [logic-defect]
             why: The move to the codec package also drops the check that the token is not blank, so `encode()` now silently stores an empty token.
             fix: Keep the `require()` call.
 

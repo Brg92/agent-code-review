@@ -3,6 +3,20 @@
   "pack": "core",
   "rules": [
     {
+      "id": "logic-defect",
+      "title": "A defect in the logic of the change",
+      "severity": "BLOCKER",
+      "needsJudgement": true,
+      "description": "The change makes the code do the wrong thing: a wrong result, a call that always throws, removed validation that lets invalid input through, or code that has become unreachable. Use it for a defect in the logic that no more specific rule names, on the line where the defect is, which may be outside the hunks when a change elsewhere breaks it. Lower the severity when the defect cannot crash or corrupt data.",
+      "why": "State what goes wrong at runtime, and for which input or path.",
+      "fix": "State the smallest change that restores the intended behaviour, for example the check to put back or the call to make first.",
+      "languages": [],
+      "tags": [
+        "logic"
+      ],
+      "group": "Logic"
+    },
+    {
       "id": "variant-asymmetry",
       "title": "A change in one variant without its counterpart",
       "severity": "MAJOR",
@@ -25,7 +39,7 @@
       "id": "dependency-mr-undeclared",
       "title": "Relies on an undeclared change of a shared library",
       "severity": "MAJOR",
-      "description": "The change request relies on a change in a shared library (a new version, a new or changed symbol) and its Related Changes section has no entry for it. Which libraries are shared comes from the repository criteria.",
+      "description": "The change request relies on a change in a shared library (a new version, a new or changed symbol) and its Related Changes section has no entry for it. The shared libraries are the sharedLibraries of the repository criteria, as project keys.",
       "languages": [],
       "tags": [
         "cascade"

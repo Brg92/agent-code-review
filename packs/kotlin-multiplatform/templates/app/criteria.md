@@ -9,8 +9,10 @@
 > target branch, so a change takes effect once it is merged.
 
 In `config.json`, set `variants` to the build variants of the repository,
-`disabledRules` to the pack rules that do not apply here, and `dimensions` to fix
-a value that detection gets wrong. Pack rules cannot be weakened from a
+`dimensions` to fix a value that detection gets wrong, `ruleOptions` to change a
+value a pack rule allows, and `disabledRules` to the rules of this file that are
+switched off for now, and `sharedLibraries` to the project keys of the shared
+libraries it consumes. Pack rules always apply and cannot be weakened from a
 repository. Rules that name a platform apply per file: a file in `commonMain`
 gets the Kotlin rules and the multiplatform rules, not the Android-only ones.
 
@@ -51,7 +53,8 @@ the change request; `MAJOR` and `MINOR` are tracked.
 
 ## Known exceptions (never reported)
 
-Exceptions to the rules of this file only.
+Exceptions to the rules of this file only; an exception that names a pack rule is
+ignored and reported, since pack rules always apply.
 
 - <for example: `LegacyBridge` is exempt from `<app>-platform-code-in-common`
   because it wraps a platform-only SDK>

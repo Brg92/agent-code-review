@@ -41,10 +41,17 @@
       }
     },
     "disabledRules": {
-      "description": "Rules that are not applied in this repository.",
+      "description": "Repository rules, from criteria.md, that are not applied. Pack and core rules always apply: naming one is ignored and reported.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/ruleId"
+      }
+    },
+    "ruleOptions": {
+      "description": "Values for the options a rule declares, by rule id, for example {\"line-too-long\": {\"max\": 120}}. An unknown rule, a parameter the rule does not declare or a value outside its bounds is ignored and reported.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/optionValues"
       }
     },
     "noise": {
@@ -52,6 +59,13 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/glob"
+      }
+    },
+    "sharedLibraries": {
+      "description": "Libraries this repository consumes whose change requests it may depend on, as project keys. The rule dependency-mr-undeclared reads them.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/projectKey"
       }
     },
     "cascade": {
@@ -83,6 +97,14 @@
       "type": "string",
       "pattern": "^[^/\\\\]+(?:/[^/\\\\]+)*$"
     },
+    "optionValues": {
+      "description": "Values for the options of one rule, by parameter name.",
+      "type": "object",
+      "additionalProperties": {
+        "description": "Value of the parameter named by the key; it must lie within the bounds the rule declares.",
+        "type": "integer"
+      }
+    },
     "packId": {
       "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
       "type": "string",
@@ -94,6 +116,11 @@
         "app",
         "library"
       ]
+    },
+    "projectKey": {
+      "description": "Project key: <forge>:<host>/<project>, for example github:github.com/acr-plugin-sandbox/sample-app.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
     },
     "ruleId": {
       "description": "Rule identifier: lowercase words joined by hyphens, optionally in dot-separated groups, for example no-double-bang.",

@@ -11,12 +11,16 @@
     "free",
     "paid"
   ],
+  "dimensions": {},
   "disabledRules": [],
+  "ruleOptions": {},
+  "rules": [],
   "noise": [
     "gradle/verification-metadata.xml"
   ],
   "publicApi": [],
   "consumers": [],
+  "sharedLibraries": [],
   "cascade": {},
   "files": [
     ".agent-code-review/config.json",

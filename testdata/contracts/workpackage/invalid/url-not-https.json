@@ -21,7 +21,7 @@
   },
   "rules": [
     {
-      "id": "logic.removed-validation",
+      "id": "logic-defect",
       "severity": "MAJOR",
       "title": "A change removes input validation"
     },

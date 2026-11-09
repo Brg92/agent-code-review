@@ -38,9 +38,10 @@ type FileList struct {
 }
 
 type recording struct {
-	Path  string            `json:"path"`
-	Query map[string]string `json:"query"`
-	Body  json.RawMessage   `json:"body"`
+	Path   string            `json:"path"`
+	Query  map[string]string `json:"query"`
+	Status int               `json:"status"`
+	Body   json.RawMessage   `json:"body"`
 }
 
 // root is the repository root, found from this file so that tests of any
@@ -169,6 +170,63 @@ func Content(t testing.TB, scenario, repo, path, ref string) (string, bool) {
 		return string(data), true
 	}
 	return "", false
+}
+
+// Entry is an entry of a recorded directory listing.
+type Entry struct {
+	Name string
+	Dir  bool
+}
+
+// Recorded is the recorded contents response for a path at a ref: a file,
+// a directory listing, or a status without either, such as 404.
+type Recorded struct {
+	// Recorded is false when no response was recorded for the request.
+	Recorded bool
+	Status   int
+	File     []byte
+	Dir      []Entry
+}
+
+// Contents returns the recorded contents response for path of repo at
+// ref in a scenario, whatever its status.
+func Contents(t testing.TB, scenario, repo, path, ref string) Recorded {
+	t.Helper()
+	want := "/repos/" + Owner + "/" + repo + "/contents/" + path
+	for f, r := range recordings(t, filepath.Join(scenario, "GET_repos_*_contents_*.json")) {
+		if r.Path != want || r.Query["ref"] != ref {
+			continue
+		}
+		out := Recorded{Recorded: true, Status: r.Status}
+		if r.Status != 200 {
+			return out
+		}
+		var list []struct {
+			Name string `json:"name"`
+			Type string `json:"type"`
+		}
+		if json.Unmarshal(r.Body, &list) == nil {
+			out.Dir = []Entry{}
+			for _, e := range list {
+				out.Dir = append(out.Dir, Entry{Name: e.Name, Dir: e.Type == "dir"})
+			}
+			return out
+		}
+		var body struct {
+			Encoding string `json:"encoding"`
+			Content  string `json:"content"`
+		}
+		if err := json.Unmarshal(r.Body, &body); err != nil || body.Encoding != "base64" {
+			t.Fatalf("%s: not a base64 file: %v", f, err)
+		}
+		data, err := base64.StdEncoding.DecodeString(stripNewlines(body.Content))
+		if err != nil {
+			t.Fatalf("%s: %v", f, err)
+		}
+		out.File = data
+		return out
+	}
+	return Recorded{}
 }
 
 func stripNewlines(s string) string {
