@@ -143,8 +143,8 @@ func TestAndroidMechanicalRules(t *testing.T) {
 }
 
 // TestAndroidMechanicalRulesAreCovered checks that every rule with a
-// match has a case that signals and a case that does not, and a java case
-// when it applies to java.
+// match on one file has a case that signals and a case that does not, and
+// a java case when it applies to java.
 func TestAndroidMechanicalRulesAreCovered(t *testing.T) {
 	p := loadAndroid(t)
 	positive, negative, javaCase := map[string]bool{}, map[string]bool{}, map[string]bool{}
@@ -163,7 +163,7 @@ func TestAndroidMechanicalRulesAreCovered(t *testing.T) {
 	}
 	matched := 0
 	for _, r := range p.Rules.Rules {
-		if !r.Matched() {
+		if !r.Matched() || r.OnChangeRequest() {
 			continue
 		}
 		matched++
@@ -177,7 +177,7 @@ func TestAndroidMechanicalRulesAreCovered(t *testing.T) {
 		}
 	}
 	if matched != 17 {
-		t.Errorf("%d rules have a match, want 17", matched)
+		t.Errorf("%d rules have a match on one file, want 17", matched)
 	}
 }
 
