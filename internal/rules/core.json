@@ -6,11 +6,20 @@
       "id": "variant-asymmetry",
       "title": "A change in one variant without its counterpart",
       "severity": "MAJOR",
-      "description": "A change under one flavor or product-variant source set has no counterpart in the others, and the feature is not deliberately variant-specific. Not checked in single-variant repositories.",
+      "needsJudgement": true,
+      "description": "A change under one flavor or product-variant source set has no counterpart in the others, and the feature is not deliberately variant-specific. A file changed under `src/<variant>/` whose counterpart under another variant of the configuration exists and is not changed is a candidate. Not checked in single-variant repositories.",
+      "why": "The variants now behave differently, and the ones left unchanged ship without the change.",
+      "fix": "Make the matching change in the other variants, or move the code to a source set they share.",
       "languages": [],
       "tags": [
         "variants"
-      ]
+      ],
+      "match": {
+        "scope": "change-request",
+        "detector": "counterpart",
+        "groupsFrom": "config.variants",
+        "groupPattern": "src/{group}/"
+      }
     },
     {
       "id": "dependency-mr-undeclared",

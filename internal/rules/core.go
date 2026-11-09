@@ -21,7 +21,8 @@ var core = func() *Catalog {
 }()
 
 // Core returns the core catalog: the rules that need the whole change
-// request or the cascade, whichever stack it uses. They have no match.
+// request or the cascade, whichever stack it uses. None has a match on
+// one file; a rule with a match sees the whole change request.
 func Core() *Catalog { return core }
 
 // Merge lists the rules of the catalogs in order, and fails if two
