@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "rules": [
+    {
+      "id": "platform-asymmetry",
+      "title": "A change in one platform only",
+      "severity": "MAJOR",
+      "needsJudgement": true,
+      "description": "A change in one platform source set without its counterpart in the others.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "multiplatform"
+      ],
+      "match": {
+        "scope": "change-request",
+        "detector": "counterpart",
+        "groups": [
+          "androidMain"
+        ],
+        "groupPattern": "src/{group}/",
+        "stripSuffixes": [
+          ".android",
+          ".ios"
+        ]
+      }
+    }
+  ]
+}

@@ -416,73 +416,16 @@
       "pattern": "^[^\\sA-Za-z0-9_]$"
     },
     "match": {
-      "description": "What a rule matches mechanically: token patterns or one generic detector.",
+      "description": "What a rule matches mechanically: token patterns or one generic detector on each file, or, with scope change-request, one detector on the whole change request.",
       "type": "object",
       "additionalProperties": false,
-      "if": {
-        "required": [
-          "detector"
-        ]
-      },
-      "then": {
-        "properties": {
-          "patterns": false,
-          "exclude": false
-        },
-        "if": {
-          "properties": {
-            "detector": {
-              "const": "line-length"
-            }
-          }
-        },
-        "then": {
-          "required": [
-            "max"
-          ],
-          "properties": {
-            "declarations": false,
-            "modifiers": false,
-            "skipModifiers": false,
-            "types": false,
-            "notAfter": false,
-            "annotation": false,
-            "skipAnnotations": false,
-            "header": false,
-            "body": false
-          }
-        },
-        "else": {
-          "required": [
-            "declarations",
-            "types",
-            "annotation",
-            "header",
-            "body"
-          ],
-          "properties": {
-            "max": false
-          }
-        }
-      },
-      "else": {
-        "required": [
-          "patterns"
-        ],
-        "properties": {
-          "max": false,
-          "declarations": false,
-          "modifiers": false,
-          "skipModifiers": false,
-          "types": false,
-          "notAfter": false,
-          "annotation": false,
-          "skipAnnotations": false,
-          "header": false,
-          "body": false
-        }
-      },
       "properties": {
+        "scope": {
+          "description": "change-request: the detector sees the whole change request (its changed files, their contents at head and the repository tree at head) instead of one file. Absent: one file at a time.",
+          "enum": [
+            "change-request"
+          ]
+        },
         "patterns": {
           "description": "Token patterns; a match of any of them is a signal.",
           "type": "array",
@@ -511,10 +454,12 @@
           ]
         },
         "detector": {
-          "description": "A generic detector instead of token patterns. line-length: lines longer than max runes. missing-doc: declarations at top level or directly in a type body with no doc comment right before them.",
+          "description": "A generic detector instead of token patterns. On each file, line-length: lines longer than max runes; missing-doc: declarations at top level or directly in a type body with no doc comment right before them. On the change request (scope change-request), missing-test: an added or modified source whose test is neither in the change request nor under a test root of its module; counterpart: a changed file whose counterpart in another group exists and is not changed.",
           "enum": [
             "line-length",
-            "missing-doc"
+            "missing-doc",
+            "missing-test",
+            "counterpart"
           ]
         },
         "max": {
@@ -590,6 +535,250 @@
         "body": {
           "description": "missing-doc: brackets of a body.",
           "$ref": "#/$defs/bracketPair"
+        },
+        "sources": {
+          "description": "missing-test: globs of the source files that need a test.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/glob"
+          }
+        },
+        "nameSuffixes": {
+          "description": "missing-test: endings of the file name, extension excluded, that make a source need a test, for example ViewModel.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          }
+        },
+        "moduleSeparator": {
+          "description": "missing-test: path fragment that ends the module part of a source path, for example src/main/; the test roots are relative to what comes before it.",
+          "type": "string",
+          "pattern": "^[^/\\\\*{}]+(?:/[^/\\\\*{}]+)*/$"
+        },
+        "testRoots": {
+          "description": "missing-test: directories, relative to the module, where the tests of its sources live, for example src/test.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[^/\\\\*{}]+(?:/[^/\\\\*{}]+)*$"
+          }
+        },
+        "testName": {
+          "description": "missing-test: file name of the test, extension excluded, where {name} stands for the name of the source, for example {name}Test.",
+          "type": "string",
+          "pattern": "^[^/\\\\*{}]*\\{name\\}[^/\\\\*{}]*$"
+        },
+        "testExtensions": {
+          "description": "missing-test: extensions a test file may have, for example .kt.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^\\.[A-Za-z0-9]+$"
+          }
+        },
+        "groups": {
+          "description": "counterpart: the groups, as they appear in paths, for example androidMain and iosMain. Exactly one of groups and groupsFrom.",
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        },
+        "groupsFrom": {
+          "description": "counterpart: where the groups come from instead of groups. config.variants: the variants of the repository configuration; the rule is skipped when there are fewer than two.",
+          "enum": [
+            "config.variants"
+          ]
+        },
+        "groupPattern": {
+          "description": "counterpart: how a group appears in a path, with {group} standing for it, for example src/{group}/. A file is under a group when its path contains the pattern at the start of a segment.",
+          "type": "string",
+          "pattern": "^(?:[^/\\\\*{}]+/)*[^/\\\\*{}]*\\{group\\}[^/\\\\*{}]*/$"
+        },
+        "stripSuffixes": {
+          "description": "counterpart: endings removed from a file name, before its extension, when comparing paths across groups, for example .android so that Foo.android.kt and Foo.ios.kt are counterparts.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^\\.[A-Za-z0-9_-]+$"
+          }
+        }
+      },
+      "if": {
+        "required": [
+          "scope"
+        ]
+      },
+      "then": {
+        "required": [
+          "detector"
+        ],
+        "properties": {
+          "patterns": false,
+          "exclude": false,
+          "files": false,
+          "lines": false,
+          "max": false,
+          "declarations": false,
+          "modifiers": false,
+          "skipModifiers": false,
+          "types": false,
+          "notAfter": false,
+          "annotation": false,
+          "skipAnnotations": false,
+          "header": false,
+          "body": false,
+          "detector": {
+            "enum": [
+              "missing-test",
+              "counterpart"
+            ]
+          }
+        },
+        "if": {
+          "properties": {
+            "detector": {
+              "const": "missing-test"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "sources",
+            "nameSuffixes",
+            "moduleSeparator",
+            "testRoots",
+            "testName",
+            "testExtensions"
+          ],
+          "properties": {
+            "groups": false,
+            "groupsFrom": false,
+            "groupPattern": false,
+            "stripSuffixes": false
+          }
+        },
+        "else": {
+          "required": [
+            "groupPattern"
+          ],
+          "properties": {
+            "sources": false,
+            "nameSuffixes": false,
+            "moduleSeparator": false,
+            "testRoots": false,
+            "testName": false,
+            "testExtensions": false
+          },
+          "if": {
+            "required": [
+              "groups"
+            ]
+          },
+          "then": {
+            "properties": {
+              "groupsFrom": false
+            }
+          },
+          "else": {
+            "required": [
+              "groupsFrom"
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "sources": false,
+          "nameSuffixes": false,
+          "moduleSeparator": false,
+          "testRoots": false,
+          "testName": false,
+          "testExtensions": false,
+          "groups": false,
+          "groupsFrom": false,
+          "groupPattern": false,
+          "stripSuffixes": false,
+          "detector": {
+            "enum": [
+              "line-length",
+              "missing-doc"
+            ]
+          }
+        },
+        "if": {
+          "required": [
+            "detector"
+          ]
+        },
+        "then": {
+          "properties": {
+            "patterns": false,
+            "exclude": false
+          },
+          "if": {
+            "properties": {
+              "detector": {
+                "const": "line-length"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "max"
+            ],
+            "properties": {
+              "declarations": false,
+              "modifiers": false,
+              "skipModifiers": false,
+              "types": false,
+              "notAfter": false,
+              "annotation": false,
+              "skipAnnotations": false,
+              "header": false,
+              "body": false
+            }
+          },
+          "else": {
+            "required": [
+              "declarations",
+              "types",
+              "annotation",
+              "header",
+              "body"
+            ],
+            "properties": {
+              "max": false
+            }
+          }
+        },
+        "else": {
+          "required": [
+            "patterns"
+          ],
+          "properties": {
+            "max": false,
+            "declarations": false,
+            "modifiers": false,
+            "skipModifiers": false,
+            "types": false,
+            "notAfter": false,
+            "annotation": false,
+            "skipAnnotations": false,
+            "header": false,
+            "body": false
+          }
         }
       }
     },
