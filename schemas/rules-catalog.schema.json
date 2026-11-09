@@ -637,6 +637,20 @@
           "description": "expect-actual: the group whose expect declarations are checked, for example commonMain.",
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "intermediateGroups": {
+          "description": "expect-actual: platform groups that are intermediate source sets, each with the target groups below it, for example iosMain with iosArm64Main and iosX64Main. When the intermediate group has files at head, it must hold the actual; when it has none, each of its target groups with files must. Every key must be one of groups; a target group is not one of groups.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "The target groups below the intermediate group.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
+          }
         }
       },
       "if": {
@@ -696,7 +710,8 @@
             "symbolChange": false,
             "expectKeyword": false,
             "actualKeyword": false,
-            "commonGroup": false
+            "commonGroup": false,
+            "intermediateGroups": false
           }
         },
         "else": {
@@ -721,7 +736,8 @@
               "symbolChange": false,
               "expectKeyword": false,
               "actualKeyword": false,
-              "commonGroup": false
+              "commonGroup": false,
+              "intermediateGroups": false
             },
             "if": {
               "required": [
@@ -764,7 +780,8 @@
                 "stripSuffixes": false,
                 "expectKeyword": false,
                 "actualKeyword": false,
-                "commonGroup": false
+                "commonGroup": false,
+                "intermediateGroups": false
               }
             },
             "else": {
@@ -806,6 +823,7 @@
           "expectKeyword": false,
           "actualKeyword": false,
           "commonGroup": false,
+          "intermediateGroups": false,
           "detector": {
             "enum": [
               "line-length",

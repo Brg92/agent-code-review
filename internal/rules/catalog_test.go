@@ -95,13 +95,14 @@ const (
 
 func TestLoadCatalogChangeRequestScope(t *testing.T) {
 	for name, m := range map[string]string{
-		"missing-test":                     missingTest,
-		"counterpart":                      counterpart,
-		"counterpart, variants":            strings.Replace(counterpart, `"groups":["androidMain","iosMain"]`, `"groupsFrom":"config.variants"`, 1),
-		"counterpart, no strip":            strings.Replace(counterpart, `,"stripSuffixes":[".android",".ios"]`, ``, 1),
-		"symbol-usage, removed":            symbolUsage,
-		"symbol-usage, required parameter": strings.Replace(symbolUsage, `"removed"`, `"required-parameter"`, 1),
-		"expect-actual":                    expectActual,
+		"missing-test":                       missingTest,
+		"counterpart":                        counterpart,
+		"counterpart, variants":              strings.Replace(counterpart, `"groups":["androidMain","iosMain"]`, `"groupsFrom":"config.variants"`, 1),
+		"counterpart, no strip":              strings.Replace(counterpart, `,"stripSuffixes":[".android",".ios"]`, ``, 1),
+		"symbol-usage, removed":              symbolUsage,
+		"symbol-usage, required parameter":   strings.Replace(symbolUsage, `"removed"`, `"required-parameter"`, 1),
+		"expect-actual":                      expectActual,
+		"expect-actual, intermediate groups": strings.TrimSuffix(expectActual, "}") + `,"intermediateGroups":{"iosMain":["iosArm64Main","iosX64Main"]}}`,
 	} {
 		c, err := LoadCatalog([]byte(catalogWith(m)))
 		if err != nil {
@@ -205,6 +206,14 @@ func TestLoadCatalogRejects(t *testing.T) {
 		{"expect-actual one group", catalogWith(strings.Replace(expectActual, `"androidMain",`, ``, 1)), "two"},
 		{"expect-actual groups from variants", catalogWith(strings.Replace(expectActual, `"groups":["androidMain","iosMain"]`, `"groupsFrom":"config.variants"`, 1)), "groupsFrom"},
 		{"expect-actual pattern without placeholder", catalogWith(strings.Replace(expectActual, `src/{group}/`, `src/main/`, 1)), "groupPattern"},
+		{"expect-actual intermediate not a group", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"intermediateGroups":{"iosMain":["iosX64Main"],"wasmMain":["wasmJs"]}}`), "wasmMain"},
+		{"expect-actual intermediate without targets", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"intermediateGroups":{"iosMain":[]}}`), "iosMain"},
+		{"expect-actual target among groups", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"intermediateGroups":{"iosMain":["androidMain"]}}`), "androidMain"},
+		{"expect-actual target is the common group", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"intermediateGroups":{"iosMain":["commonMain"]}}`), "commonMain"},
+		{"expect-actual target twice", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"intermediateGroups":{"iosMain":["iosX64Main","iosX64Main"]}}`), "twice"},
+		{"expect-actual target of two intermediates", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"intermediateGroups":{"iosMain":["x"],"androidMain":["x"]}}`), "twice"},
+		{"expect-actual malformed target", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"intermediateGroups":{"iosMain":["ios Main"]}}`), "ios Main"},
+		{"counterpart with intermediate groups", catalogWith(strings.TrimSuffix(counterpart, "}") + `,"intermediateGroups":{"iosMain":["x"]}}`), "expect-actual"},
 		{"expect-actual with strip suffixes", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"stripSuffixes":[".ios"]}`), "stripSuffixes"},
 	}
 	for _, tt := range tests {

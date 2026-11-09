@@ -62,9 +62,17 @@
         "commonGroup": "commonMain",
         "groups": [
           "androidMain",
-          "iosMain"
+          "iosMain",
+          "jvmMain"
         ],
-        "groupPattern": "src/{group}/"
+        "groupPattern": "src/{group}/",
+        "intermediateGroups": {
+          "iosMain": [
+            "iosArm64Main",
+            "iosX64Main",
+            "iosSimulatorArm64Main"
+          ]
+        }
       }
     }
   ]

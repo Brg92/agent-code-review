@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/Brg92/agent-code-review/internal/lexer"
@@ -126,6 +127,9 @@ type expectParams struct {
 	expect, actual string
 	common         string
 	groups         []string
+	// targets maps an intermediate group of groups to the target groups
+	// below it, which need the actual when it has no files.
+	targets map[string][]string
 	// pattern is how a group appears in a path; groupPlaceholder stands
 	// for the group.
 	pattern string
@@ -290,6 +294,8 @@ type (
 		ExpectKeyword   *string      `json:"expectKeyword"`
 		ActualKeyword   *string      `json:"actualKeyword"`
 		CommonGroup     *string      `json:"commonGroup"`
+		// IntermediateGroups maps an intermediate group to its targets.
+		IntermediateGroups map[string][]string `json:"intermediateGroups"`
 	}
 	rawBracket struct {
 		Open  string `json:"open"`
@@ -610,6 +616,7 @@ func (rm rawMatch) changeRequestParams() []struct {
 		{"groups", rm.Groups != nil}, {"groupsFrom", rm.GroupsFrom != nil}, {"groupPattern", rm.GroupPattern != nil},
 		{"stripSuffixes", rm.StripSuffixes != nil}, {"symbolChange", rm.SymbolChange != nil},
 		{"expectKeyword", rm.ExpectKeyword != nil}, {"actualKeyword", rm.ActualKeyword != nil}, {"commonGroup", rm.CommonGroup != nil},
+		{"intermediateGroups", rm.IntermediateGroups != nil},
 	}
 }
 
@@ -629,7 +636,7 @@ var detectorParams = map[string][]string{
 	detectorMissingTest:  {"sources", "nameSuffixes", "moduleSeparator", "testRoots", "testName", "testExtensions"},
 	detectorCounterpart:  {"groups", "groupsFrom", "groupPattern", "stripSuffixes"},
 	detectorSymbolUsage:  {"symbolChange"},
-	detectorExpectActual: {"expectKeyword", "actualKeyword", "commonGroup", "groups", "groupPattern"},
+	detectorExpectActual: {"expectKeyword", "actualKeyword", "commonGroup", "groups", "groupPattern", "intermediateGroups"},
 }
 
 // foreignParam returns an error for the first parameter that is set and
@@ -818,8 +825,52 @@ func compileExpect(rm rawMatch, distinct func(string, []string, *regexp.Regexp) 
 	if rm.GroupPattern == nil || !groupPath.MatchString(*rm.GroupPattern) || strings.Count(*rm.GroupPattern, groupPlaceholder) != 1 {
 		return e, fmt.Errorf("expect-actual needs a groupPattern: a relative path ending with / with %s once", groupPlaceholder)
 	}
+	targets, err := compileTargets(rm.IntermediateGroups, rm.Groups, *rm.CommonGroup)
+	if err != nil {
+		return e, err
+	}
 	e.expect, e.actual, e.common, e.groups, e.pattern = *rm.ExpectKeyword, *rm.ActualKeyword, *rm.CommonGroup, rm.Groups, *rm.GroupPattern
+	e.targets = targets
 	return e, nil
+}
+
+// compileTargets checks the intermediate groups of expect-actual: each is
+// one of groups, with at least one target group, and a target group is
+// neither one of groups nor the common group, nor below two of them.
+func compileTargets(raw map[string][]string, groups []string, common string) (map[string][]string, error) {
+	if len(raw) == 0 {
+		return nil, nil
+	}
+	isGroup := map[string]bool{}
+	for _, g := range groups {
+		isGroup[g] = true
+	}
+	keys := make([]string, 0, len(raw))
+	for k := range raw {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	seen := map[string]bool{}
+	for _, k := range keys {
+		switch {
+		case !isGroup[k]:
+			return nil, fmt.Errorf("intermediateGroups: %q is not one of groups", k)
+		case len(raw[k]) == 0:
+			return nil, fmt.Errorf("intermediateGroups: %q has no target groups", k)
+		}
+		for _, t := range raw[k] {
+			switch {
+			case !groupName.MatchString(t):
+				return nil, fmt.Errorf("intermediateGroups: %s: %q is not a group name", k, t)
+			case isGroup[t] || t == common:
+				return nil, fmt.Errorf("intermediateGroups: %s: %q is also a platform or the common group", k, t)
+			case seen[t]:
+				return nil, fmt.Errorf("intermediateGroups: %s: %q is listed twice", k, t)
+			}
+			seen[t] = true
+		}
+	}
+	return raw, nil
 }
 
 func compileDoc(rm rawMatch) (docParams, error) {
