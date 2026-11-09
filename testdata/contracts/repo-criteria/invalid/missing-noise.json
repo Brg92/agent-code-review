@@ -11,7 +11,10 @@
     "free",
     "paid"
   ],
+  "dimensions": {},
   "disabledRules": [],
+  "ruleOptions": {},
+  "rules": [],
   "publicApi": [],
   "consumers": [],
   "cascade": {},

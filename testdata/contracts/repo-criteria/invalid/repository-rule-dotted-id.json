@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "project": "github:github.com/acr-plugin-sandbox/sample-app",
+  "ref": "main",
+  "source": "overlay",
+  "profile": "app",
+  "packs": [
+    "android"
+  ],
+  "variants": [
+    "free",
+    "paid"
+  ],
+  "dimensions": {
+    "ui-toolkit": "views"
+  },
+  "disabledRules": [],
+  "ruleOptions": {
+    "line-too-long": {
+      "max": 120
+    }
+  },
+  "rules": [
+    {
+      "id": "sample-app.analytics",
+      "source": "repository",
+      "severity": "MAJOR",
+      "text": "Analytics events go through `AnalyticsTracker`, never the SDK directly.",
+      "file": ".agent-code-review/criteria.md",
+      "line": 12
+    },
+    {
+      "id": "sample-app-feature-flag-hardcoded",
+      "source": "repository",
+      "severity": "BLOCKER",
+      "text": "Feature flags are read from `FeatureFlags`, never as literals.",
+      "file": ".agent-code-review/criteria.md",
+      "line": 14
+    }
+  ],
+  "noise": [
+    "gradle/verification-metadata.xml"
+  ],
+  "publicApi": [],
+  "consumers": [],
+  "cascade": {},
+  "files": [
+    ".agent-code-review/config.json",
+    ".agent-code-review/criteria.md"
+  ],
+  "notes": [
+    "Repository criteria ignored: `no-double-bang` in disabledRules — pack and core rules always apply."
+  ]
+}

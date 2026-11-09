@@ -8,7 +8,10 @@
     "android"
   ],
   "variants": [],
+  "dimensions": {},
   "disabledRules": [],
+  "ruleOptions": {},
+  "rules": [],
   "noise": [
     "gradle/verification-metadata.xml"
   ],

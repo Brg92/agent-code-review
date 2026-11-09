@@ -8,7 +8,10 @@
     "kotlin-multiplatform"
   ],
   "variants": [],
+  "dimensions": {},
   "disabledRules": [],
+  "ruleOptions": {},
+  "rules": [],
   "noise": [],
   "publicApi": [],
   "consumers": [],
