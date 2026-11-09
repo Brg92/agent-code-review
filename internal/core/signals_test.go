@@ -39,3 +39,35 @@ func TestRulesFile(t *testing.T) {
 		t.Errorf("removed file = %+v", gone)
 	}
 }
+
+func TestNumberSignals(t *testing.T) {
+	files := []ChangedFile{{Diff: FileDiff{Path: "z/B.kt"}}, {Diff: FileDiff{Path: "a/A.kt"}}}
+	fileSignals := []rules.Signal{
+		{RuleID: "empty-catch", Severity: "BLOCKER", Path: "z/B.kt", Line: 9, Column: 3, Origin: rules.OriginMR},
+		{RuleID: "no-double-bang", NeedsJudgement: true, Path: "a/A.kt", Line: 2, Column: 5, Origin: rules.OriginExisting},
+		{RuleID: "line-too-long", Severity: "MINOR", Path: "z/B.kt", Line: 4, Column: 101, Origin: rules.OriginMR},
+	}
+	changeRequestSignals := []rules.Signal{
+		{RuleID: "missing-tests", Severity: "MAJOR", Path: "z/B.kt", Line: 4, Column: 101, Origin: rules.OriginMR},
+		{RuleID: "kmp-source-set-asymmetry", NeedsJudgement: true, Path: "a/A.kt", Line: 1, Column: 1, Origin: rules.OriginMR},
+	}
+	got := NumberSignals(files, fileSignals, changeRequestSignals)
+	want := []Signal{
+		{ID: "s1", Rule: "line-too-long", Severity: Minor, Path: "z/B.kt", Line: 4, Column: 101, Origin: OriginMR},
+		{ID: "s2", Rule: "missing-tests", Severity: Major, Path: "z/B.kt", Line: 4, Column: 101, Origin: OriginMR},
+		{ID: "s3", Rule: "empty-catch", Severity: Blocker, Path: "z/B.kt", Line: 9, Column: 3, Origin: OriginMR},
+		{ID: "s4", Rule: "kmp-source-set-asymmetry", Path: "a/A.kt", Line: 1, Column: 1, Origin: OriginMR, NeedsJudgement: true},
+		{ID: "s5", Rule: "no-double-bang", Path: "a/A.kt", Line: 2, Column: 5, Origin: OriginExisting, NeedsJudgement: true},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("NumberSignals =\n%+v\nwant\n%+v", got, want)
+	}
+	stray := rules.Signal{RuleID: "r", Severity: "INFO", Path: "elsewhere.kt", Line: 1, Column: 1, Origin: rules.OriginMR}
+	got = NumberSignals(files, []rules.Signal{stray}, fileSignals[:1])
+	if len(got) != 2 || got[0].Path != "z/B.kt" || got[1].Path != "elsewhere.kt" || got[1].ID != "s2" {
+		t.Errorf("a signal outside the changed files comes last: %+v", got)
+	}
+	if got := NumberSignals(files); got == nil || len(got) != 0 {
+		t.Errorf("no signals: %#v, want an empty list", got)
+	}
+}

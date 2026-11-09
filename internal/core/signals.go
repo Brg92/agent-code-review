@@ -1,6 +1,8 @@
 package core
 
 import (
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/Brg92/agent-code-review/internal/rules"
@@ -31,4 +33,49 @@ func (f ChangedFile) RulesFile(assigned rules.File) rules.ChangedFile {
 	}
 	assigned.Path, assigned.Source, assigned.Added = f.Diff.Path, src, f.Diff.AddedLines()
 	return rules.ChangedFile{File: assigned, OldPath: f.Diff.OldPath, Removed: f.Diff.Status == FileRemoved}
+}
+
+// NumberSignals lists the signals of a change request as its work package
+// does and gives each its short id: s1, s2, ... The lists are typically
+// the signals of each file and those of the change-request rules. Signals
+// follow the order of the changed files, then line and column; on a tie,
+// and for a path that is not a changed file, which comes last, they keep
+// the order of the lists.
+func NumberSignals(files []ChangedFile, lists ...[]rules.Signal) []Signal {
+	fileAt := map[string]int{}
+	for i, f := range files {
+		if _, ok := fileAt[f.Diff.Path]; !ok {
+			fileAt[f.Diff.Path] = i
+		}
+	}
+	at := func(path string) int {
+		if i, ok := fileAt[path]; ok {
+			return i
+		}
+		return len(files)
+	}
+	var all []rules.Signal
+	for _, l := range lists {
+		all = append(all, l...)
+	}
+	sort.SliceStable(all, func(i, j int) bool {
+		a, b := all[i], all[j]
+		switch {
+		case at(a.Path) != at(b.Path):
+			return at(a.Path) < at(b.Path)
+		case at(a.Path) == len(files):
+			return false
+		case a.Line != b.Line:
+			return a.Line < b.Line
+		}
+		return a.Column < b.Column
+	})
+	out := make([]Signal, 0, len(all))
+	for i, s := range all {
+		out = append(out, Signal{
+			ID: "s" + strconv.Itoa(i+1), Rule: s.RuleID, Severity: Severity(s.Severity), Path: s.Path,
+			Line: s.Line, Column: s.Column, Origin: Origin(s.Origin), NeedsJudgement: s.NeedsJudgement,
+		})
+	}
+	return out
 }
