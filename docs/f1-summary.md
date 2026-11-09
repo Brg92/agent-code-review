@@ -161,7 +161,6 @@ Three PRs merged without `!` also broke a schema, as their descriptions say: [#2
 - **Judgement-only rules.** `contract-misuse` and `dependency-mr-undeclared` stay without a detector. `dependency-mr-undeclared` gets its input from `sharedLibraries`, but only the agent decides.
 - **Effective rule set and work package** (see above): neither is built yet, and both are needed before `review` can produce its first work package.
 - **Exit codes** ([exit-codes.md](exit-codes.md)) are still a proposal; they become binding with the first F2 command.
-- **Commit scope for dev tools.** `tools` is not in the scope list of `AGENTS.md` §4, though this PR's first commit uses it; earlier tools used `recorder`. Either add `tools` to the list or keep one scope per tool.
 - **Gate scope.** `cmd/` and `tools/` are outside the gate: `cmd/agent-code-review` is tested through a built binary and shows 0% in-process, and `tools/recorder` is at 78.2%. Keep the gate on `internal/` only, since `cmd/` will stay a one-line `main`.
 
 ## Re-estimate of F2 to F4
