@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/Brg92/agent-code-review/internal/rules"
@@ -113,11 +114,12 @@ func ReadCriteria(ctx context.Context, files Files, in CriteriaInput) (RepoCrite
 	case !found && !legacy:
 		c.Notes = append(c.Notes, fmt.Sprintf("No repository criteria on %s: only the pack and core rules apply.", in.Ref))
 	}
+	c.Rules = append(c.Rules, rr.rules...)
+	c.checkSettings(in.Rules)
 	if changed := changedCriteria(in.Changed); len(changed) > 0 {
 		c.Notes = append(c.Notes, fmt.Sprintf("Criteria changed in this change request are not applied: %s. The criteria of %s are used.",
 			strings.Join(changed, ", "), in.Ref))
 	}
-	c.Rules = append(c.Rules, rr.rules...)
 	c.Notes = append(c.Notes, rr.notes...)
 	return c, nil
 }
@@ -182,6 +184,77 @@ func (c *RepoCriteria) applyConfig(cfg RepoConfig) {
 	for id, values := range cfg.RuleOptions {
 		c.RuleOptions[id] = values
 	}
+}
+
+// checkSettings keeps the disabled rules that are repository rules and
+// the rule options that a pack or core rule declares, within its bounds,
+// noting each one it drops: pack and core rules always apply.
+func (c *RepoCriteria) checkSettings(known []*rules.Rule) {
+	ignore := func(item, reason string) { c.Notes = append(c.Notes, IgnoredPrefix+item+" — "+reason) }
+	byID := map[string]*rules.Rule{}
+	for _, r := range known {
+		byID[r.ID] = r
+	}
+	own := map[string]bool{}
+	for _, r := range c.Rules {
+		own[r.ID] = true
+	}
+	disabled := []string{}
+	for _, id := range c.DisabledRules {
+		item := fmt.Sprintf("`%s` in disabledRules (%s)", id, ConfigFile)
+		switch {
+		case own[id]:
+			disabled = append(disabled, id)
+		case byID[id] != nil:
+			ignore(item, "pack and core rules always apply")
+		default:
+			ignore(item, "no repository rule has this id")
+		}
+	}
+	c.DisabledRules = disabled
+	ids := make([]string, 0, len(c.RuleOptions))
+	for id := range c.RuleOptions {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	for _, id := range ids {
+		values := c.RuleOptions[id]
+		names := make([]string, 0, len(values))
+		for name := range values {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			item := fmt.Sprintf("`%s.%s` in ruleOptions (%s)", id, name, ConfigFile)
+			if c.Source == SourceLegacy {
+				item = fmt.Sprintf("`lineLength` (%s)", legacyConfig)
+			}
+			if reason := optionProblem(byID[id], name, values[name]); reason != "" {
+				ignore(item, reason)
+				delete(values, name)
+			}
+		}
+		if len(values) == 0 {
+			delete(c.RuleOptions, id)
+		}
+	}
+}
+
+// optionProblem says why a rule option cannot be set; empty when it can.
+func optionProblem(rule *rules.Rule, name string, value int) string {
+	if rule == nil {
+		return "no pack or core rule has this id"
+	}
+	for _, o := range rule.Options() {
+		if o.Name != name {
+			continue
+		}
+		if value < o.Min || value > o.Max {
+			return fmt.Sprintf("%d is outside %d-%d", value, o.Min, o.Max)
+		}
+		return ""
+	}
+	return "the rule has no option " + name
 }
 
 // isCriteriaPath reports whether a repository path is a criteria file of

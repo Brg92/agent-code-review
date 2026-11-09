@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"sort"
 	"strings"
@@ -277,5 +278,55 @@ func TestReadCriteriaBothLayouts(t *testing.T) {
 		if strings.HasPrefix(p, ".github/skills/app-code-review/") {
 			t.Errorf("read %s although the neutral layout is present", p)
 		}
+	}
+}
+
+func TestReadCriteriaDisabledRules(t *testing.T) {
+	files := newMemFiles(t, map[string]string{
+		ConfigFile:   `{"schema":1,"disabledRules":["app-tracker","no-double-bang","logic-defect","app-unknown"]}`,
+		CriteriaFile: "- `app-tracker` — **MAJOR**. Use the tracker.\n",
+	})
+	c := readCriteria(t, files)
+	if !reflect.DeepEqual(c.DisabledRules, []string{"app-tracker"}) {
+		t.Errorf("disabled rules = %q, want only the repository rule", c.DisabledRules)
+	}
+	want := []string{
+		"Repository criteria ignored: `no-double-bang` in disabledRules (.agent-code-review/config.json) — pack and core rules always apply",
+		"Repository criteria ignored: `logic-defect` in disabledRules (.agent-code-review/config.json) — pack and core rules always apply",
+		"Repository criteria ignored: `app-unknown` in disabledRules (.agent-code-review/config.json) — no repository rule has this id",
+	}
+	if !reflect.DeepEqual(c.Notes, want) {
+		t.Errorf("notes =\n%q\nwant\n%q", c.Notes, want)
+	}
+}
+
+func TestReadCriteriaRuleOptions(t *testing.T) {
+	files := newMemFiles(t, map[string]string{
+		ConfigFile: `{"schema":1,"ruleOptions":{"line-too-long":{"max":120,"min":3},"no-double-bang":{"max":1},"app-rule":{"max":1}}}`,
+	})
+	c := readCriteria(t, files)
+	if want := map[string]map[string]int{"line-too-long": {"max": 120}}; !reflect.DeepEqual(c.RuleOptions, want) {
+		t.Errorf("rule options = %v, want %v", c.RuleOptions, want)
+	}
+	want := []string{
+		"Repository criteria ignored: `app-rule.max` in ruleOptions (.agent-code-review/config.json) — no pack or core rule has this id",
+		"Repository criteria ignored: `line-too-long.min` in ruleOptions (.agent-code-review/config.json) — the rule has no option min",
+		"Repository criteria ignored: `no-double-bang.max` in ruleOptions (.agent-code-review/config.json) — the rule has no option max",
+	}
+	if !reflect.DeepEqual(c.Notes, want) {
+		t.Errorf("notes =\n%q\nwant\n%q", c.Notes, want)
+	}
+	for _, v := range []int{59, 201} {
+		files := newMemFiles(t, map[string]string{ConfigFile: fmt.Sprintf(`{"schema":1,"ruleOptions":{"line-too-long":{"max":%d}}}`, v)})
+		c := readCriteria(t, files)
+		note := fmt.Sprintf("Repository criteria ignored: `line-too-long.max` in ruleOptions (.agent-code-review/config.json) — %d is outside 60-200", v)
+		if len(c.RuleOptions) != 0 || !reflect.DeepEqual(c.Notes, []string{note}) {
+			t.Errorf("max %d: options %v, notes %q", v, c.RuleOptions, c.Notes)
+		}
+	}
+	legacy := readCriteria(t, newMemFiles(t, map[string]string{legacyMRRules: `{"lineLength":300}`}))
+	note := "Repository criteria ignored: `lineLength` (.github/mr-review.json) — 300 is outside 60-200"
+	if len(legacy.RuleOptions) != 0 || !reflect.DeepEqual(legacy.Notes[1:], []string{note}) {
+		t.Errorf("legacy lineLength 300: options %v, notes %q", legacy.RuleOptions, legacy.Notes)
 	}
 }
