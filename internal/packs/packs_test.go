@@ -332,3 +332,34 @@ func TestMatchedRulesGiveTheTextOfTheirFindings(t *testing.T) {
 		}
 	}
 }
+
+func TestLoadPackSymbols(t *testing.T) {
+	symbols := map[string]any{
+		"packageKeyword": "package", "declarations": []any{map[string]any{"word": "fun", "kind": "function"}},
+		"hidingModifiers": []any{"private"}, "publicModifiers": []any{"public"}, "publicByDefault": true,
+		"annotation": "@", "qualifiers": []any{"."}, "parameterSeparator": ",",
+		"body":           map[string]any{"open": "{", "close": "}"},
+		"parameters":     map[string]any{"open": "(", "close": ")"},
+		"typeParameters": map[string]any{"open": "<", "close": ">"},
+	}
+	dir := copyPack(t, "mobile", "mobile", func(m map[string]any) {
+		m["languages"].([]any)[0].(map[string]any)["symbols"] = symbols
+	})
+	p, err := LoadPack(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s := p.Languages[0].Symbols; s == nil || s.Declarations["fun"] != "function" || !s.PublicByDefault {
+		t.Errorf("kotlin symbols = %+v", s)
+	}
+	if p.Languages[1].Symbols != nil {
+		t.Errorf("java declares no symbols, got %+v", p.Languages[1].Symbols)
+	}
+	symbols["declarations"] = []any{}
+	dir = copyPack(t, "mobile", "mobile", func(m map[string]any) {
+		m["languages"].([]any)[0].(map[string]any)["symbols"] = symbols
+	})
+	if _, err := LoadPack(dir); err == nil || !strings.Contains(err.Error(), "kotlin") || !strings.Contains(err.Error(), "declarations") {
+		t.Errorf("broken symbols: error %v", err)
+	}
+}

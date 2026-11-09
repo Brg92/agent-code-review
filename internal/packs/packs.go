@@ -15,6 +15,7 @@ import (
 
 	"github.com/Brg92/agent-code-review/internal/lexer"
 	"github.com/Brg92/agent-code-review/internal/rules"
+	"github.com/Brg92/agent-code-review/internal/symbols"
 )
 
 // ManifestFile is the name of the manifest in a pack directory.
@@ -85,6 +86,9 @@ type Language struct {
 	ID         string
 	Extensions []string
 	Table      *lexer.Table
+	// Symbols tells how the declarations of the language are found; nil
+	// when the pack compares no symbols of it.
+	Symbols *symbols.Spec
 }
 
 var (
@@ -139,9 +143,10 @@ type (
 		Contains *string `json:"contains"`
 	}
 	rawLanguage struct {
-		ID         *string   `json:"id"`
-		Extensions *[]string `json:"extensions"`
-		Lexer      *string   `json:"lexer"`
+		ID         *string         `json:"id"`
+		Extensions *[]string       `json:"extensions"`
+		Lexer      *string         `json:"lexer"`
+		Symbols    json.RawMessage `json:"symbols"`
 	}
 )
 
@@ -401,6 +406,11 @@ func (p *Pack) loadLanguages(raws []rawLanguage) error {
 		}
 		if l.Table.Language != l.ID {
 			return fmt.Errorf("%s: lexer table language %q, want %q", *rl.Lexer, l.Table.Language, l.ID)
+		}
+		if rl.Symbols != nil {
+			if l.Symbols, err = symbols.ParseSpec(rl.Symbols); err != nil {
+				return fmt.Errorf("language %s: %w", l.ID, err)
+			}
 		}
 		p.Languages = append(p.Languages, l)
 	}
