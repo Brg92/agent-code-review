@@ -248,6 +248,8 @@ const (
 	commonPlatform  = "shared/src/commonMain/kotlin/a/Platform.kt"
 	androidPlatform = "shared/src/androidMain/kotlin/a/Platform.android.kt"
 	iosPlatform     = "shared/src/iosMain/kotlin/a/Platform.ios.kt"
+	arm64Platform   = "shared/src/iosArm64Main/kotlin/a/Platform.arm64.kt"
+	x64Platform     = "shared/src/iosX64Main/kotlin/a/Platform.x64.kt"
 	expectPlatform  = "package a\n\nexpect fun platformName(): String\n"
 	actualPlatform  = "package a\n\nactual fun platformName(): String = \"x\"\n"
 )
@@ -269,5 +271,11 @@ func kmpExpectCases() []crCase {
 			commonPlatform, expectPlatform, androidPlatform, actualPlatform), search{iosPlatform: actualPlatform}),
 		crCaseOf("no ios source set", "kmp-expect-without-actual", tree{commonPlatform, androidPlatform}, nil, "",
 			commonPlatform, expectPlatform, androidPlatform, actualPlatform),
+		crCaseOf("iosMain stands for the ios targets", "kmp-expect-without-actual", tree{commonPlatform, androidPlatform, iosPlatform, arm64Platform}, nil, "",
+			commonPlatform, expectPlatform, androidPlatform, actualPlatform, iosPlatform, actualPlatform),
+		crCaseOf("every ios target without iosMain", "kmp-expect-without-actual", tree{commonPlatform, androidPlatform, arm64Platform, x64Platform}, nil, "",
+			commonPlatform, expectPlatform, androidPlatform, actualPlatform, arm64Platform, actualPlatform, x64Platform, actualPlatform),
+		crCaseOf("an ios target without iosMain lacks it", "kmp-expect-without-actual", tree{commonPlatform, androidPlatform, arm64Platform, x64Platform}, nil,
+			commonPlatform+":3", commonPlatform, expectPlatform, androidPlatform, actualPlatform, arm64Platform, actualPlatform),
 	}
 }
