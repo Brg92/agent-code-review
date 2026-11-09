@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "runId": "20261109-090000-parts",
+  "cr": "github:github.com/acr-plugin-sandbox/feature-lib#1",
+  "url": "https://github.com/acr-plugin-sandbox/feature-lib/pull/1",
+  "title": "Add the icon catalog",
+  "description": "Adds a generated icon catalog and a long screen.",
+  "headSha": "1bb2c03af22c5360e04698de42d0833c0387b499",
+  "baseSha": "d83c3b464e4cb6a40e366f2a7bed9964d91c62f5",
+  "baseRef": "main",
+  "criteria": {
+    "source": "overlay",
+    "profile": "library",
+    "profileReason": "cascade dependency of github:github.com/acr-plugin-sandbox/kmp-shared#2",
+    "packs": [
+      "android"
+    ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "compose",
+        "reason": "androidx.compose in build.gradle.kts"
+      }
+    },
+    "files": [
+      ".agent-code-review/config.json",
+      ".agent-code-review/criteria.md"
+    ],
+    "ignored": [
+      {
+        "item": "`no-double-bang` in disabledRules (.agent-code-review/config.json)",
+        "reason": "pack and core rules always apply"
+      },
+      {
+        "item": "`line-too-long.width` in ruleOptions (.agent-code-review/config.json)",
+        "reason": "the rule has no option width"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "logic-defect",
+      "severity": "MAJOR",
+      "title": "A change removes input validation",
+      "source": "core",
+      "needsJudgement": true
+    },
+    {
+      "id": "line-too-long",
+      "severity": "MINOR",
+      "title": "Line longer than 140 characters",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false,
+      "options": {
+        "max": 140
+      }
+    },
+    {
+      "id": "catalog-sorted",
+      "severity": "MINOR",
+      "title": "Icon names are kept in alphabetical order.",
+      "source": "repository",
+      "needsJudgement": false
+    }
+  ],
+  "checklist": {
+    "sections": [
+      {
+        "rules": [
+          "logic-defect"
+        ]
+      },
+      {
+        "heading": "Structure and scope",
+        "rules": []
+      }
+    ],
+    "repository": [
+      "catalog-sorted"
+    ]
+  },
+  "files": [
+    {
+      "path": "src/main/java/com/example/feature/catalog/IconCatalog.kt",
+      "status": "added",
+      "language": "kotlin",
+      "placement": "summary",
+      "reason": "patch-unavailable"
+    },
+    {
+      "path": "src/main/java/com/example/feature/ui/LongScreen.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -400,1 +400,1 @@\n-    val title = \"Old\"\n+    val title = \"New\"\n",
+      "code": {
+        "whole": false,
+        "regions": [
+          {
+            "start": 380,
+            "lines": [
+              "    // region start",
+              "    val title = \"New\""
+            ]
+          },
+          {
+            "start": 900,
+            "lines": [
+              "}"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "docs/icons.svg",
+      "status": "added",
+      "placement": "summary",
+      "reason": "binary"
+    }
+  ],
+  "signals": [
+    {
+      "id": "s1",
+      "rule": "line-too-long",
+      "severity": "MINOR",
+      "path": "src/main/java/com/example/feature/ui/LongScreen.kt",
+      "line": 400,
+      "column": 141,
+      "origin": "mr",
+      "needsJudgement": false
+    },
+    {
+      "id": "s2",
+      "rule": "logic-defect",
+      "severity": null,
+      "path": "src/main/java/com/example/feature/ui/LongScreen.kt",
+      "line": 400,
+      "column": 5,
+      "origin": "mr",
+      "needsJudgement": true
+    }
+  ],
+  "notVerified": [
+    {
+      "path": "docs/icons.svg",
+      "reason": "binary"
+    },
+    {
+      "path": "src/main/java/com/example/feature/ui/LongScreen.kt",
+      "reason": "tree-unavailable",
+      "detail": "missing-test: the tree at head could not be read"
+    }
+  ],
+  "relatedChanges": [],
+  "cascade": {
+    "ancestors": [
+      {
+        "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+        "title": "Show when the session expires"
+      },
+      {
+        "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+        "title": "Add a session countdown"
+      }
+    ]
+  },
+  "parts": {
+    "total": 2,
+    "changeRequestSignals": [
+      "s2"
+    ],
+    "files": [
+      [
+        "src/main/java/com/example/feature/catalog/IconCatalog.kt"
+      ],
+      [
+        "src/main/java/com/example/feature/ui/LongScreen.kt",
+        "docs/icons.svg"
+      ]
+    ]
+  },
+  "judgementPath": "cr/feature-lib-1/judgement.json"
+}
