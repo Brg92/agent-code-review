@@ -108,5 +108,5 @@ func (r Resolver) Resolve(ctx context.Context, host string) (Token, error) {
 			return Token{value: v, Source: SourceEnvironment, EnvVar: name}, nil
 		}
 	}
-	return Token{}, ErrNoToken
+	return r.fill(ctx, host)
 }
