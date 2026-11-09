@@ -56,3 +56,58 @@ func (r Resolver) fill(ctx context.Context, host string) (Token, error) {
 	}
 	return Token{value: attrs["password"], Source: SourceCredentialHelper}, nil
 }
+
+// ErrInvalidToken means the token contains whitespace or control characters.
+var ErrInvalidToken = errors.New("auth: the token contains whitespace or control characters")
+
+// normalizeToken trims surrounding whitespace and rejects anything that
+// could break the git credential protocol.
+func normalizeToken(token string) (string, error) {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return "", ErrNoToken
+	}
+	for _, r := range token {
+		if r <= ' ' || r == 0x7f {
+			return "", ErrInvalidToken
+		}
+	}
+	return token, nil
+}
+
+// Save stores token for host in the git credential helpers under the username
+// acr-api, after the helper check, and reads it back to confirm a helper
+// kept it. The returned Check carries the warnings to show.
+func (r Resolver) Save(ctx context.Context, host, token string) (Check, error) {
+	token, err := normalizeToken(token)
+	if err != nil {
+		return Check{}, err
+	}
+	check, err := r.CheckHelpers(ctx, host)
+	if err != nil {
+		return check, err
+	}
+	if err := check.Err(); err != nil {
+		return check, err
+	}
+	// stderr is not quoted: a helper could echo what it received.
+	if _, _, err := r.Git.Run(ctx, credentialInput(host, token), "credential", "approve"); err != nil {
+		return check, fmt.Errorf("auth: git credential approve: %w", err)
+	}
+	stored, err := r.fill(ctx, host)
+	if err != nil || stored.value != token {
+		return check, errors.New("auth: the git credential helper did not keep the token; check its configuration")
+	}
+	return check, nil
+}
+
+// Erase removes the acr-api entry for host from the git credential helpers.
+func (r Resolver) Erase(ctx context.Context, host string) error {
+	if err := ValidateHost(host); err != nil {
+		return err
+	}
+	if _, _, err := r.Git.Run(ctx, credentialInput(host, ""), "credential", "reject"); err != nil {
+		return fmt.Errorf("auth: git credential reject: %w", err)
+	}
+	return nil
+}
