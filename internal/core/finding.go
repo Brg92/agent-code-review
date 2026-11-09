@@ -52,7 +52,9 @@ type Result struct {
 	Dismissed   []DismissedSignal
 	Questions   []Question
 	Notes       []string
-	NotVerified []string
+	// AgentNotVerified is what the agent could not check, from the
+	// judgement; the files that were not reviewed are listed elsewhere.
+	AgentNotVerified []string
 }
 
 // Finalize turns the signals of a review and the judgement of the agent
@@ -74,7 +76,7 @@ func Finalize(r Review, j Judgement) (Result, error) {
 		return Result{}, err
 	}
 	res := Result{
-		CR: r.CR, HeadSHA: r.HeadSHA, Summary: j.Summary, Questions: j.Questions, Notes: j.Notes, NotVerified: j.NotVerified,
+		CR: r.CR, HeadSHA: r.HeadSHA, Summary: j.Summary, Questions: j.Questions, Notes: j.Notes, AgentNotVerified: j.NotVerified,
 		// Empty, not nil: the findings contract wants arrays.
 		Findings: []Finding{}, PreExisting: []Finding{},
 	}

@@ -61,8 +61,8 @@ func TestFinalize(t *testing.T) {
 		t.Errorf("result for %s %s", res.CR, res.HeadSHA)
 	}
 	j := testJudgement()
-	if !reflect.DeepEqual(res.Questions, j.Questions) || !reflect.DeepEqual(res.Notes, j.Notes) || !reflect.DeepEqual(res.NotVerified, j.NotVerified) {
-		t.Errorf("report fields not kept: %+v %+v %+v", res.Questions, res.Notes, res.NotVerified)
+	if !reflect.DeepEqual(res.Questions, j.Questions) || !reflect.DeepEqual(res.Notes, j.Notes) || !reflect.DeepEqual(res.AgentNotVerified, j.NotVerified) {
+		t.Errorf("report fields not kept: %+v %+v %+v", res.Questions, res.Notes, res.AgentNotVerified)
 	}
 	if len(res.Dismissed) != 0 {
 		t.Errorf("dismissed = %+v", res.Dismissed)
