@@ -20,7 +20,7 @@ Rule ids are provisional until the rules catalog exists.
 | `MainActivity.kt` | `runBlocking { SessionManager.instance.refresh() }` | `run-blocking-prod` | BLOCKER | added line |
 | `data/SessionRepository.kt` | `GlobalScope.launch {` in `prefetch()` | `global-scope` | BLOCKER | added line |
 | `data/SessionRepository.kt` | `sessionManager.current()!!.userName` | `no-double-bang` | MAJOR | added line |
-| `ui/HomeViewModel.kt` | `repository.requireUser()` in `refresh()` | `logic.always-throws` | BLOCKER | **outside the hunks**: unchanged, but always throws now that `warmUp()` is never called |
+| `ui/HomeViewModel.kt` | `repository.requireUser()` in `refresh()` | `logic-defect` | BLOCKER | **outside the hunks**: unchanged, but always throws now that `warmUp()` is never called |
 
 `runBlocking` blocks the main thread. The outside-hunk BLOCKER is relocated to line 16, the nearest line of the diff of `ui/HomeViewModel.kt`, and its text starts with "Refers to line 27 of `app/src/main/java/com/example/sample/ui/HomeViewModel.kt`, outside the changed lines."
 
