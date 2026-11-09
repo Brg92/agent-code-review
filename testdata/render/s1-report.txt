@@ -1,0 +1,44 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#2 "Prefetch the session on startup"
+Packs: android (profile app: set in .agent-code-review/config.json · ui-toolkit compose: androidx.compose in app/build.gradle.kts)
+Criteria: overlay .agent-code-review/ @main
+Scope: 4 changed files · head 76ae5f13
+
+BLOCKER (3) — inline notes on publish
+  [BLOCKER] app/src/main/java/com/example/sample/MainActivity.kt:13 — runBlocking in onCreate blocks the main thread  [run-blocking-prod]
+            why: onCreate waits until the session refresh completes, which can freeze the app or trigger an ANR.
+            fix: Launch the refresh in `lifecycleScope` instead.
+  [BLOCKER] app/src/main/java/com/example/sample/data/SessionRepository.kt:19 — prefetch() launches in GlobalScope  [global-scope]
+            why: The work is never cancelled and outlives its caller.
+            fix: Make `prefetch()` a suspend function or take a `CoroutineScope`.
+  [BLOCKER] app/src/main/java/com/example/sample/ui/HomeViewModel.kt:27 (relocated to 16) — requireUser() always throws in refresh()  [logic.always-throws]
+            why: This change removes the `warmUp()` call from `init`, and nothing else calls `warmUp()`. `cachedUser` therefore stays null, and `requireUser()` always throws IllegalStateException when `refresh()` runs.
+            fix: Keep the `repository.warmUp()` call in `init`.
+
+MAJOR (1) — one issue on publish
+  [MAJOR]   app/src/main/java/com/example/sample/data/SessionRepository.kt:20 — `!!` on a session that can be null  [no-double-bang]
+            why: `current()` returns null when nobody is signed in, so `!!` throws a NullPointerException inside the coroutine.
+            fix: Return early when there is no session.
+
+MINOR (0) — one issue on publish
+
+Existing code in touched files (4) — not written in this change request
+  [BLOCKER] app/src/main/java/com/example/sample/data/ProfileStore.kt:8 — displayName() asserts a stored name with `!!`  [no-double-bang] [crash]
+            why: `displayName()` throws a NullPointerException when no name has been stored, which crashes the app.
+            fix: Return a default name, or make `displayName()` return `String?`.
+  [BLOCKER] app/src/main/java/com/example/sample/data/SessionRepository.kt:13 (relocated to 15) — warmUp() launches in GlobalScope  [global-scope]
+            why: The work is never cancelled.
+            fix: Launch it in a scope owned by the caller.
+  [MINOR]   app/src/main/java/com/example/sample/ui/HomeViewModel.kt — Greeting hard-coded in the ViewModel  [hardcoded-string] (2)
+            lines: 14, 22
+            why: The text cannot be translated.
+            fix: Move it to a string resource and expose its id.
+
+Questions for the author:
+  - app/src/main/java/com/example/sample/data/SessionRepository.kt:18 — Should prefetch() start again after a configuration change?
+Signals dismissed:
+  - missing-kdoc app/src/main/java/com/example/sample/data/SessionRepository.kt:18 — prefetch() is internal to the app; the app profile asks no KDoc for it.
+Not verified:
+  - Whether SessionManager.refresh() can return null for a signed-in user.
+Pipeline: passing on head (2 checks)
+Notes: The overlay of main makes every runBlocking outside tests a BLOCKER.
+Verdict: BLOCKED — 3 blockers in the change and 1 crashing defect in existing code to fix, then review again.

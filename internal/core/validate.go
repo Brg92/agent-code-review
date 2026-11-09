@@ -20,7 +20,9 @@ var (
 // file and on lines of that file's side, and says what is wrong, why and
 // how to fix it; that only a pre-existing BLOCKER is a crash; that every
 // signal that needs judgement is decided, each signal at most once and
-// none unknown; and that the notes are within their limits.
+// none unknown; that a rule that needs no judgement keeps its catalog
+// severity, except a pre-existing crash, which is a BLOCKER; and that the
+// notes are within their limits.
 func ValidateJudgement(r Review, j Judgement) error {
 	v := &validator{review: r}
 	v.check(j.Schema == 1, "/schema", "schema is %d, want 1", j.Schema)
@@ -76,9 +78,14 @@ func (v *validator) check(ok bool, pointer, format string, args ...any) {
 func blank(s string) bool { return strings.TrimSpace(s) == "" }
 
 func (v *validator) finding(at string, f JudgedFinding, preExisting bool) {
-	_, known := v.review.Rules[f.Rule]
+	rule, known := v.review.Rules[f.Rule]
 	v.check(known, at+"/rule", "rule %q is not a rule of this change request", f.Rule)
-	v.check(f.Severity.Valid(), at+"/severity", "unknown severity %q", string(f.Severity))
+	switch {
+	case !f.Severity.Valid():
+		v.add(at+"/severity", "unknown severity %q", string(f.Severity))
+	case known && !keepsSeverity(Severity(rule.Severity), rule.NeedsJudgement, f.Severity, preExisting && f.Crash):
+		v.add(at+"/severity", "%s is %s in the catalog, not %s; only a pre-existing crash becomes a BLOCKER", f.Rule, rule.Severity, f.Severity)
+	}
 	file, changed := v.review.file(f.Path)
 	v.check(changed, at+"/path", "%s is not a changed file of this change request", f.Path)
 	sideOK := f.Side.Valid() && (!changed || file.Diff.Status.HasSide(f.Side))
@@ -124,6 +131,14 @@ func (v *validator) finding(at string, f JudgedFinding, preExisting bool) {
 	}
 }
 
+// keepsSeverity reports whether a judgement may give severity to a finding
+// of a rule with the catalog severity of the rule: always for a rule that
+// needs judgement; otherwise only the rule's own severity, or BLOCKER for
+// a pre-existing crash.
+func keepsSeverity(catalog Severity, needsJudgement bool, severity Severity, preExistingCrash bool) bool {
+	return needsJudgement || severity == catalog || (preExistingCrash && severity == Blocker)
+}
+
 func (v *validator) signals(decisions []SignalDecision) {
 	byID := map[string]Signal{}
 	for _, s := range v.review.Signals {
@@ -146,6 +161,8 @@ func (v *validator) signals(decisions []SignalDecision) {
 			switch {
 			case d.Severity != "" && !d.Severity.Valid():
 				v.add(at+"/severity", "unknown severity %q", string(d.Severity))
+			case d.Severity != "" && known && !keepsSeverity(s.Severity, s.NeedsJudgement, d.Severity, d.Crash && s.Origin == OriginExisting):
+				v.add(at+"/severity", "signal %s of %s is %s in the catalog, not %s; only a pre-existing crash becomes a BLOCKER", d.ID, s.Rule, s.Severity, d.Severity)
 			case d.Severity == "" && known && s.NeedsJudgement:
 				v.add(at+"/severity", "signal %s needs judgement: confirm it with a severity", d.ID)
 			case d.Severity == "":

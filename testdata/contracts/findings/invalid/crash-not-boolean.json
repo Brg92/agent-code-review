@@ -1,13 +1,20 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+  "title": "Show when the session expires",
   "headSha": "0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c",
+  "baseRef": "main",
   "verdict": "BLOCKED",
+  "files": [
+    "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+    "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
+    "app/src/main/java/com/example/sample/data/ProfileStore.kt"
+  ],
   "findings": [
     {
       "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:c7757c0896cb",
       "rule": "global-scope",
-      "severity": "MAJOR",
+      "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 19,
@@ -35,7 +42,7 @@
       "why": "`displayName()` throws a NullPointerException when no name has been stored, which crashes the app.",
       "fix": "Return a default name, or make `displayName()` return `String?`.",
       "references": [],
-      "placement": "inline",
+      "placement": "summary",
       "anchor": {
         "kind": "context",
         "side": "RIGHT",
@@ -45,6 +52,10 @@
     }
   ],
   "notVerified": [],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
   "ci": {
     "state": "passing",
     "checks": []
@@ -52,9 +63,16 @@
   "criteria": {
     "source": "overlay",
     "profile": "app",
+    "profileReason": "set in .agent-code-review/config.json",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "compose",
+        "reason": "androidx.compose in app/build.gradle.kts"
+      }
+    },
     "notes": []
   }
 }

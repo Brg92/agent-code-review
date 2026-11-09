@@ -1,8 +1,16 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "title": "Prefetch the session on startup",
   "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "baseRef": "main",
   "verdict": "BLOCKED",
+  "files": [
+    "app/src/main/java/com/example/sample/MainActivity.kt",
+    "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+    "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+    "app/src/main/java/com/example/sample/ui/HomeViewModel.kt"
+  ],
   "findings": [
     {
       "id": "acr:v1:run-blocking-prod:app/src/main/java/com/example/sample/MainActivity.kt:f6631c865b8f",
@@ -15,7 +23,7 @@
       "why": "onCreate waits until the session refresh completes, which can freeze the app or trigger an ANR.",
       "fix": "Launch the refresh in `lifecycleScope` instead.",
       "references": [],
-      "placement": "summary",
+      "placement": "inline",
       "anchor": {
         "kind": "added",
         "side": "RIGHT",
@@ -25,7 +33,7 @@
     {
       "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
       "rule": "global-scope",
-      "severity": "MAJOR",
+      "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 19,
@@ -82,7 +90,7 @@
     {
       "id": "acr:v1:no-double-bang:app/src/main/java/com/example/sample/data/ProfileStore.kt:faa683b15a8a",
       "rule": "no-double-bang",
-      "severity": "MAJOR",
+      "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "side": "RIGHT",
       "line": 8,
@@ -101,7 +109,7 @@
     {
       "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:1b7430f5f46c",
       "rule": "global-scope",
-      "severity": "MINOR",
+      "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "side": "RIGHT",
       "line": 13,
@@ -109,7 +117,7 @@
       "why": "The work is never cancelled.",
       "fix": "Launch it in a scope owned by the caller.",
       "references": [],
-      "placement": "inline",
+      "placement": "summary",
       "anchor": {
         "kind": "relocated",
         "side": "RIGHT",
@@ -119,6 +127,10 @@
     }
   ],
   "notVerified": [],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
   "ci": {
     "state": "passing",
     "checks": [
@@ -137,9 +149,16 @@
   "criteria": {
     "source": "overlay",
     "profile": "app",
+    "profileReason": "set in .agent-code-review/config.json",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "compose",
+        "reason": "androidx.compose in app/build.gradle.kts"
+      }
+    },
     "notes": []
   }
 }

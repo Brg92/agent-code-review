@@ -26,8 +26,8 @@ func finalize(t *testing.T, scen, repo string, number int, change func(j *core.J
 	return res
 }
 
-// checkContract checks that the findings of a result match the findings
-// contract, inside an otherwise minimal findings document.
+// checkContract checks that the findings document of a result, with a
+// minimal header, matches the findings contract.
 func checkContract(t *testing.T, res core.Result) {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join("..", "..", "schemas", "findings.schema.json"))
@@ -38,12 +38,10 @@ func checkContract(t *testing.T, res core.Result) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc, err := json.Marshal(map[string]any{
-		"schema": 1, "cr": res.CR, "headSha": res.HeadSHA, "verdict": res.Verdict,
-		"findings": res.Findings, "preExisting": res.PreExisting, "notVerified": []any{},
-		"ci":       map[string]any{"state": "none", "checks": []any{}},
-		"criteria": map[string]any{"source": "default", "profile": "app", "packs": []any{}, "notes": []any{}},
-	})
+	doc, err := json.Marshal(res.Document(core.Header{
+		Title: "t", BaseRef: "main", CI: core.CI{State: core.CINone},
+		Criteria: core.Criteria{Source: "default", Profile: "app", ProfileReason: "r"},
+	}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,8 +92,8 @@ func TestScenarioS1(t *testing.T) {
 		{res.Findings, "global-scope", "inline added RIGHT 19", 19},
 		{res.Findings, "no-double-bang", "inline added RIGHT 20", 20},
 		{res.Findings, "logic.always-throws", "inline relocated RIGHT 16 for 27", 27},
-		{res.PreExisting, "no-double-bang", "inline context RIGHT 8", 8},
-		{res.PreExisting, "global-scope", "inline relocated RIGHT 15 for 13", 13},
+		{res.PreExisting, "no-double-bang", "summary context RIGHT 8", 8},
+		{res.PreExisting, "global-scope", "summary relocated RIGHT 15 for 13", 13},
 	}
 	for _, tt := range tests {
 		if got := anchor(find(t, tt.list, tt.rule, tt.line)); got != tt.want {
@@ -145,12 +143,12 @@ func TestScenarioS1BlockedByThePreExistingCrashAlone(t *testing.T) {
 		j.Findings = kept
 	}
 	res := finalize(t, "S1", "sample-app", 2, withoutBlockers)
-	if len(res.Findings) != 2 || res.Verdict != core.Blocked {
+	if len(res.Findings) != 1 || res.Verdict != core.Blocked {
 		t.Errorf("%d findings, verdict %s: want BLOCKED by the crash in ProfileStore.kt", len(res.Findings), res.Verdict)
 	}
 	res = finalize(t, "S1", "sample-app", 2, func(j *core.Judgement) {
 		withoutBlockers(j)
-		j.PreExisting[0].Crash = false
+		j.PreExisting[0].Crash, j.PreExisting[0].Severity = false, core.Major
 	})
 	if res.Verdict != core.OK {
 		t.Errorf("verdict %s without BLOCKERs and crashes, want OK", res.Verdict)
@@ -184,7 +182,7 @@ func TestScenarioS4(t *testing.T) {
 	// can only go to the summary.
 	res = finalize(t, "S4", "feature-lib", 1, func(j *core.Judgement) {
 		j.Findings = []core.JudgedFinding{{
-			Rule: "global-scope", Severity: core.Minor, Path: "src/main/java/com/example/feature/catalog/IconCatalog.kt", Side: core.Right, Line: 3,
+			Rule: "global-scope", Severity: core.Blocker, Path: "src/main/java/com/example/feature/catalog/IconCatalog.kt", Side: core.Right, Line: 3,
 			Title: "t", Why: "w", Fix: "f", References: []core.Reference{},
 		}}
 	})

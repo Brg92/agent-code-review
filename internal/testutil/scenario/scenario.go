@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strconv"
 	"testing"
 
@@ -33,9 +32,8 @@ func Key(t testing.TB, repo string, number int) core.Key {
 
 // Rules are the rules the scenario judgements may apply: the core rules
 // and the example android catalog of the contracts, which repeats one core
-// rule. Their texts are the title and the description; the catalogs have
-// no fix.
-func Rules(t testing.TB) map[string]core.RuleInfo {
+// rule. The example catalog has no match, so its rules have no why or fix.
+func Rules(t testing.TB) map[string]*rules.Rule {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(root(), "testdata", "contracts", "rules-catalog", "valid", "android.json"))
 	if err != nil {
@@ -45,14 +43,7 @@ func Rules(t testing.TB) map[string]core.RuleInfo {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out := map[string]core.RuleInfo{}
-	for _, r := range slices.Concat(rules.Core().Rules, android.Rules) {
-		if _, ok := out[r.ID]; ok {
-			continue
-		}
-		out[r.ID] = core.RuleInfo{Severity: core.Severity(r.Severity), NeedsJudgement: r.NeedsJudgement, Title: r.Title, Why: r.Description}
-	}
-	return out
+	return core.RulesOf(rules.Core(), android)
 }
 
 // Review builds the review of pull request number of repo from the

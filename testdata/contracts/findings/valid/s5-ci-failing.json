@@ -1,11 +1,21 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#3",
+  "title": "Increase home screen padding",
   "headSha": "4dc88fffde4723ffdc84b221102f511e8f21dd4f",
+  "baseRef": "main",
   "verdict": "OK",
+  "files": [
+    ".github/workflows/checks.yml",
+    "app/src/main/java/com/example/sample/ui/HomeScreen.kt"
+  ],
   "findings": [],
   "preExisting": [],
   "notVerified": [],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
   "ci": {
     "state": "failing",
     "checks": [
@@ -29,9 +39,16 @@
   "criteria": {
     "source": "overlay",
     "profile": "app",
+    "profileReason": "set in .agent-code-review/config.json",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "compose",
+        "reason": "androidx.compose in app/build.gradle.kts"
+      }
+    },
     "notes": []
   }
 }

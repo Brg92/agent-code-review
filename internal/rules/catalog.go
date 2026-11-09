@@ -26,6 +26,10 @@ type Rule struct {
 	Severity       string
 	NeedsJudgement bool
 	Description    string
+	// Why and Fix are the text of the findings made from the rule's
+	// signals: the consequence and the smallest safe correction. A matched
+	// rule that needs no judgement always has them; other rules may not.
+	Why, Fix string
 	// Languages the rule applies to; empty means every language.
 	Languages []string
 	Tags      []string
@@ -177,6 +181,8 @@ type (
 		Severity       *string                    `json:"severity"`
 		NeedsJudgement bool                       `json:"needsJudgement"`
 		Description    *string                    `json:"description"`
+		Why            *string                    `json:"why"`
+		Fix            *string                    `json:"fix"`
 		Languages      *[]string                  `json:"languages"`
 		Tags           *[]string                  `json:"tags"`
 		Group          *string                    `json:"group"`
@@ -332,6 +338,17 @@ func compileRule(rr rawRule, defFiles files, ignore []pattern) (*Rule, error) {
 		return fail("severity must be BLOCKER, MAJOR, MINOR or INFO")
 	}
 	r.Title, r.Description, r.Severity = *rr.Title, *rr.Description, *rr.Severity
+	for name, v := range map[string]*string{"why": rr.Why, "fix": rr.Fix} {
+		if v != nil && !nonBlank.MatchString(*v) {
+			return fail("%s is blank", name)
+		}
+	}
+	if rr.Why != nil {
+		r.Why = *rr.Why
+	}
+	if rr.Fix != nil {
+		r.Fix = *rr.Fix
+	}
 	if rr.Languages == nil {
 		return fail("languages is required")
 	}
@@ -365,6 +382,9 @@ func compileRule(rr rawRule, defFiles files, ignore []pattern) (*Rule, error) {
 			return fail("match: %v", err)
 		}
 		r.match = m
+	}
+	if r.match != nil && !r.NeedsJudgement && (r.Why == "" || r.Fix == "") {
+		return fail("a matched rule that needs no judgement writes its findings: why and fix are required")
 	}
 	return r, nil
 }

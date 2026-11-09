@@ -1,0 +1,5 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/kmp-shared#1 "Greet the user by name on iOS"
+Packs: kotlin-multiplatform, android (profile library: default profile of kotlin-multiplatform · ui-toolkit views: no Compose dependency)
+No findings on 2 changed files. Pipeline: passing on head (2 checks). Verdict: OK.
+Not verified:
+  - iosApp/iosApp/ContentView.swift — unsupported-language: no pack covers swift

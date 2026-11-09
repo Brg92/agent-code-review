@@ -8,11 +8,18 @@
   "required": [
     "schema",
     "cr",
+    "title",
     "headSha",
+    "baseRef",
     "verdict",
+    "files",
     "findings",
     "preExisting",
     "notVerified",
+    "agentNotVerified",
+    "signalsDismissed",
+    "questions",
+    "notes",
     "ci",
     "criteria"
   ],
@@ -25,9 +32,18 @@
       "description": "Change request the result belongs to.",
       "$ref": "#/$defs/crKey"
     },
+    "title": {
+      "description": "Title of the change request on the platform, as the report header shows it.",
+      "type": "string"
+    },
     "headSha": {
       "description": "Head commit that was reviewed.",
       "$ref": "#/$defs/sha"
+    },
+    "baseRef": {
+      "description": "Target branch, where the criteria were read from.",
+      "type": "string",
+      "pattern": "^\\S+$"
     },
     "verdict": {
       "description": "BLOCKED when at least one publishable BLOCKER comes from the change request itself (in findings, not preExisting) or at least one existing defect is a crash; OK otherwise. MAJOR, MINOR and INFO findings never block. The plugin never approves; OK only means nothing blocks. The verdict of the whole cascade is not stored here.",
@@ -40,6 +56,13 @@
       "description": "Overall remarks from the judgement, in Markdown.",
       "type": "string"
     },
+    "files": {
+      "description": "Paths of the changed files that were reviewed or listed in notVerified, in diff order; for a removed file, its old path. The report counts them and lists those without findings.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relativePath"
+      }
+    },
     "findings": {
       "description": "Findings that count towards the verdict.",
       "type": "array",
@@ -48,10 +71,16 @@
       }
     },
     "preExisting": {
-      "description": "Defects already on the target branch, reported apart.",
+      "description": "Defects already on the target branch, reported apart. They are never commented inline: their placement is always summary.",
       "type": "array",
       "items": {
-        "$ref": "#/$defs/reportedFinding"
+        "$ref": "#/$defs/reportedFinding",
+        "properties": {
+          "placement": {
+            "description": "Always summary: code that already exists is never commented inline.",
+            "const": "summary"
+          }
+        }
       }
     },
     "notVerified": {
@@ -98,6 +127,97 @@
             "type": "string"
           }
         }
+      }
+    },
+    "agentNotVerified": {
+      "description": "What the agent could not check, from the judgement, for example a behaviour that depends on code outside the change request. Separate from notVerified, which lists files.",
+      "type": "array",
+      "items": {
+        "description": "One thing that was not checked.",
+        "type": "string",
+        "pattern": "\\S"
+      }
+    },
+    "signalsDismissed": {
+      "description": "Signals the judgement dismissed, in work package order, each with the reason. They appear in the report and are never published.",
+      "type": "array",
+      "items": {
+        "description": "One dismissed signal.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule",
+          "path",
+          "line",
+          "reason"
+        ],
+        "properties": {
+          "rule": {
+            "description": "Rule of the signal.",
+            "$ref": "#/$defs/ruleId"
+          },
+          "path": {
+            "description": "File of the signal.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "line": {
+            "description": "Line of the signal, on the RIGHT side.",
+            "$ref": "#/$defs/line"
+          },
+          "reason": {
+            "description": "Why the judgement dismissed it.",
+            "type": "string",
+            "pattern": "\\S"
+          }
+        }
+      }
+    },
+    "questions": {
+      "description": "Questions for the author from the judgement. They appear in the report and are never published.",
+      "type": "array",
+      "items": {
+        "description": "One question, optionally tied to a line.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text"
+        ],
+        "if": {
+          "required": [
+            "line"
+          ]
+        },
+        "then": {
+          "required": [
+            "path"
+          ]
+        },
+        "properties": {
+          "path": {
+            "description": "File the question is about.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "line": {
+            "description": "Line the question is about, at the head commit; only with path.",
+            "$ref": "#/$defs/line"
+          },
+          "text": {
+            "description": "The question, in Markdown.",
+            "type": "string",
+            "pattern": "\\S"
+          }
+        }
+      }
+    },
+    "notes": {
+      "description": "Short remarks of the judgement for the report, at most three.",
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "description": "One remark of at most 200 characters.",
+        "type": "string",
+        "pattern": "\\S",
+        "maxLength": 200
       }
     },
     "ci": {
@@ -204,7 +324,9 @@
       "required": [
         "source",
         "profile",
+        "profileReason",
         "packs",
+        "dimensions",
         "notes"
       ],
       "properties": {
@@ -216,11 +338,40 @@
           "description": "Profile in use.",
           "$ref": "#/$defs/profile"
         },
+        "profileReason": {
+          "description": "Why the profile was chosen, in a few words for the report header, for example set in .agent-code-review/config.json.",
+          "type": "string",
+          "pattern": "\\S"
+        },
         "packs": {
           "description": "Stack packs in use.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/packId"
+          }
+        },
+        "dimensions": {
+          "description": "Repository dimensions of the packs in use, by dimension id (lowercase words joined by hyphens), with the value chosen and why.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "The value of one dimension and why it was chosen.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "reason"
+            ],
+            "properties": {
+              "value": {
+                "description": "Value of the dimension.",
+                "$ref": "#/$defs/dimensionId"
+              },
+              "reason": {
+                "description": "Why the value was chosen, in a few words for the report header.",
+                "type": "string",
+                "pattern": "\\S"
+              }
+            }
           }
         },
         "notes": {
@@ -318,6 +469,11 @@
         "default"
       ]
     },
+    "dimensionId": {
+      "description": "Identifier of a dimension or of one of its values: lowercase words joined by hyphens.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
     "line": {
       "description": "Line number, starting at 1, in the file version of the chosen side.",
       "type": "integer",
@@ -404,11 +560,6 @@
           "anchor"
         ]
       },
-      "else": {
-        "properties": {
-          "anchor": false
-        }
-      },
       "properties": {
         "id": {
           "description": "Fingerprint of the finding, acr:v1:<rule>:<path>:<h12>, where h12 is the first 12 hexadecimal characters of the SHA-256 of the normalised text of the requested line (trimmed, inner whitespace collapsed), a newline and the occurrence index of that text among the findings of the change request with the same rule and path, counted in side and line order. It stays the same when the line moves, and is embedded in published notes so that a finding is not posted twice.",
@@ -471,14 +622,14 @@
           "default": false
         },
         "placement": {
-          "description": "Where the finding is published: inline on the diff, at its anchor, for every finding of a file with a visible line; in the summary only when the file has no visible line at all (no patch).",
+          "description": "Where the finding is published: inline on the diff at its anchor, or in the summary. A finding of the change request is inline whenever its file has a visible line, and goes to the summary only when the file has none (no patch).",
           "enum": [
             "inline",
             "summary"
           ]
         },
         "anchor": {
-          "description": "Where the finding is published on the diff; present exactly when the placement is inline.",
+          "description": "Where the finding sits on the diff; present whenever its file has a visible line, whatever the placement.",
           "$ref": "#/$defs/anchor"
         }
       }

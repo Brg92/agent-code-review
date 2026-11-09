@@ -286,7 +286,7 @@
           ]
         },
         "severity": {
-          "description": "Severity of the confirmed finding: required when the rule needs judgement, otherwise it overrides the rule's severity.",
+          "description": "Severity of the confirmed finding: required when the rule needs judgement. Otherwise it may only repeat the rule's severity, or be BLOCKER for a pre-existing crash.",
           "$ref": "#/$defs/severity"
         },
         "crash": {

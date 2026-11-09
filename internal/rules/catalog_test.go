@@ -42,6 +42,26 @@ func TestLoadCatalog(t *testing.T) {
 	}
 }
 
+func TestLoadCatalogFindingText(t *testing.T) {
+	c, err := LoadCatalog([]byte(catalogWith(`{"detector":"line-length","max":1}`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := c.Rules[0]; r.Why != "W" || r.Fix != "F" {
+		t.Errorf("why %q, fix %q", r.Why, r.Fix)
+	}
+	// A rule that needs judgement, or that is not matched, may leave the
+	// text to the judgement.
+	for name, data := range map[string]string{
+		"needs judgement": strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"why":"W","fix":"F",`, `"needsJudgement":true,`, 1),
+		"not matched":     `{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[]}]}`,
+	} {
+		if _, err := LoadCatalog([]byte(data)); err != nil {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+}
+
 // TestLoadCatalogMatchesTheContract keeps the loader in step with the
 // rules catalog schema.
 func TestLoadCatalogMatchesTheContract(t *testing.T) {
@@ -65,7 +85,7 @@ func TestLoadCatalogMatchesTheContract(t *testing.T) {
 // catalogWith returns a catalog with one rule whose match is the given
 // JSON.
 func catalogWith(match string) string {
-	return `{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","description":"D",` +
+	return `{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","description":"D","why":"W","fix":"F",` +
 		`"languages":["kotlin"],"tags":[],"match":` + match + `}]}`
 }
 
@@ -108,6 +128,10 @@ func TestLoadCatalogRejects(t *testing.T) {
 		{"bad glob", catalogWith(`{"detector":"line-length","max":1,"files":{"include":["/a"]}}`), "glob"},
 		{"bad tests mode", catalogWith(`{"detector":"line-length","max":1,"files":{"tests":"never"}}`), "tests"},
 		{"empty include", catalogWith(`{"detector":"line-length","max":1,"files":{"include":[]}}`), "include"},
+		{"blank why", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"why":"W"`, `"why":" "`, 1), "why"},
+		{"blank fix", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"fix":"F"`, `"fix":""`, 1), "fix"},
+		{"matched without why", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"why":"W",`, ``, 1), "why"},
+		{"matched without fix", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"fix":"F",`, ``, 1), "fix"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -122,7 +146,7 @@ func TestLoadCatalogRejects(t *testing.T) {
 // catalogWithField returns a catalog with one rule that has the given
 // extra JSON members.
 func catalogWithField(members string) string {
-	return `{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","description":"D",` +
+	return `{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","description":"D","why":"W","fix":"F",` +
 		`"languages":[],"tags":[],` + members + `}]}`
 }
 

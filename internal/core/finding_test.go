@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/Brg92/agent-code-review/internal/rules"
 )
 
 // brief describes a finding as "<rule> <severity> <path>:<side><line>
@@ -43,8 +47,8 @@ func TestFinalize(t *testing.T) {
 		"logic.always-throws BLOCKER app/A.kt:RIGHT6 relocated RIGHT 4 for 6 inline",
 	})
 	check("pre-existing", brief(res.PreExisting), []string{
-		"no-double-bang BLOCKER app/A.kt:RIGHT5 relocated RIGHT 4 for 5 inline crash from s3",
-		"logic.always-throws MAJOR app/Old.kt:LEFT2 removed LEFT 2 inline",
+		"no-double-bang BLOCKER app/A.kt:RIGHT5 relocated RIGHT 4 for 5 summary crash from s3",
+		"dead-code MAJOR app/Old.kt:LEFT2 removed LEFT 2 summary",
 	})
 	// Findings of signals take the text of their rule.
 	if f := res.Findings[0]; f.Title != "Empty catch block" || f.Why != "The error vanishes." || f.Fix != "Handle or rethrow it." || f.References == nil {
@@ -57,8 +61,8 @@ func TestFinalize(t *testing.T) {
 		t.Errorf("result for %s %s", res.CR, res.HeadSHA)
 	}
 	j := testJudgement()
-	if !reflect.DeepEqual(res.Questions, j.Questions) || !reflect.DeepEqual(res.Notes, j.Notes) || !reflect.DeepEqual(res.NotVerified, j.NotVerified) {
-		t.Errorf("report fields not kept: %+v %+v %+v", res.Questions, res.Notes, res.NotVerified)
+	if !reflect.DeepEqual(res.Questions, j.Questions) || !reflect.DeepEqual(res.Notes, j.Notes) || !reflect.DeepEqual(res.AgentNotVerified, j.NotVerified) {
+		t.Errorf("report fields not kept: %+v %+v %+v", res.Questions, res.Notes, res.AgentNotVerified)
 	}
 	if len(res.Dismissed) != 0 {
 		t.Errorf("dismissed = %+v", res.Dismissed)
@@ -95,20 +99,24 @@ func TestFinalizeSuggestions(t *testing.T) {
 		t.Fatal(err)
 	}
 	r.Files = append(r.Files, ChangedFile{Diff: big})
-	r.Rules["big"] = RuleInfo{Severity: Minor, Title: "t", Why: "w", Fix: "f"}
+	r.Rules["big"] = &rules.Rule{ID: "big", Severity: "MINOR", Title: "t", Why: "w", Fix: "f"}
 	tests := []struct {
 		name            string
 		path            string
 		side            Side
 		start, line     int
-		keep            bool
+		pre, keep       bool
 		placement, show string
 	}{
-		{"added and context lines of one hunk", "app/A.kt", Right, 2, 3, true, "inline", "context RIGHT 3"},
-		{"single added line", "app/A.kt", Right, 0, 2, true, "inline", "added RIGHT 2"},
-		{"lines past the hunk", "app/A.kt", Right, 3, 5, false, "inline", "relocated RIGHT 4 for 5"},
-		{"left side", "app/Old.kt", Left, 0, 1, false, "inline", "removed LEFT 1"},
-		{"file without a patch", "app/Big.kt", Right, 0, 1, false, "summary", "none"},
+		{"added and context lines of one hunk", "app/A.kt", Right, 2, 3, false, true, "inline", "context RIGHT 3"},
+		{"single added line", "app/A.kt", Right, 0, 2, false, true, "inline", "added RIGHT 2"},
+		{"lines past the hunk", "app/A.kt", Right, 3, 5, false, false, "inline", "relocated RIGHT 4 for 5"},
+		{"left side", "app/Old.kt", Left, 0, 1, false, false, "inline", "removed LEFT 1"},
+		{"file without a patch", "app/Big.kt", Right, 0, 1, false, false, "summary", "none"},
+		// Existing code is never commented inline: its anchor stays, its
+		// suggestion becomes part of the fix.
+		{"pre-existing on lines of one hunk", "app/A.kt", Right, 2, 3, true, false, "summary", "context RIGHT 3"},
+		{"pre-existing on the left side", "app/Old.kt", Left, 0, 1, true, false, "summary", "removed LEFT 1"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -117,9 +125,9 @@ func TestFinalizeSuggestions(t *testing.T) {
 			if tt.path == "app/Big.kt" {
 				rule = "big"
 			}
-			f := JudgedFinding{Rule: rule, Severity: Minor, Path: tt.path, Side: tt.side, StartLine: tt.start, Line: tt.line,
+			f := JudgedFinding{Rule: rule, Severity: Severity(r.Rules[rule].Severity), Path: tt.path, Side: tt.side, StartLine: tt.start, Line: tt.line,
 				Title: "t", Why: "w", Fix: "Do this.", Suggestion: new("x := 1"), References: []Reference{}}
-			if tt.side == Left {
+			if tt.pre {
 				j.PreExisting = []JudgedFinding{f}
 			} else {
 				j.Findings = []JudgedFinding{f}
@@ -129,7 +137,7 @@ func TestFinalizeSuggestions(t *testing.T) {
 				t.Fatal(err)
 			}
 			got := res.Findings[len(res.Findings)-1]
-			if tt.side == Left {
+			if tt.pre {
 				got = res.PreExisting[len(res.PreExisting)-1]
 			}
 			if string(got.Placement) != tt.placement || show(got.Anchor) != tt.show {
@@ -171,7 +179,7 @@ func TestFinalizeFingerprints(t *testing.T) {
 		FindingFingerprint("no-double-bang", "app/A.kt", "c", 0),
 		FindingFingerprint("logic.always-throws", "app/A.kt", "f", 0),
 		FindingFingerprint("no-double-bang", "app/A.kt", "e", 0),
-		FindingFingerprint("logic.always-throws", "app/Old.kt", "q", 0),
+		FindingFingerprint("dead-code", "app/Old.kt", "q", 0),
 	}
 	if got := idsOf(res.Findings, res.PreExisting); !reflect.DeepEqual(got, want) {
 		t.Errorf("ids\n%q\nwant\n%q", got, want)
@@ -202,7 +210,7 @@ func TestFinalizeOccurrenceIndex(t *testing.T) {
 	r.Files[1].Head = []string{"  launch {", "x", "launch   {"}
 	r.Signals = nil
 	finding := func(line int) JudgedFinding {
-		return JudgedFinding{Rule: "logic.always-throws", Severity: Major, Path: "app/New.kt", Side: Right, Line: line,
+		return JudgedFinding{Rule: "logic.always-throws", Severity: Blocker, Path: "app/New.kt", Side: Right, Line: line,
 			Title: "t", Why: "w", Fix: "f", References: []Reference{}}
 	}
 	j := testJudgement()
@@ -238,7 +246,7 @@ func TestFinalizeErrors(t *testing.T) {
 	}
 
 	r := testReview(t)
-	r.Rules["empty-catch"] = RuleInfo{Severity: Blocker, Title: "Empty catch block", Why: "The error vanishes."}
+	r.Rules["empty-catch"] = &rules.Rule{ID: "empty-catch", Severity: "BLOCKER", Title: "Empty catch block", Why: "The error vanishes."}
 	if _, err := Finalize(r, testJudgement()); err == nil || !strings.Contains(err.Error(), `rule "empty-catch" has no fix`) {
 		t.Errorf("rule without a fix: %v", err)
 	}
@@ -270,5 +278,41 @@ func TestFinalizeEmptyListsAreArrays(t *testing.T) {
 	}
 	if string(data) != `{"findings":[],"preExisting":[]}` {
 		t.Errorf("got %s", data)
+	}
+}
+
+// TestFinalizeTakesTheTextOfPackRules finalizes signals of the android
+// pack: their findings say what the catalog says.
+func TestFinalizeTakesTheTextOfPackRules(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "packs", "android", "rules.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	android, err := rules.LoadCatalog(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := testReview(t)
+	r.Rules = RulesOf(android, rules.Core())
+	j := testJudgement()
+	j.Findings, j.PreExisting = nil, nil
+	res, err := Finalize(r, j)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range append(res.Findings, res.PreExisting...) {
+		rule := r.Rules[f.Rule]
+		if f.Title != rule.Title || f.Why != rule.Why || f.Fix != rule.Fix || f.Why == "" || f.Fix == "" {
+			t.Errorf("%s: %q / %q / %q, want the text of the rule", f.Rule, f.Title, f.Why, f.Fix)
+		}
+	}
+}
+
+func TestRulesOfKeepsTheFirstRuleOfAnID(t *testing.T) {
+	a := &rules.Catalog{Pack: "a", Rules: []*rules.Rule{{ID: "x", Title: "from a"}}}
+	b := &rules.Catalog{Pack: "b", Rules: []*rules.Rule{{ID: "x", Title: "from b"}, {ID: "y", Title: "y"}}}
+	got := RulesOf(a, b)
+	if len(got) != 2 || got["x"].Title != "from a" || got["y"].Title != "y" {
+		t.Errorf("RulesOf = %+v", got)
 	}
 }

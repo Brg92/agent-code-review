@@ -1,0 +1,3 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#3 "Increase home screen padding"
+Packs: android (profile app: set in .agent-code-review/config.json · ui-toolkit compose: androidx.compose in app/build.gradle.kts)
+No findings on 2 changed files. Pipeline: pending on head: instrumented. Verdict: OK.

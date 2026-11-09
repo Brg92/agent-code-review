@@ -34,7 +34,8 @@ type Placement string
 const (
 	// Inline publishes a finding on the diff, at its anchor.
 	Inline Placement = "inline"
-	// Summary publishes a finding in the summary: its file shows no line.
+	// Summary publishes a finding in the summary: its file shows no line,
+	// or it is pre-existing.
 	Summary Placement = "summary"
 )
 

@@ -1,0 +1,24 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/core-lib#1 "Reorganize session files"
+Packs: android (profile library: set in .github/mr-review.json · ui-toolkit views: no Compose dependency)
+Criteria: legacy .github/skills @main
+Scope: 6 changed files · head 1bb2c03a
+
+BLOCKER (0) — inline notes on publish
+
+MAJOR (1) — one issue on publish
+  [MAJOR]   src/main/java/com/example/core/session/codec/TokenCodec.kt:7 — The move drops the blank-token check in encode()  [logic.removed-validation]
+            why: The move to the codec package also drops the check that the token is not blank, so `encode()` now silently stores an empty token.
+            fix: Keep the `require()` call.
+
+MINOR (1) — one issue on publish
+  [MINOR]   src/main/java/com/example/core/session/SessionExpiry.kt:9 — The if/else only returns its condition  [style.redundant-if]
+            why: The five lines say in a branch what the comparison already says, which hides the intent.
+            fix: Return the comparison directly.   (suggestion)
+
+Existing code in touched files (0) — not written in this change request
+
+Not verified:
+  - src/main/res/drawable-nodpi/badge_background.png — binary
+no findings: src/main/java/com/example/core/session/LegacySessionStore.kt, src/main/java/com/example/core/session/SessionManager.kt, src/main/java/com/example/core/ui/badge/StatusBadgeView.kt
+Pipeline: passing on head (2 checks)
+Verdict: OK — nothing blocks; non-blocking findings go to issues on publish.

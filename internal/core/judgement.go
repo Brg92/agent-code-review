@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/Brg92/agent-code-review/internal/rules"
 )
 
 // MarshalJSON implements json.Marshaler: an empty severity, the severity
@@ -61,13 +63,18 @@ type Signal struct {
 	NeedsJudgement bool   `json:"needsJudgement"`
 }
 
-// RuleInfo is what finalizing needs to know of a rule: its default
-// severity, whether its signals need judgement, and the text of the
-// findings made from its signals.
-type RuleInfo struct {
-	Severity        Severity
-	NeedsJudgement  bool
-	Title, Why, Fix string
+// RulesOf indexes the rules of catalogs by id. When two catalogs define
+// the same id, the rule of the first one is kept.
+func RulesOf(catalogs ...*rules.Catalog) map[string]*rules.Rule {
+	out := map[string]*rules.Rule{}
+	for _, c := range catalogs {
+		for _, r := range c.Rules {
+			if _, ok := out[r.ID]; !ok {
+				out[r.ID] = r
+			}
+		}
+	}
+	return out
 }
 
 // ChangedFile is a changed file of a change request with the lines of its
@@ -106,8 +113,10 @@ type Review struct {
 	HeadSHA string
 	Files   []ChangedFile
 	// Rules are the rules that apply to the change request together with
-	// the core rules, by id. A finding may only apply one of them.
-	Rules   map[string]RuleInfo
+	// the core rules, by id (see RulesOf). A finding may only apply one of
+	// them; a finding made from a signal takes the title, why and fix of
+	// its rule.
+	Rules   map[string]*rules.Rule
 	Signals []Signal
 }
 
@@ -164,7 +173,8 @@ type SignalDecision struct {
 	ID       string   `json:"id"`
 	Decision Decision `json:"decision"`
 	// Severity of a confirmed signal: required when its rule needs
-	// judgement, an override otherwise.
+	// judgement. Otherwise it may only repeat the rule's severity, or be
+	// BLOCKER for a pre-existing crash.
 	Severity Severity `json:"severity,omitempty"`
 	Crash    bool     `json:"crash,omitempty"`
 	// Reason is required to dismiss a signal.

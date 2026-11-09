@@ -39,7 +39,7 @@ func (s *Set) Assign(active []*Pack, filePath string) Assignment {
 	for _, p := range active {
 		for _, g := range p.Noise {
 			if g.Match(filePath) {
-				a.NotVerified = &rules.NotVerified{Path: filePath, Reason: ReasonNoise, Detail: p.ID}
+				a.NotVerified = &rules.NotVerified{Path: filePath, Reason: ReasonNoise, Detail: "matches a noise glob of the " + p.ID + " pack"}
 				return a
 			}
 		}

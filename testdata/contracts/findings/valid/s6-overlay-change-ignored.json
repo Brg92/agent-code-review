@@ -1,8 +1,14 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#5",
+  "title": "Show profile initials",
   "headSha": "edf5ce35fec83754d0155405db423ddf92d85709",
+  "baseRef": "main",
   "verdict": "OK",
+  "files": [
+    ".agent-code-review/config.json",
+    "app/src/main/java/com/example/sample/data/ProfileStore.kt"
+  ],
   "findings": [
     {
       "id": "acr:v1:no-double-bang:app/src/main/java/com/example/sample/data/ProfileStore.kt:7726b8854d31",
@@ -25,6 +31,10 @@
   ],
   "preExisting": [],
   "notVerified": [],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
   "ci": {
     "state": "passing",
     "checks": [
@@ -43,9 +53,16 @@
   "criteria": {
     "source": "overlay",
     "profile": "app",
+    "profileReason": "set in .agent-code-review/config.json",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "compose",
+        "reason": "androidx.compose in app/build.gradle.kts"
+      }
+    },
     "notes": [
       "This change request edits .agent-code-review/config.json. The edit was not applied: criteria are read from the target branch."
     ]

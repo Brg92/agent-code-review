@@ -52,6 +52,29 @@
           "languages",
           "tags"
         ],
+        "if": {
+          "required": [
+            "match"
+          ]
+        },
+        "then": {
+          "if": {
+            "required": [
+              "needsJudgement"
+            ],
+            "properties": {
+              "needsJudgement": {
+                "const": true
+              }
+            }
+          },
+          "else": {
+            "required": [
+              "why",
+              "fix"
+            ]
+          }
+        },
         "properties": {
           "id": {
             "description": "Rule identifier.",
@@ -73,6 +96,16 @@
           },
           "description": {
             "description": "What the rule checks and why, in Markdown.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "why": {
+            "description": "Consequence written into the findings made from the rule's signals: what goes wrong if the code ships as it is, in one sentence of Markdown. Required when the rule has match and does not need judgement; otherwise the judgement writes the text.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "fix": {
+            "description": "Smallest safe correction written into the findings made from the rule's signals, in one sentence of Markdown. Required when the rule has match and does not need judgement; otherwise the judgement writes the text.",
             "type": "string",
             "pattern": "\\S"
           },

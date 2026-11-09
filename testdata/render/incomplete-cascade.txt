@@ -1,0 +1,11 @@
+Cascade — acr-plugin-sandbox/sample-app#7 · 3 reviewed · 2 skipped · 1 not followed
+
+  1. acr-plugin-sandbox/kmp-shared#2   OK        0 blocker · 0 major · 1 minor (+0 existing)
+  2. acr-plugin-sandbox/core-lib#3     OK        0 blocker · 1 major · 0 minor (+0 existing)
+  3. acr-plugin-sandbox/sample-app#7   OK        0 blocker · 1 major · 0 minor (+0 existing)
+Skipped:
+  acr-plugin-sandbox/feature-lib#2   already done
+  acr-plugin-sandbox/core-lib#9999   not found
+Not followed: https://github.com/acr-plugin-sandbox/kmp-shared/pull/1 (no checkbox)
+Unparsed: "- [ ] the login change"
+Overall: INCOMPLETE — not reviewed: acr-plugin-sandbox/core-lib#9999 (not found), acr-plugin-sandbox/sample-app#7 line 11 (unparsed)

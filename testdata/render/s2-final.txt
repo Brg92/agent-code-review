@@ -1,0 +1,26 @@
+Review completed. Nothing was written to GitHub.
+
+Reports:
+
+- acr-plugin-sandbox/feature-lib#1 — work/feature-lib-1/report.txt
+- acr-plugin-sandbox/kmp-shared#2 — work/kmp-shared-2/report.txt
+- acr-plugin-sandbox/core-lib#3 — work/core-lib-3/report.txt
+- acr-plugin-sandbox/sample-app#2 — work/sample-app-2/report.txt
+- acr-plugin-sandbox/sample-app#7 — work/sample-app-7/report.txt
+
+Cascade — acr-plugin-sandbox/sample-app#7 · 5 reviewed · 6 skipped · 1 not followed
+
+  1. acr-plugin-sandbox/feature-lib#1   OK        0 blocker · 0 major · 0 minor (+0 existing)
+  2. acr-plugin-sandbox/kmp-shared#2    OK        0 blocker · 0 major · 0 minor (+0 existing)
+  3. acr-plugin-sandbox/core-lib#3      BLOCKED   1 blocker · 0 major · 0 minor (+0 existing)
+  4. acr-plugin-sandbox/sample-app#2    BLOCKED   3 blocker · 1 major · 0 minor (+2 existing, 1 crash)
+  5. acr-plugin-sandbox/sample-app#7    OK        0 blocker · 0 major · 0 minor (+0 existing)
+Skipped:
+  acr-plugin-sandbox/sample-app#7              cycle
+  acr-plugin-sandbox/feature-lib#2             already done
+  acr-plugin-sandbox/sample-app#1              not a change request
+  acr-plugin-sandbox/sample-app#7              self-reference
+  gitlab.com/acr-plugin-sandbox/sample-app#1   other platform
+  acr-plugin-sandbox/core-lib#9999             not found
+Not followed: https://github.com/acr-plugin-sandbox/kmp-shared/pull/1 (no checkbox)
+Overall: BLOCKED

@@ -7,6 +7,8 @@
       "title": "Coroutine launched in GlobalScope",
       "severity": "BLOCKER",
       "description": "Synthetic rule for tests.",
+      "why": "The work outlives the component that started it and is never cancelled.",
+      "fix": "Launch it in a scope owned by the component.",
       "languages": [
         "kotlin"
       ],
