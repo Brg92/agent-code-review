@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Brg92/agent-code-review/internal/lexer"
+	"github.com/Brg92/agent-code-review/internal/symbols"
 )
 
 // ReasonTreeUnavailable is the not-verified reason of a file a
@@ -31,6 +32,8 @@ type Match struct {
 	// Path is relative to the repository, with forward slashes.
 	Path string
 	Line int
+	// Text is the matched line; empty when the search does not give it.
+	Text string
 }
 
 // errNoSearch is the error of a check that needs a search when there is
@@ -79,6 +82,22 @@ type ChangeRequest struct {
 	// Ancestors are the change requests above this one in the cascade,
 	// its parent first and the root last.
 	Ancestors []Ancestor
+	// TableOf returns the lexer table of a file of any repository of the
+	// cascade, from its path, to check that a search match is code; nil,
+	// or a nil table, leaves the match unchecked.
+	TableOf func(path string) *lexer.Table
+}
+
+// inCode reports whether a search match for term is an identifier in
+// code, judging from its line alone: false when the term is only in a
+// comment or a string. A match without its text or a lexer table cannot be
+// checked and counts.
+func (cr ChangeRequest) inCode(m Match, term string) bool {
+	if m.Text == "" || cr.TableOf == nil {
+		return true
+	}
+	t := cr.TableOf(m.Path)
+	return t == nil || len(symbols.Uses(t, m.Text, term)) > 0
 }
 
 // Ancestor is a change request above another in the cascade.

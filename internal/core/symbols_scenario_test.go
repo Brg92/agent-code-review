@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/Brg92/agent-code-review/internal/core"
+	"github.com/Brg92/agent-code-review/internal/lexer"
 	"github.com/Brg92/agent-code-review/internal/packs"
 	"github.com/Brg92/agent-code-review/internal/rules"
 	"github.com/Brg92/agent-code-review/internal/testutil/sandbox"
@@ -47,7 +48,7 @@ func (s *recordedSearch) Search(project, ref, term string) ([]rules.Match, error
 	for path, src := range s.files {
 		for i, line := range strings.Split(src, "\n") {
 			if strings.Contains(line, term) {
-				out = append(out, rules.Match{Path: path, Line: i + 1})
+				out = append(out, rules.Match{Path: path, Line: i + 1, Text: line})
 			}
 		}
 	}
@@ -95,6 +96,12 @@ func TestScenarioS2RemovedAPI(t *testing.T) {
 		Files:   rulesFiles(t, set, android, lib),
 		Project: coreLibKey, Head: lib.HeadSHA, Target: "main", Search: search,
 		Ancestors: []rules.Ancestor{{Project: sampleAppKey, Head: app.HeadSHA, Target: "main", Files: rulesFiles(t, set, android, app)}},
+		TableOf: func(path string) *lexer.Table {
+			if a := set.Assign(android, path); a.NotVerified == nil {
+				return a.Language.Table
+			}
+			return nil
+		},
 	}
 	res := rules.RunChangeRequest(rules.Core().Rules, cr)
 	if len(res.NotVerified) != 0 {

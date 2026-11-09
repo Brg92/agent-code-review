@@ -11,9 +11,10 @@ import (
 // ancestors in the cascade still use. A removed symbol is signalled on
 // its removed declaration, a changed one on its declaration at head, with
 // a reference to each use. A use counts when the search of the ancestor's
-// target branch finds it outside the lines the ancestor removes or
-// replaces, and, for a removed symbol, on a line the ancestor adds: the
-// ancestor's own update of a call to a changed function is not a use. A
+// target branch finds it in code, not only in a comment or a string of
+// its line, outside the lines the ancestor removes or replaces, and, for
+// a removed symbol, on a line the ancestor adds: the ancestor's own
+// update of a call to a changed function is not a use. A
 // symbol any of whose searches fails gives no signal and its file is not
 // verified.
 func detectSymbolUsage(r *Rule, cr ChangeRequest, emit func(Signal), skip func(path, reason, symbol string)) {
@@ -83,6 +84,9 @@ func uses(cr ChangeRequest, c symbols.Change, addedCount bool) ([]Reference, err
 			}
 			if a.Project == cr.Project && c.Base != nil && m.Path == c.Base.Path && m.Line == c.Base.Line {
 				continue // the declaration itself
+			}
+			if !cr.inCode(m, c.ID.Name) {
+				continue
 			}
 			keep(Reference{Project: a.Project, Ref: a.Target, Path: m.Path, Line: m.Line})
 		}

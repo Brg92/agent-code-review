@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Brg92/agent-code-review/internal/lexer"
 	"github.com/Brg92/agent-code-review/internal/symbols"
 )
 
@@ -284,5 +285,41 @@ func TestSymbolUsageRequiredParameter(t *testing.T) {
 			}
 			checkSignals(t, RunChangeRequest([]*Rule{rule}, cr), tt.want, nil)
 		})
+	}
+}
+
+func TestSymbolUsageIgnoresCommentsAndStrings(t *testing.T) {
+	hits := map[string][]Match{sampleApp + " main legacyToken": {
+		{Path: "app/A.kt", Line: 3, Text: "    // legacyToken() goes away in core-lib 3"},
+		{Path: "app/B.kt", Line: 4, Text: `    val key = "legacyToken"`},
+		{Path: "app/C.kt", Line: 5, Text: `    fun header() = "Bearer ${manager.legacyToken()}"`},
+		{Path: "app/D.java", Line: 6, Text: "        /* legacyToken */ String t = manager.legacyToken();"},
+		{Path: "app/E.java", Line: 7, Text: "        * Calls legacyToken() on the manager."},
+		{Path: "app/F.kt", Line: 8},
+		{Path: "docs/G.md", Line: 9, Text: "Do not call legacyToken()."},
+	}}
+	tables := func(path string) *lexer.Table {
+		switch {
+		case strings.HasSuffix(path, ".kt"):
+			return packTable(t, "kotlin")
+		case strings.HasSuffix(path, ".java"):
+			return packTable(t, "java")
+		}
+		return nil
+	}
+	cr := coreLibChange(t, &fakeSearch{hits: hits}, Ancestor{Project: sampleApp, Head: "e9009e", Target: "main"})
+	cr.TableOf = tables
+	// A match without its text, or in a file without a lexer table, cannot
+	// be checked and is kept. A block comment opened on an earlier line
+	// is not seen from its matched line: E.java is kept, for the judgement.
+	checkSignals(t, RunChangeRequest([]*Rule{symbolRule(t, "uses-removed-api", removedAPI)}, cr), []string{
+		"LEFT uses-removed-api " + managerPath + ":7:9 -> sample-app@main:app/C.kt:5 -> sample-app@main:app/D.java:6" +
+			" -> sample-app@main:app/E.java:7 -> sample-app@main:app/F.kt:8 -> sample-app@main:docs/G.md:9",
+	}, nil)
+	// Without tables, no match is checked.
+	cr.TableOf = nil
+	if got := signalsWithRefs(RunChangeRequest([]*Rule{symbolRule(t, "uses-removed-api", removedAPI)}, cr).Signals); len(got) != 1 ||
+		strings.Count(got[0], " -> ") != 7 {
+		t.Errorf("without tables: %q, want the 7 matches", got)
 	}
 }
