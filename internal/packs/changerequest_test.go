@@ -31,12 +31,14 @@ type crCase struct {
 	order    []string
 	tree     tree
 	variants []string
-	want     string
+	// search finds code at the target branch; nil finds none.
+	search search
+	want   string
 }
 
 func runChangeRequest(t *testing.T, set *Set, active []*Pack, c crCase) []rules.Signal {
 	t.Helper()
-	cr := rules.ChangeRequest{Tree: c.tree, Variants: c.variants}
+	cr := rules.ChangeRequest{Tree: c.tree, Variants: c.variants, Project: "github:github.com/o/r", Target: "main", Search: c.search}
 	for _, p := range c.order {
 		src := c.files[p]
 		var f rules.ChangedFile
@@ -195,7 +197,7 @@ func TestKMPChangeRequestRules(t *testing.T) {
 		t.Fatal(err)
 	}
 	kmp := []*Pack{packOf(t, set, "kotlin-multiplatform")}
-	for _, c := range append(append([]crCase{}, kmpCRCases...), kmpAsymmetryCases...) {
+	for _, c := range append(append(append([]crCase{}, kmpCRCases...), kmpAsymmetryCases...), kmpExpectCases()...) {
 		t.Run(c.name, func(t *testing.T) {
 			if got := sigLines(runChangeRequest(t, set, kmp, c)); got != c.want {
 				t.Errorf("%s signals %q, want %q", c.rule, got, c.want)
@@ -239,5 +241,41 @@ func TestChangeRequestRulesAreCovered(t *testing.T) {
 }
 
 func changeRequestCases() []crCase {
-	return append(append(append([]crCase{}, androidCRCases...), kmpCRCases...), kmpAsymmetryCases...)
+	return append(append(append(append([]crCase{}, androidCRCases...), kmpCRCases...), kmpAsymmetryCases...), kmpExpectCases()...)
+}
+
+const (
+	commonPlatform  = "shared/src/commonMain/kotlin/a/Platform.kt"
+	androidPlatform = "shared/src/androidMain/kotlin/a/Platform.android.kt"
+	iosPlatform     = "shared/src/iosMain/kotlin/a/Platform.ios.kt"
+	arm64Platform   = "shared/src/iosArm64Main/kotlin/a/Platform.arm64.kt"
+	x64Platform     = "shared/src/iosX64Main/kotlin/a/Platform.x64.kt"
+	expectPlatform  = "package a\n\nexpect fun platformName(): String\n"
+	actualPlatform  = "package a\n\nactual fun platformName(): String = \"x\"\n"
+)
+
+// kmpExpectCases are the cases of kmp-expect-without-actual; the search
+// finds the files at the target branch.
+func kmpExpectCases() []crCase {
+	platforms := tree{commonPlatform, androidPlatform, iosPlatform}
+	withSearch := func(c crCase, s search) crCase {
+		c.search = s
+		return c
+	}
+	return []crCase{
+		crCaseOf("actuals in the change request", "kmp-expect-without-actual", platforms, nil, "",
+			commonPlatform, expectPlatform, androidPlatform, actualPlatform, iosPlatform, actualPlatform),
+		withSearch(crCaseOf("actual on android only", "kmp-expect-without-actual", platforms, nil, commonPlatform+":3",
+			commonPlatform, expectPlatform, androidPlatform, actualPlatform), search{iosPlatform: "package a\n"}),
+		withSearch(crCaseOf("ios actual at the target branch", "kmp-expect-without-actual", platforms, nil, "",
+			commonPlatform, expectPlatform, androidPlatform, actualPlatform), search{iosPlatform: actualPlatform}),
+		crCaseOf("no ios source set", "kmp-expect-without-actual", tree{commonPlatform, androidPlatform}, nil, "",
+			commonPlatform, expectPlatform, androidPlatform, actualPlatform),
+		crCaseOf("iosMain stands for the ios targets", "kmp-expect-without-actual", tree{commonPlatform, androidPlatform, iosPlatform, arm64Platform}, nil, "",
+			commonPlatform, expectPlatform, androidPlatform, actualPlatform, iosPlatform, actualPlatform),
+		crCaseOf("every ios target without iosMain", "kmp-expect-without-actual", tree{commonPlatform, androidPlatform, arm64Platform, x64Platform}, nil, "",
+			commonPlatform, expectPlatform, androidPlatform, actualPlatform, arm64Platform, actualPlatform, x64Platform, actualPlatform),
+		crCaseOf("an ios target without iosMain lacks it", "kmp-expect-without-actual", tree{commonPlatform, androidPlatform, arm64Platform, x64Platform}, nil,
+			commonPlatform+":3", commonPlatform, expectPlatform, androidPlatform, actualPlatform, arm64Platform, actualPlatform),
+	}
 }

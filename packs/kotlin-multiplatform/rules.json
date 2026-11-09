@@ -97,7 +97,10 @@
       "id": "kmp-expect-without-actual",
       "title": "expect declaration without an actual",
       "severity": "BLOCKER",
-      "description": "An `expect` declaration needs an `actual` in every target source set, or the module does not compile for that target. The check comes with the source set analysis.",
+      "needsJudgement": true,
+      "description": "An `expect` declaration needs an `actual` in every target source set, or the module does not compile for that target. An `expect` declaration added or changed under `src/commonMain` is a candidate when a platform source set of its module has files and no `actual` with the same package, name and kind, neither in the change request nor on the target branch. The platforms are `androidMain`, `jvmMain` and iOS: `iosMain` holds the iOS `actual` when it has files; without it, each of `iosArm64Main`, `iosX64Main` and `iosSimulatorArm64Main` that has files needs its own. Judge whether the `actual` lives in another source set of a custom hierarchy.",
+      "why": "The module does not compile for the target that has no `actual`, so its build fails.",
+      "fix": "Add the matching `actual` declaration to the platform source set, or to `iosMain` for every iOS target.",
       "languages": [
         "kotlin"
       ],
@@ -105,7 +108,27 @@
         "multiplatform",
         "source-sets"
       ],
-      "group": "Kotlin Multiplatform"
+      "group": "Kotlin Multiplatform",
+      "match": {
+        "scope": "change-request",
+        "detector": "expect-actual",
+        "expectKeyword": "expect",
+        "actualKeyword": "actual",
+        "commonGroup": "commonMain",
+        "groups": [
+          "androidMain",
+          "iosMain",
+          "jvmMain"
+        ],
+        "groupPattern": "src/{group}/",
+        "intermediateGroups": {
+          "iosMain": [
+            "iosArm64Main",
+            "iosX64Main",
+            "iosSimulatorArm64Main"
+          ]
+        }
+      }
     },
     {
       "id": "kmp-source-set-asymmetry",

@@ -23,14 +23,132 @@
         ".kt",
         ".kts"
       ],
-      "lexer": "lexer/kotlin.json"
+      "lexer": "lexer/kotlin.json",
+      "symbols": {
+        "packageKeyword": "package",
+        "declarations": [
+          {
+            "word": "fun",
+            "kind": "function"
+          },
+          {
+            "word": "val",
+            "kind": "property"
+          },
+          {
+            "word": "var",
+            "kind": "property"
+          },
+          {
+            "word": "class",
+            "kind": "type"
+          },
+          {
+            "word": "interface",
+            "kind": "type"
+          },
+          {
+            "word": "object",
+            "kind": "type"
+          },
+          {
+            "word": "typealias",
+            "kind": "type"
+          }
+        ],
+        "hidingModifiers": [
+          "private",
+          "internal"
+        ],
+        "publicModifiers": [
+          "public",
+          "protected"
+        ],
+        "publicByDefault": true,
+        "annotation": "@",
+        "qualifiers": [
+          ".",
+          "?."
+        ],
+        "body": {
+          "open": "{",
+          "close": "}"
+        },
+        "parameters": {
+          "open": "(",
+          "close": ")"
+        },
+        "typeParameters": {
+          "open": "<",
+          "close": ">"
+        },
+        "parameterSeparator": ",",
+        "parameterType": ":",
+        "parameterDefault": "="
+      }
     },
     {
       "id": "java",
       "extensions": [
         ".java"
       ],
-      "lexer": "lexer/java.json"
+      "lexer": "lexer/java.json",
+      "symbols": {
+        "packageKeyword": "package",
+        "declarations": [
+          {
+            "word": "class",
+            "kind": "type"
+          },
+          {
+            "word": "interface",
+            "kind": "type"
+          },
+          {
+            "word": "enum",
+            "kind": "type"
+          },
+          {
+            "word": "record",
+            "kind": "type"
+          }
+        ],
+        "typedMembers": {
+          "ends": [
+            "=",
+            ";",
+            ","
+          ]
+        },
+        "hidingModifiers": [
+          "private"
+        ],
+        "publicModifiers": [
+          "public",
+          "protected"
+        ],
+        "publicByDefault": false,
+        "publicMembersIn": [
+          "interface"
+        ],
+        "annotation": "@",
+        "qualifiers": [
+          "."
+        ],
+        "body": {
+          "open": "{",
+          "close": "}"
+        },
+        "parameters": {
+          "open": "(",
+          "close": ")"
+        },
+        "typeParameters": {
+          "open": "<",
+          "close": ">"
+        },
+        "parameterSeparator": ","
+      }
     }
   ],
   "profiles": [

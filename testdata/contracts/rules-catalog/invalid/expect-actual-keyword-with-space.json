@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "pack": "core",
+  "rules": [
+    {
+      "id": "expect-without-actual",
+      "title": "expect declaration without an actual",
+      "severity": "BLOCKER",
+      "needsJudgement": true,
+      "description": "An expect declaration has no actual in a platform source set of its module.",
+      "why": "The module does not compile for that target.",
+      "fix": "Add the actual declaration to the platform source set.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "multiplatform"
+      ],
+      "match": {
+        "scope": "change-request",
+        "detector": "expect-actual",
+        "expectKeyword": "expect fun",
+        "actualKeyword": "actual",
+        "commonGroup": "commonMain",
+        "groups": [
+          "androidMain",
+          "iosMain"
+        ],
+        "groupPattern": "src/{group}/"
+      }
+    }
+  ]
+}

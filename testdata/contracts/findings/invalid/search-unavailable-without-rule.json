@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",
+  "title": "Replace legacyToken with expiresAt",
+  "headSha": "df06e9a9f2bef2854b522d926923ee6550a4f46c",
+  "baseRef": "main",
+  "verdict": "OK",
+  "files": [
+    "src/main/java/com/example/core/session/SessionManager.kt"
+  ],
+  "findings": [],
+  "preExisting": [],
+  "notVerified": [
+    {
+      "path": "src/main/java/com/example/core/session/SessionManager.kt",
+      "reason": "search-unavailable"
+    }
+  ],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
+  "ci": {
+    "state": "passing",
+    "checks": [
+      {
+        "name": "lint",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "test",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "criteria": {
+    "source": "legacy",
+    "profile": "library",
+    "profileReason": "maven-publish in build.gradle.kts",
+    "packs": [
+      "android"
+    ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "views",
+        "reason": "no Compose dependency"
+      }
+    },
+    "notes": []
+  }
+}

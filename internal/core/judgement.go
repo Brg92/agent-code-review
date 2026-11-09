@@ -56,11 +56,17 @@ type Signal struct {
 	// judgement.
 	Severity Severity `json:"severity"`
 	Path     string   `json:"path"`
-	// Line is on the RIGHT side.
+	// Side is Left for a line of the base version, as on a removed
+	// declaration; empty for the RIGHT side.
+	Side Side `json:"side,omitempty"`
+	// Line is on Side.
 	Line           int    `json:"line"`
 	Column         int    `json:"column"`
 	Origin         Origin `json:"origin"`
 	NeedsJudgement bool   `json:"needsJudgement"`
+	// References are the places in the code the signal relies on; a
+	// finding made from the signal keeps them.
+	References []Reference `json:"references,omitempty"`
 }
 
 // RulesOf indexes the rules of catalogs by id. When two catalogs define

@@ -101,7 +101,10 @@ func Finalize(r Review, j Judgement) (Result, error) {
 		}
 		f := Finding{
 			Rule: s.Rule, Severity: s.Severity, Path: s.Path, Side: Right, Line: s.Line,
-			Title: rule.Title, Why: rule.Why, Fix: rule.Fix, References: []Reference{}, Crash: d.Crash, Signal: s.ID,
+			Title: rule.Title, Why: rule.Why, Fix: rule.Fix, References: append([]Reference{}, s.References...), Crash: d.Crash, Signal: s.ID,
+		}
+		if s.Side == Left {
+			f.Side = Left
 		}
 		if d.Severity != "" {
 			f.Severity = d.Severity

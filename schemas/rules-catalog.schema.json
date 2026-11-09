@@ -421,7 +421,7 @@
       "additionalProperties": false,
       "properties": {
         "scope": {
-          "description": "change-request: the detector sees the whole change request (its changed files, their contents at head and the repository tree at head) instead of one file. Absent: one file at a time.",
+          "description": "change-request: the detector sees the whole change request (its changed files, their contents at base and at head, the repository tree at head, a code search, and the change requests above it in the cascade) instead of one file. Absent: one file at a time.",
           "enum": [
             "change-request"
           ]
@@ -454,12 +454,14 @@
           ]
         },
         "detector": {
-          "description": "A generic detector instead of token patterns. On each file, line-length: lines longer than max runes; missing-doc: declarations at top level or directly in a type body with no doc comment right before them. On the change request (scope change-request), missing-test: an added or modified source whose test is neither in the change request nor under a test root of its module; counterpart: a changed file whose counterpart in another group exists and is not changed.",
+          "description": "A generic detector instead of token patterns. On each file, line-length: lines longer than max runes; missing-doc: declarations at top level or directly in a type body with no doc comment right before them. On the change request (scope change-request), missing-test: an added or modified source whose test is neither in the change request nor under a test root of its module; counterpart: a changed file whose counterpart in another group exists and is not changed; symbol-usage: a public symbol the change request removes, or gives a new required parameter, that the repositories of the change requests above it in the cascade still use; expect-actual: an expect declaration added or changed in the common group with no matching actual in a platform group of its module.",
           "enum": [
             "line-length",
             "missing-doc",
             "missing-test",
-            "counterpart"
+            "counterpart",
+            "symbol-usage",
+            "expect-actual"
           ]
         },
         "max": {
@@ -585,7 +587,7 @@
           }
         },
         "groups": {
-          "description": "counterpart: the groups, as they appear in paths, for example androidMain and iosMain. Exactly one of groups and groupsFrom.",
+          "description": "counterpart: the groups, as they appear in paths, for example androidMain and iosMain; exactly one of groups and groupsFrom. expect-actual: the platform groups that need an actual when the module has files in them.",
           "type": "array",
           "minItems": 2,
           "uniqueItems": true,
@@ -601,7 +603,7 @@
           ]
         },
         "groupPattern": {
-          "description": "counterpart: how a group appears in a path, with {group} standing for it, for example src/{group}/. A file is under a group when its path contains the pattern at the start of a segment.",
+          "description": "counterpart and expect-actual: how a group appears in a path, with {group} standing for it, for example src/{group}/. A file is under a group when its path contains the pattern at the start of a segment; what comes before is its module.",
           "type": "string",
           "pattern": "^(?:[^/\\\\*{}]+/)*[^/\\\\*{}]*\\{group\\}[^/\\\\*{}]*/$"
         },
@@ -612,6 +614,42 @@
           "items": {
             "type": "string",
             "pattern": "^\\.[A-Za-z0-9_-]+$"
+          }
+        },
+        "symbolChange": {
+          "description": "symbol-usage: which change of a public symbol is checked. removed: the symbol is gone at head; required-parameter: a function has, at head, a parameter without a default whose name it did not have at base.",
+          "enum": [
+            "removed",
+            "required-parameter"
+          ]
+        },
+        "expectKeyword": {
+          "description": "expect-actual: modifier of a declaration that needs an actual in every platform group, for example expect.",
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "actualKeyword": {
+          "description": "expect-actual: modifier of the declaration that provides it, for example actual.",
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "commonGroup": {
+          "description": "expect-actual: the group whose expect declarations are checked, for example commonMain.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "intermediateGroups": {
+          "description": "expect-actual: platform groups that are intermediate source sets, each with the target groups below it, for example iosMain with iosArm64Main and iosX64Main. When the intermediate group has files at head, it must hold the actual; when it has none, each of its target groups with files must. Every key must be one of groups; a target group is not one of groups.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "The target groups below the intermediate group.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$"
+            }
           }
         }
       },
@@ -642,7 +680,9 @@
           "detector": {
             "enum": [
               "missing-test",
-              "counterpart"
+              "counterpart",
+              "symbol-usage",
+              "expect-actual"
             ]
           }
         },
@@ -666,35 +706,104 @@
             "groups": false,
             "groupsFrom": false,
             "groupPattern": false,
-            "stripSuffixes": false
+            "stripSuffixes": false,
+            "symbolChange": false,
+            "expectKeyword": false,
+            "actualKeyword": false,
+            "commonGroup": false,
+            "intermediateGroups": false
           }
         },
         "else": {
-          "required": [
-            "groupPattern"
-          ],
-          "properties": {
-            "sources": false,
-            "nameSuffixes": false,
-            "moduleSeparator": false,
-            "testRoots": false,
-            "testName": false,
-            "testExtensions": false
-          },
           "if": {
-            "required": [
-              "groups"
-            ]
+            "properties": {
+              "detector": {
+                "const": "counterpart"
+              }
+            }
           },
           "then": {
+            "required": [
+              "groupPattern"
+            ],
             "properties": {
-              "groupsFrom": false
+              "sources": false,
+              "nameSuffixes": false,
+              "moduleSeparator": false,
+              "testRoots": false,
+              "testName": false,
+              "testExtensions": false,
+              "symbolChange": false,
+              "expectKeyword": false,
+              "actualKeyword": false,
+              "commonGroup": false,
+              "intermediateGroups": false
+            },
+            "if": {
+              "required": [
+                "groups"
+              ]
+            },
+            "then": {
+              "properties": {
+                "groupsFrom": false
+              }
+            },
+            "else": {
+              "required": [
+                "groupsFrom"
+              ]
             }
           },
           "else": {
-            "required": [
-              "groupsFrom"
-            ]
+            "if": {
+              "properties": {
+                "detector": {
+                  "const": "symbol-usage"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "symbolChange"
+              ],
+              "properties": {
+                "sources": false,
+                "nameSuffixes": false,
+                "moduleSeparator": false,
+                "testRoots": false,
+                "testName": false,
+                "testExtensions": false,
+                "groups": false,
+                "groupsFrom": false,
+                "groupPattern": false,
+                "stripSuffixes": false,
+                "expectKeyword": false,
+                "actualKeyword": false,
+                "commonGroup": false,
+                "intermediateGroups": false
+              }
+            },
+            "else": {
+              "required": [
+                "expectKeyword",
+                "actualKeyword",
+                "commonGroup",
+                "groups",
+                "groupPattern"
+              ],
+              "properties": {
+                "sources": false,
+                "nameSuffixes": false,
+                "moduleSeparator": false,
+                "testRoots": false,
+                "testName": false,
+                "testExtensions": false,
+                "groupsFrom": false,
+                "stripSuffixes": false,
+                "symbolChange": false
+              }
+            }
           }
         }
       },
@@ -710,6 +819,11 @@
           "groupsFrom": false,
           "groupPattern": false,
           "stripSuffixes": false,
+          "symbolChange": false,
+          "expectKeyword": false,
+          "actualKeyword": false,
+          "commonGroup": false,
+          "intermediateGroups": false,
           "detector": {
             "enum": [
               "line-length",

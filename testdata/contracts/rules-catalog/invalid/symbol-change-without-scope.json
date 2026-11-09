@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "pack": "core",
+  "rules": [
+    {
+      "id": "uses-removed-api",
+      "title": "Removes API that a related change still uses",
+      "severity": "BLOCKER",
+      "needsJudgement": true,
+      "description": "A public symbol removed here is still used by a change request above this one in the cascade.",
+      "why": "The consumer no longer builds.",
+      "fix": "Migrate the consumer first, or keep the symbol deprecated for one more release.",
+      "languages": [],
+      "tags": [
+        "cascade",
+        "api"
+      ],
+      "match": {
+        "detector": "line-length",
+        "symbolChange": "removed",
+        "max": 100
+      }
+    }
+  ]
+}

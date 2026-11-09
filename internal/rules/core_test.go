@@ -2,6 +2,7 @@ package rules
 
 import (
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -68,6 +69,38 @@ func TestCoreVariantAsymmetry(t *testing.T) {
 		sigs := RunChangeRequest([]*Rule{rule}, ChangeRequest{Files: []ChangedFile{free}, Tree: tree, Variants: tt.variants}).Signals
 		if got := signalsAt(sigs); got != tt.want {
 			t.Errorf("%s: signals %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
+func TestCoreSymbolRules(t *testing.T) {
+	byID := map[string]*Rule{}
+	for _, r := range Core().Rules {
+		byID[r.ID] = r
+	}
+	parent := Ancestor{Project: sampleApp, Head: "e9009e", Target: "main"}
+	tests := []struct {
+		id, head string
+		hits     map[string][]Match
+		want     []string
+	}{
+		{"uses-removed-api", managerHead, map[string][]Match{sampleApp + " main legacyToken": {{Path: repoPath, Line: 5}}},
+			[]string{"LEFT uses-removed-api " + managerPath + ":7:9 -> sample-app@main:" + repoPath + ":5"}},
+		{"missing-required-argument", strings.Replace(managerBase, "(force: Boolean)", "(force: Boolean, reason: String)", 1),
+			map[string][]Match{sampleApp + " main refresh": {{Path: "app/Sync.kt", Line: 4}}},
+			[]string{"RIGHT missing-required-argument " + managerPath + ":11:9 -> sample-app@main:app/Sync.kt:4"}},
+	}
+	for _, tt := range tests {
+		r := byID[tt.id]
+		if r == nil || !r.OnChangeRequest() || !r.NeedsJudgement || r.Severity != "BLOCKER" || r.Why == "" || r.Fix == "" {
+			t.Fatalf("%s = %+v, want a BLOCKER change-request rule that needs judgement, with why and fix", tt.id, r)
+		}
+		cr := ChangeRequest{
+			Files:   []ChangedFile{symbolFile(t, managerPath, managerBase, tt.head, nil, nil)},
+			Project: coreLib, Target: "main", Search: &fakeSearch{hits: tt.hits}, Ancestors: []Ancestor{parent},
+		}
+		if got := signalsWithRefs(RunChangeRequest([]*Rule{r}, cr).Signals); !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("%s: signals %q, want %q", tt.id, got, tt.want)
 		}
 	}
 }

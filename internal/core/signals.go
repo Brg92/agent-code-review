@@ -21,18 +21,39 @@ func (d FileDiff) AddedLines() map[int]bool {
 	return added
 }
 
+// RemovedLines returns the LEFT side numbers of the lines the diff
+// removes.
+func (d FileDiff) RemovedLines() map[int]bool {
+	removed := map[int]bool{}
+	for _, h := range d.Hunks {
+		for _, l := range h.Lines {
+			if l.Kind == LineRemoved {
+				removed[l.Old] = true
+			}
+		}
+	}
+	return removed
+}
+
 // RulesFile returns the changed file as the change-request rules see it.
 // assigned holds what the packs give its path: the language, the lexer
-// table and whether it is a test; the zero value when no pack covers it.
-// The path, the old path, the contents at head and the added lines come
-// from the change.
+// table, the symbols and whether it is a test; the zero value when no
+// pack covers it. The path, the old path, the contents at base and at
+// head and the added and removed lines come from the change.
 func (f ChangedFile) RulesFile(assigned rules.File) rules.ChangedFile {
-	src := ""
-	if len(f.Head) > 0 {
-		src = strings.Join(f.Head, "\n") + "\n"
+	assigned.Path, assigned.Source, assigned.Added = f.Diff.Path, joinLines(f.Head), f.Diff.AddedLines()
+	return rules.ChangedFile{
+		File: assigned, OldPath: f.Diff.OldPath, Removed: f.Diff.Status == FileRemoved,
+		Base: joinLines(f.Base), RemovedLines: f.Diff.RemovedLines(),
 	}
-	assigned.Path, assigned.Source, assigned.Added = f.Diff.Path, src, f.Diff.AddedLines()
-	return rules.ChangedFile{File: assigned, OldPath: f.Diff.OldPath, Removed: f.Diff.Status == FileRemoved}
+}
+
+// joinLines joins lines into a source, each ended by a line break.
+func joinLines(lines []string) string {
+	if len(lines) == 0 {
+		return ""
+	}
+	return strings.Join(lines, "\n") + "\n"
 }
 
 // NumberSignals lists the signals of a change request as its work package
@@ -72,10 +93,17 @@ func NumberSignals(files []ChangedFile, lists ...[]rules.Signal) []Signal {
 	})
 	out := make([]Signal, 0, len(all))
 	for i, s := range all {
-		out = append(out, Signal{
+		sig := Signal{
 			ID: "s" + strconv.Itoa(i+1), Rule: s.RuleID, Severity: Severity(s.Severity), Path: s.Path,
 			Line: s.Line, Column: s.Column, Origin: Origin(s.Origin), NeedsJudgement: s.NeedsJudgement,
-		})
+		}
+		if s.Side == rules.SideLeft {
+			sig.Side = Left
+		}
+		for _, r := range s.References {
+			sig.References = append(sig.References, Reference{Project: r.Project, Ref: r.Ref, Path: r.Path, Line: r.Line})
+		}
+		out = append(out, sig)
 	}
 	return out
 }

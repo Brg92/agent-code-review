@@ -26,8 +26,8 @@ Target repository layout (directories appear only when their first real file is 
 
 ```text
 cmd/agent-code-review/   entry point
-internal/                cli, state, core, cascade, lexer, rules, packs, render, refs,
-                         transport, auth, mcp, version, forges/{base,github,gitlab}
+internal/                cli, state, core, cascade, lexer, symbols, rules, packs, render,
+                         refs, transport, auth, mcp, version, forges/{base,github,gitlab}
 packs/                   stack packs (data)
 plugin/                  manifests, skills, agents, hooks, launchers
 schemas/                 JSON Schemas (schema: 1)
@@ -53,7 +53,7 @@ docs/                    project docs for humans
 
 - Format: `<type>(<scope>): <description>` — imperative mood, lowercase, no trailing period, subject max 72 chars.
 - Types: `feat`, `fix`, `test`, `refactor`, `docs`, `build`, `ci`, `chore`, `perf`, `style`, `revert`.
-- Scopes (closest one): `version`, `cli`, `state`, `core`, `lexer`, `rules`, `packs`, `render`, `refs`, `forges`, `github`, `gitlab`, `transport`, `auth`, `mcp`, `guards`, `recorder`, `schemas`, `sandbox`, `plugin`, `deps`, `repo`.
+- Scopes (closest one): `version`, `cli`, `state`, `core`, `lexer`, `symbols`, `rules`, `packs`, `render`, `refs`, `forges`, `github`, `gitlab`, `transport`, `auth`, `mcp`, `guards`, `recorder`, `schemas`, `sandbox`, `plugin`, `deps`, `repo`.
 - Body (optional): explain *why*, wrapped at 72 chars. Breaking changes: `!` after the scope **and** a `BREAKING CHANGE:` footer.
 - **Small, coherent commits**: one logical change per commit; every commit leaves the repository green. Never mix unrelated changes (feature + docs fix, code + formatting).
 - One TDD cycle (one behaviour) = one commit; refactors and docs in their own commits. Prefer commits under ~200 changed lines; generated fixtures and recorded data go in their own `test(...)` commit.
