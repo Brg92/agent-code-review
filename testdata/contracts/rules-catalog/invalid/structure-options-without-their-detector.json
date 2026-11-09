@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "rules": [
+    {
+      "id": "line-too-long",
+      "title": "Line too long",
+      "severity": "MINOR",
+      "description": "Lines stay within {max} characters.",
+      "why": "Long lines are hard to read.",
+      "fix": "Wrap the line within {max} characters.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "style"
+      ],
+      "match": {
+        "detector": "missing-doc",
+        "declarations": [
+          "fun"
+        ],
+        "types": [
+          "class"
+        ],
+        "annotation": "@",
+        "header": {
+          "open": "(",
+          "close": ")"
+        },
+        "body": {
+          "open": "{",
+          "close": "}"
+        }
+      },
+      "options": {
+        "max": {
+          "min": 60,
+          "max": 200
+        }
+      }
+    }
+  ]
+}

@@ -692,8 +692,8 @@
       "title": "Line too long",
       "severity": "MINOR",
       "description": "Lines within the configured length.",
-      "why": "Lines over 100 characters force horizontal scrolling and make the code and its diffs harder to read.",
-      "fix": "Wrap the line within 100 characters.",
+      "why": "Lines over {max} characters force horizontal scrolling and make the code and its diffs harder to read.",
+      "fix": "Wrap the line within {max} characters.",
       "languages": [
         "kotlin",
         "java"
@@ -705,6 +705,12 @@
         "detector": "line-length",
         "max": 100,
         "lines": "added"
+      },
+      "options": {
+        "max": {
+          "min": 60,
+          "max": 200
+        }
       }
     },
     {
