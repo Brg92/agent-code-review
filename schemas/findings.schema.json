@@ -499,11 +499,6 @@
           "anchor"
         ]
       },
-      "else": {
-        "properties": {
-          "anchor": false
-        }
-      },
       "properties": {
         "id": {
           "description": "Fingerprint of the finding, acr:v1:<rule>:<path>:<h12>, where h12 is the first 12 hexadecimal characters of the SHA-256 of the normalised text of the requested line (trimmed, inner whitespace collapsed), a newline and the occurrence index of that text among the findings of the change request with the same rule and path, counted in side and line order. It stays the same when the line moves, and is embedded in published notes so that a finding is not posted twice.",
@@ -566,14 +561,14 @@
           "default": false
         },
         "placement": {
-          "description": "Where the finding is published: inline on the diff, at its anchor, for every finding of a file with a visible line; in the summary only when the file has no visible line at all (no patch).",
+          "description": "Where the finding is published: inline on the diff at its anchor, or in the summary. A finding of the change request is inline whenever its file has a visible line, and goes to the summary only when the file has none (no patch).",
           "enum": [
             "inline",
             "summary"
           ]
         },
         "anchor": {
-          "description": "Where the finding is published on the diff; present exactly when the placement is inline.",
+          "description": "Where the finding sits on the diff; present whenever its file has a visible line, whatever the placement.",
           "$ref": "#/$defs/anchor"
         }
       }
