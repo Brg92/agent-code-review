@@ -12,8 +12,11 @@ In `config.json`, set `variants` to the build variants or flavors of the
 repository, `dimensions` to fix a value that detection gets wrong, for example
 `{ "ui-toolkit": "compose" }`, `ruleOptions` to change a value a pack rule
 allows, for example `{ "line-too-long": { "max": 120 } }`, and `disabledRules`
-to the rules of this file that are switched off for now. Pack rules always
-apply and cannot be weakened from a repository.
+to the rules of this file that are switched off for now. List the shared
+libraries this app consumes in `sharedLibraries`, as project keys such as
+`github:github.com/<owner>/core-lib`: a change that relies on a change of one of
+them must list it under `## Related Changes`. Pack rules always apply and cannot
+be weakened from a repository.
 
 ## Environment
 
@@ -29,7 +32,6 @@ runs whatever that branch defines, and the pipeline has already run the checks.
 
 ## Project facts
 
-- Shared libraries this app consumes: <core-lib, feature-lib, ...>
 - Build variants: <flavorA, flavorB, ...>, or "single variant"
 - Conventions document: <path, for example `docs/conventions.md`>
 

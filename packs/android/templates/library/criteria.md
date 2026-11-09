@@ -9,8 +9,8 @@
 > reads it from the target branch.
 
 In `config.json`, `profile` is `library`, so the library rules apply. Set
-`variants`, `dimensions`, `ruleOptions` and `disabledRules` as for an app; pack
-rules always apply and cannot be weakened from a repository.
+`variants`, `dimensions`, `ruleOptions`, `disabledRules` and `sharedLibraries`
+as for an app; pack rules always apply and cannot be weakened from a repository.
 
 ## Environment
 
