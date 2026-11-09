@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "profile": "app",
+  "packs": [
+    "android"
+  ],
+  "variants": [
+    "free",
+    "paid"
+  ],
+  "ruleOptions": {
+    "line-too-long": {
+      "max": 120
+    }
+  }
+}

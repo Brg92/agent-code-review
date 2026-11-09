@@ -41,10 +41,17 @@
       }
     },
     "disabledRules": {
-      "description": "Rules that are not applied in this repository.",
+      "description": "Repository rules, from criteria.md, that are not applied. Pack and core rules always apply: naming one is ignored and reported.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/ruleId"
+      }
+    },
+    "ruleOptions": {
+      "description": "Values for the options a rule declares, by rule id, for example {\"line-too-long\": {\"max\": 120}}. An unknown rule, a parameter the rule does not declare or a value outside its bounds is ignored and reported.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/optionValues"
       }
     },
     "noise": {
@@ -82,6 +89,14 @@
       "description": "Path glob with forward slashes: '*' matches within a segment, '**' matches any number of segments.",
       "type": "string",
       "pattern": "^[^/\\\\]+(?:/[^/\\\\]+)*$"
+    },
+    "optionValues": {
+      "description": "Values for the options of one rule, by parameter name.",
+      "type": "object",
+      "additionalProperties": {
+        "description": "Value of the parameter named by the key; it must lie within the bounds the rule declares.",
+        "type": "integer"
+      }
     },
     "packId": {
       "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
