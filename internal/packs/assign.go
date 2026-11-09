@@ -88,7 +88,10 @@ func (p *Pack) language(ext string) *Language {
 // File returns the input of the rule engine for an assigned file. It must
 // only be called when the file has a pack.
 func (a Assignment) File(source string, added map[int]bool) rules.File {
-	return rules.File{Path: a.Path, Language: a.Language.ID, Table: a.Language.Table, Source: source, Test: a.Test, Added: added}
+	return rules.File{
+		Path: a.Path, Language: a.Language.ID, Table: a.Language.Table, Symbols: a.Language.Symbols,
+		Source: source, Test: a.Test, Added: added,
+	}
 }
 
 // Context is what the conditions of rules are checked against for the

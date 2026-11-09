@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Brg92/agent-code-review/internal/rules"
 	"github.com/Brg92/agent-code-review/internal/symbols"
 )
 
@@ -85,4 +86,19 @@ func TestKMPSymbolsAreTheAndroidOnes(t *testing.T) {
 	if a, k := language(t, loadAndroid(t), "kotlin").Symbols, language(t, loadKMP(t), "kotlin").Symbols; k == nil || !reflect.DeepEqual(a, k) {
 		t.Errorf("kotlin symbols differ: android %+v, kotlin-multiplatform %+v", a, k)
 	}
+}
+
+// search finds the lines of a fixed set of files that contain a term.
+type search map[string]string
+
+func (s search) Search(project, ref, term string) ([]rules.Match, error) {
+	var out []rules.Match
+	for path, src := range s {
+		for i, line := range strings.Split(src, "\n") {
+			if strings.Contains(line, term) {
+				out = append(out, rules.Match{Path: path, Line: i + 1})
+			}
+		}
+	}
+	return out, nil
 }
