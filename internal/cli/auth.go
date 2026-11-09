@@ -16,6 +16,7 @@ const authUsage = `usage: agent-code-review auth <command> [--host <host>]
 commands:
   login     store a token for the host in the git credential helper
   status    say whether a token is available, and from where
+  logout    remove the stored token for the host
 
 --host defaults to github.com. login reads the token from stdin: hidden
 when typed at a terminal, or one line piped from another program. It is
@@ -37,6 +38,8 @@ func runAuth(args []string, e env) int {
 		return withHost(args, e, authLogin)
 	case "status":
 		return withHost(args, e, authStatus)
+	case "logout":
+		return withHost(args, e, authLogout)
 	}
 	return authUsageError(e, fmt.Sprintf("unknown auth command %q", args[0]))
 }
@@ -100,5 +103,16 @@ func authStatus(e env, host string) int {
 		return fail(e, exitAuth, "%s: %v", host, err)
 	}
 	fmt.Fprintf(e.stdout, "%s: token available from %s\n", host, tok.Describe())
+	return exitOK
+}
+
+func authLogout(e env, host string) int {
+	if err := e.resolver().Erase(context.Background(), host); err != nil {
+		return fail(e, exitAuth, "%s: %v", host, err)
+	}
+	if v := auth.EnvVar(host); v != "" && strings.TrimSpace(e.getenv(v)) != "" {
+		fmt.Fprintf(e.stderr, "agent-code-review: warning: %s is still set and keeps providing a token\n", v)
+	}
+	fmt.Fprintf(e.stdout, "%s: token removed from the git credential helper (username %s)\n", host, auth.Username)
 	return exitOK
 }

@@ -26,6 +26,7 @@ commands:
   version | --version            print the version
   auth login [--host <host>]     store a token read from stdin
   auth status [--host <host>]    say whether a token is available, and from where
+  auth logout [--host <host>]    remove the stored token
 `
 
 // env is what a command may use from the outside world.

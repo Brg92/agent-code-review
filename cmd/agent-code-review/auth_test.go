@@ -124,3 +124,23 @@ func TestAuthLoginBinaryRefusesPlainText(t *testing.T) {
 		t.Errorf("plain-text credentials written: %v", err)
 	}
 }
+
+func TestAuthLogoutBinary(t *testing.T) {
+	bin, dir, store := authSetup(t)
+	if _, _, code := runIn(t, bin, dir, testToken+"\n", "auth", "login"); code != 0 {
+		t.Fatalf("login: code %d", code)
+	}
+	stdout, stderr, code := runIn(t, bin, dir, "", "auth", "logout")
+	if code != 0 || !strings.Contains(stdout, "token removed") || stderr != "" {
+		t.Errorf("logout: code %d stdout %q stderr %q", code, stdout, stderr)
+	}
+	if entries, _ := credhelper.Read(t, store); len(entries) != 0 {
+		t.Errorf("entries after logout = %+v", entries)
+	}
+	if _, _, code := runIn(t, bin, dir, "", "auth", "status"); code != 6 {
+		t.Errorf("status after logout: code %d, want 6", code)
+	}
+	if _, _, code := runIn(t, bin, dir, "", "auth", "logout"); code != 0 {
+		t.Errorf("second logout: code %d, want 0", code)
+	}
+}
