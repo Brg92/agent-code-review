@@ -49,6 +49,6 @@
     ".agent-code-review/criteria.md"
   ],
   "notes": [
-    "Repository criteria ignored: `no-double-bang` in disabledRules — pack and core rules always apply."
+    "Repository criteria ignored: `no-double-bang` in disabledRules (.agent-code-review/config.json) — pack and core rules always apply"
   ]
 }
