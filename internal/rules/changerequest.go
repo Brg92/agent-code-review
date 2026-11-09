@@ -124,6 +124,7 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) Result {
 // detectMissingTest signals the sources the change request adds or modifies
 // whose name ends with a suffix and whose test the change request neither
 // adds nor modifies, and that no test root of their module holds at head.
+// Test file names are compared ignoring case, as on Windows and macOS.
 // The signal is on the declaration named like the file, line 1 if none.
 // A source whose test roots cannot be read is passed to fail.
 func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int), fail func(File)) {
@@ -131,7 +132,7 @@ func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int), fail
 	inChange := map[string]bool{}
 	for _, f := range cr.Files {
 		if !f.Removed {
-			inChange[path.Base(f.Path)] = true
+			inChange[strings.ToLower(path.Base(f.Path))] = true
 		}
 	}
 	for _, f := range cr.Files {
@@ -147,8 +148,9 @@ func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int), fail
 		names := map[string]bool{}
 		found := false
 		for _, ext := range t.extensions {
-			names[test+ext] = true
-			found = found || inChange[test+ext]
+			n := strings.ToLower(test + ext)
+			names[n] = true
+			found = found || inChange[n]
 		}
 		module := modulePrefix(f.Path, t.moduleSeparator)
 		readable := true
@@ -162,7 +164,7 @@ func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int), fail
 				break
 			}
 			for _, p := range paths {
-				found = found || names[path.Base(p)]
+				found = found || names[strings.ToLower(path.Base(p))]
 			}
 		}
 		switch {
