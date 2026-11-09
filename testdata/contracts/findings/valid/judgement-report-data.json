@@ -1,8 +1,15 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/feature-lib#1",
+  "title": "Regenerate the icon catalog",
   "headSha": "e7665e368da1fcad940a56e09eeb9f1c7c87a58b",
+  "baseRef": "main",
   "verdict": "OK",
+  "files": [
+    "gradle/verification-metadata.xml",
+    "src/main/java/com/example/feature/FeatureToggle.kt",
+    "src/main/java/com/example/feature/catalog/IconCatalog.kt"
+  ],
   "findings": [],
   "preExisting": [],
   "notVerified": [
@@ -58,9 +65,16 @@
   "criteria": {
     "source": "default",
     "profile": "library",
+    "profileReason": "maven-publish in build.gradle.kts",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "views",
+        "reason": "no Compose dependency"
+      }
+    },
     "notes": []
   }
 }

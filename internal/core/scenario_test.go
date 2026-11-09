@@ -39,11 +39,11 @@ func checkContract(t *testing.T, res core.Result) {
 		t.Fatal(err)
 	}
 	doc, err := json.Marshal(map[string]any{
-		"schema": 1, "cr": res.CR, "headSha": res.HeadSHA, "verdict": res.Verdict,
+		"schema": 1, "cr": res.CR, "title": "t", "headSha": res.HeadSHA, "baseRef": "main", "verdict": res.Verdict, "files": []any{},
 		"findings": res.Findings, "preExisting": res.PreExisting, "notVerified": []any{},
 		"agentNotVerified": []any{}, "signalsDismissed": []any{}, "questions": []any{}, "notes": []any{},
 		"ci":       map[string]any{"state": "none", "checks": []any{}},
-		"criteria": map[string]any{"source": "default", "profile": "app", "packs": []any{}, "notes": []any{}},
+		"criteria": map[string]any{"source": "default", "profile": "app", "profileReason": "r", "packs": []any{}, "dimensions": map[string]any{}, "notes": []any{}},
 	})
 	if err != nil {
 		t.Fatal(err)

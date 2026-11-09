@@ -1,8 +1,14 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#1",
+  "title": "Greet the user by name on iOS",
   "headSha": "915c4dd07f7847183fc8b976497a755b48df03a9",
+  "baseRef": "main",
   "verdict": "OK",
+  "files": [
+    "iosApp/iosApp/ContentView.swift",
+    "shared/src/commonMain/kotlin/com/example/shared/Greeting.kt"
+  ],
   "findings": [],
   "preExisting": [],
   "notVerified": [
@@ -33,9 +39,11 @@
   "criteria": {
     "source": "default",
     "profile": "library",
+    "profileReason": "default profile of kotlin-multiplatform",
     "packs": [
       "kotlin-multiplatform"
     ],
+    "dimensions": {},
     "notes": []
   }
 }

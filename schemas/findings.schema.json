@@ -8,8 +8,11 @@
   "required": [
     "schema",
     "cr",
+    "title",
     "headSha",
+    "baseRef",
     "verdict",
+    "files",
     "findings",
     "preExisting",
     "notVerified",
@@ -29,9 +32,18 @@
       "description": "Change request the result belongs to.",
       "$ref": "#/$defs/crKey"
     },
+    "title": {
+      "description": "Title of the change request on the platform, as the report header shows it.",
+      "type": "string"
+    },
     "headSha": {
       "description": "Head commit that was reviewed.",
       "$ref": "#/$defs/sha"
+    },
+    "baseRef": {
+      "description": "Target branch, where the criteria were read from.",
+      "type": "string",
+      "pattern": "^\\S+$"
     },
     "verdict": {
       "description": "BLOCKED when at least one publishable BLOCKER comes from the change request itself (in findings, not preExisting) or at least one existing defect is a crash; OK otherwise. MAJOR, MINOR and INFO findings never block. The plugin never approves; OK only means nothing blocks. The verdict of the whole cascade is not stored here.",
@@ -43,6 +55,13 @@
     "summary": {
       "description": "Overall remarks from the judgement, in Markdown.",
       "type": "string"
+    },
+    "files": {
+      "description": "Paths of the changed files that were reviewed or listed in notVerified, in diff order; for a removed file, its old path. The report counts them and lists those without findings.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relativePath"
+      }
     },
     "findings": {
       "description": "Findings that count towards the verdict.",
@@ -305,7 +324,9 @@
       "required": [
         "source",
         "profile",
+        "profileReason",
         "packs",
+        "dimensions",
         "notes"
       ],
       "properties": {
@@ -317,11 +338,40 @@
           "description": "Profile in use.",
           "$ref": "#/$defs/profile"
         },
+        "profileReason": {
+          "description": "Why the profile was chosen, in a few words for the report header, for example set in .agent-code-review/config.json.",
+          "type": "string",
+          "pattern": "\\S"
+        },
         "packs": {
           "description": "Stack packs in use.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/packId"
+          }
+        },
+        "dimensions": {
+          "description": "Repository dimensions of the packs in use, by dimension id (lowercase words joined by hyphens), with the value chosen and why.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "The value of one dimension and why it was chosen.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "reason"
+            ],
+            "properties": {
+              "value": {
+                "description": "Value of the dimension.",
+                "$ref": "#/$defs/dimensionId"
+              },
+              "reason": {
+                "description": "Why the value was chosen, in a few words for the report header.",
+                "type": "string",
+                "pattern": "\\S"
+              }
+            }
           }
         },
         "notes": {
@@ -418,6 +468,11 @@
         "legacy",
         "default"
       ]
+    },
+    "dimensionId": {
+      "description": "Identifier of a dimension or of one of its values: lowercase words joined by hyphens.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
     "line": {
       "description": "Line number, starting at 1, in the file version of the chosen side.",

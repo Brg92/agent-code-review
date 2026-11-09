@@ -1,8 +1,16 @@
 {
   "schema": 1,
   "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "title": "Prefetch the session on startup",
   "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "baseRef": "main",
   "verdict": "BLOCKED",
+  "files": [
+    "app/src/main/java/com/example/sample/MainActivity.kt",
+    "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+    "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+    "app/src/main/java/com/example/sample/ui/HomeViewModel.kt"
+  ],
   "findings": [
     {
       "id": "3d211532409505ba",
@@ -141,9 +149,16 @@
   "criteria": {
     "source": "overlay",
     "profile": "app",
+    "profileReason": "set in .agent-code-review/config.json",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "compose",
+        "reason": "androidx.compose in app/build.gradle.kts"
+      }
+    },
     "notes": []
   }
 }
