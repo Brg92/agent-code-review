@@ -152,3 +152,31 @@ func TestFinalNamesThePlatform(t *testing.T) {
 		t.Errorf("got\n%s", got)
 	}
 }
+
+// TestCascadeSummaryNamesTheHostOfOtherPlatforms keeps a change request
+// on another platform apart from one of the same project and number on the
+// platform of the root.
+func TestCascadeSummaryNamesTheHostOfOtherPlatforms(t *testing.T) {
+	res, reviewed := testCascade(t, false)
+	reviewed[1].Doc.Findings, reviewed[1].Doc.PreExisting = nil, nil
+	root := res.Entries[0].CR
+	res.Entries = append(res.Entries,
+		core.Entry{CR: mustKey(t, sandboxKey+"sample-app#1"), Depth: 1, Parent: &root, Status: core.Skipped, SkipReason: core.NotAChangeRequest},
+		core.Entry{CR: mustKey(t, "gitlab:gitlab.com/acr-plugin-sandbox/sample-app#1"), Depth: 1, Parent: &root, Status: core.Skipped, SkipReason: core.OtherPlatform},
+	)
+	got, err := Cascade(res, reviewed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `Skipped:
+  acr-plugin-sandbox/feature-lib#2             already done
+  acr-plugin-sandbox/sample-app#1              not a change request
+  gitlab.com/acr-plugin-sandbox/sample-app#1   other platform
+`
+	if !strings.Contains(got, want) {
+		t.Errorf("got\n%s\nwant\n%s", got, want)
+	}
+	if !strings.Contains(got, "\nOverall: INCOMPLETE — not reviewed: gitlab.com/acr-plugin-sandbox/sample-app#1 (other platform)\n") {
+		t.Errorf("overall:\n%s", got)
+	}
+}

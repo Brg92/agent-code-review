@@ -80,33 +80,34 @@ func Cascade(res cascade.Result, reviewed []Reviewed) (string, error) {
 		}
 	}
 	var b builder
-	root := ""
+	var root core.Key
 	if len(res.Entries) > 0 {
-		root = ref(res.Entries[0].CR)
+		root = res.Entries[0].CR
 	}
-	b.line(fmt.Sprintf("Cascade — %s · %d reviewed · %d skipped · %d not followed", root, len(res.Order), len(skipped), len(res.NotFollowed)))
+	name := func(k core.Key) string { return refFrom(root, k) }
+	b.line(fmt.Sprintf("Cascade — %s · %d reviewed · %d skipped · %d not followed", ref(root), len(res.Order), len(skipped), len(res.NotFollowed)))
 	b.line("")
 
 	verdicts := map[core.Key]core.Verdict{}
 	width := 0
 	for _, k := range res.Order {
-		width = max(width, len(ref(k)))
+		width = max(width, len(name(k)))
 	}
 	number := len(fmt.Sprint(len(res.Order)))
 	for i, k := range res.Order {
 		c := countsOf(docs[i])
 		verdicts[k] = c.verdict
-		b.line(fmt.Sprintf("  %*d. %-*s   %-7s   %s", number, i+1, width, ref(k), c.verdict, c))
+		b.line(fmt.Sprintf("  %*d. %-*s   %-7s   %s", number, i+1, width, name(k), c.verdict, c))
 	}
 
 	if len(skipped) > 0 {
 		b.line("Skipped:")
 		width := 0
 		for _, e := range skipped {
-			width = max(width, len(ref(e.CR)))
+			width = max(width, len(name(e.CR)))
 		}
 		for _, e := range skipped {
-			b.line(fmt.Sprintf("  %-*s   %s", width, ref(e.CR), skipWords[e.SkipReason]))
+			b.line(fmt.Sprintf("  %-*s   %s", width, name(e.CR), skipWords[e.SkipReason]))
 		}
 	}
 	if len(res.NotFollowed) > 0 {
@@ -128,8 +129,18 @@ func Cascade(res cascade.Result, reviewed []Reviewed) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	b.line("Overall: " + overallText(overall, causes))
+	b.line("Overall: " + overallText(overall, causes, name))
 	return b.String(), nil
+}
+
+// refFrom names a change request as seen from the root of its cascade:
+// <project>#<number>, with the host in front when it lives on another
+// platform or host, so that two change requests never read the same.
+func refFrom(root, k core.Key) string {
+	if k.Forge != root.Forge || k.Host != root.Host {
+		return k.Host + "/" + ref(k)
+	}
+	return ref(k)
 }
 
 // inOrder returns the findings document of each change request of the
@@ -159,17 +170,17 @@ func reference(text string) string {
 
 // overallText is the overall verdict; an incomplete cascade names what
 // was not reviewed and why.
-func overallText(v core.Verdict, causes []cascade.Cause) string {
+func overallText(v core.Verdict, causes []cascade.Cause, name func(core.Key) string) string {
 	if v != core.Incomplete {
 		return string(v)
 	}
 	var missing []string
 	for _, c := range causes {
 		if c.Reason == cascade.Unparsed {
-			missing = append(missing, fmt.Sprintf("%s line %d (unparsed)", ref(c.Parent), c.Line))
+			missing = append(missing, fmt.Sprintf("%s line %d (unparsed)", name(c.Parent), c.Line))
 			continue
 		}
-		missing = append(missing, fmt.Sprintf("%s (%s)", ref(c.CR), skipWords[core.SkipReason(c.Reason)]))
+		missing = append(missing, fmt.Sprintf("%s (%s)", name(c.CR), skipWords[core.SkipReason(c.Reason)]))
 	}
 	return "INCOMPLETE — not reviewed: " + strings.Join(missing, ", ")
 }
