@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "pack": "core",
+  "rules": [
+    {
+      "id": "uses-removed-api",
+      "title": "Removes API that a related change still uses",
+      "severity": "BLOCKER",
+      "needsJudgement": true,
+      "description": "A public symbol removed here is still used by a change request above this one in the cascade.",
+      "why": "The consumer no longer builds.",
+      "fix": "Migrate the consumer first, or keep the symbol deprecated for one more release.",
+      "languages": [],
+      "tags": [
+        "cascade",
+        "api"
+      ],
+      "match": {
+        "scope": "change-request",
+        "detector": "symbol-usage",
+        "symbolChange": "removed"
+      }
+    },
+    {
+      "id": "missing-required-argument",
+      "title": "Adds a required parameter that a related change does not pass",
+      "severity": "BLOCKER",
+      "needsJudgement": true,
+      "description": "A function gets a parameter without a default, and a change request above this one still calls it.",
+      "why": "The callers no longer build.",
+      "fix": "Give the parameter a default, or update the callers.",
+      "languages": [],
+      "tags": [
+        "cascade",
+        "api"
+      ],
+      "match": {
+        "scope": "change-request",
+        "detector": "symbol-usage",
+        "symbolChange": "required-parameter"
+      }
+    },
+    {
+      "id": "expect-without-actual",
+      "title": "expect declaration without an actual",
+      "severity": "BLOCKER",
+      "needsJudgement": true,
+      "description": "An expect declaration has no actual in a platform source set of its module.",
+      "why": "The module does not compile for that target.",
+      "fix": "Add the actual declaration to the platform source set.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "multiplatform"
+      ],
+      "match": {
+        "scope": "change-request",
+        "detector": "expect-actual",
+        "expectKeyword": "expect",
+        "actualKeyword": "actual",
+        "commonGroup": "commonMain",
+        "groups": [
+          "androidMain",
+          "iosMain"
+        ],
+        "groupPattern": "src/{group}/"
+      }
+    }
+  ]
+}

@@ -88,14 +88,20 @@ const (
 		`"moduleSeparator":"src/main/","testRoots":["src/test"],"testName":"{name}Test","testExtensions":[".kt"]}`
 	counterpart = `{"scope":"change-request","detector":"counterpart","groups":["androidMain","iosMain"],"groupPattern":"src/{group}/",` +
 		`"stripSuffixes":[".android",".ios"]}`
+	symbolUsage  = `{"scope":"change-request","detector":"symbol-usage","symbolChange":"removed"}`
+	expectActual = `{"scope":"change-request","detector":"expect-actual","expectKeyword":"expect","actualKeyword":"actual",` +
+		`"commonGroup":"commonMain","groups":["androidMain","iosMain"],"groupPattern":"src/{group}/"}`
 )
 
 func TestLoadCatalogChangeRequestScope(t *testing.T) {
 	for name, m := range map[string]string{
-		"missing-test":          missingTest,
-		"counterpart":           counterpart,
-		"counterpart, variants": strings.Replace(counterpart, `"groups":["androidMain","iosMain"]`, `"groupsFrom":"config.variants"`, 1),
-		"counterpart, no strip": strings.Replace(counterpart, `,"stripSuffixes":[".android",".ios"]`, ``, 1),
+		"missing-test":                     missingTest,
+		"counterpart":                      counterpart,
+		"counterpart, variants":            strings.Replace(counterpart, `"groups":["androidMain","iosMain"]`, `"groupsFrom":"config.variants"`, 1),
+		"counterpart, no strip":            strings.Replace(counterpart, `,"stripSuffixes":[".android",".ios"]`, ``, 1),
+		"symbol-usage, removed":            symbolUsage,
+		"symbol-usage, required parameter": strings.Replace(symbolUsage, `"removed"`, `"required-parameter"`, 1),
+		"expect-actual":                    expectActual,
 	} {
 		c, err := LoadCatalog([]byte(catalogWith(m)))
 		if err != nil {
@@ -185,6 +191,21 @@ func TestLoadCatalogRejects(t *testing.T) {
 		{"counterpart pattern twice", catalogWith(strings.Replace(counterpart, `src/{group}/`, `{group}/{group}/`, 1)), "groupPattern"},
 		{"counterpart pattern without final slash", catalogWith(strings.Replace(counterpart, `src/{group}/`, `src/{group}`, 1)), "groupPattern"},
 		{"counterpart suffix without dot", catalogWith(strings.Replace(counterpart, `".ios"`, `"ios"`, 1)), "stripSuffixes"},
+		{"counterpart with a symbol change", catalogWith(strings.TrimSuffix(counterpart, "}") + `,"symbolChange":"removed"}`), "symbolChange"},
+		{"missing-test with a common group", catalogWith(strings.TrimSuffix(missingTest, "}") + `,"commonGroup":"commonMain"}`), "commonGroup"},
+		{"file detector with a symbol change", catalogWith(`{"detector":"line-length","max":1,"symbolChange":"removed"}`), "symbolChange"},
+		{"symbol-usage without a change", catalogWith(strings.Replace(symbolUsage, `,"symbolChange":"removed"`, ``, 1)), "symbolChange"},
+		{"symbol-usage unknown change", catalogWith(strings.Replace(symbolUsage, `"removed"`, `"renamed"`, 1)), "renamed"},
+		{"symbol-usage with groups", catalogWith(strings.TrimSuffix(symbolUsage, "}") + `,"groups":["a","b"]}`), "groups"},
+		{"expect-actual without common group", catalogWith(strings.Replace(expectActual, `"commonGroup":"commonMain",`, ``, 1)), "commonGroup"},
+		{"expect-actual without keyword", catalogWith(strings.Replace(expectActual, `"actualKeyword":"actual",`, ``, 1)), "actualKeyword"},
+		{"expect-actual keyword not a word", catalogWith(strings.Replace(expectActual, `"expect",`, `"expect fun",`, 1)), "expectKeyword"},
+		{"expect-actual same keywords", catalogWith(strings.Replace(expectActual, `"actual",`, `"expect",`, 1)), "differ"},
+		{"expect-actual common group among groups", catalogWith(strings.Replace(expectActual, `"iosMain"`, `"commonMain"`, 1)), "commonGroup"},
+		{"expect-actual one group", catalogWith(strings.Replace(expectActual, `"androidMain",`, ``, 1)), "two"},
+		{"expect-actual groups from variants", catalogWith(strings.Replace(expectActual, `"groups":["androidMain","iosMain"]`, `"groupsFrom":"config.variants"`, 1)), "groupsFrom"},
+		{"expect-actual pattern without placeholder", catalogWith(strings.Replace(expectActual, `src/{group}/`, `src/main/`, 1)), "groupPattern"},
+		{"expect-actual with strip suffixes", catalogWith(strings.TrimSuffix(expectActual, "}") + `,"stripSuffixes":[".ios"]}`), "stripSuffixes"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -73,8 +73,16 @@ const (
 	detectorLineLength = "line-length"
 	detectorMissingDoc = "missing-doc"
 	// The detectors of the change-request scope.
-	detectorMissingTest = "missing-test"
-	detectorCounterpart = "counterpart"
+	detectorMissingTest  = "missing-test"
+	detectorCounterpart  = "counterpart"
+	detectorSymbolUsage  = "symbol-usage"
+	detectorExpectActual = "expect-actual"
+)
+
+// Symbol changes the symbol-usage detector checks.
+const (
+	symbolRemoved           = "removed"
+	symbolRequiredParameter = "required-parameter"
 )
 
 // Scopes of a match.
@@ -108,6 +116,19 @@ type match struct {
 	changeRequest bool
 	test          testParams
 	counterpart   counterpartParams
+	// symbolChange is the change of a public symbol symbol-usage checks.
+	symbolChange string
+	expect       expectParams
+}
+
+// expectParams are the parameters of the expect-actual detector.
+type expectParams struct {
+	expect, actual string
+	common         string
+	groups         []string
+	// pattern is how a group appears in a path; groupPlaceholder stands
+	// for the group.
+	pattern string
 }
 
 // testParams are the parameters of the missing-test detector.
@@ -265,6 +286,10 @@ type (
 		GroupsFrom      *string      `json:"groupsFrom"`
 		GroupPattern    *string      `json:"groupPattern"`
 		StripSuffixes   []string     `json:"stripSuffixes"`
+		SymbolChange    *string      `json:"symbolChange"`
+		ExpectKeyword   *string      `json:"expectKeyword"`
+		ActualKeyword   *string      `json:"actualKeyword"`
+		CommonGroup     *string      `json:"commonGroup"`
 	}
 	rawBracket struct {
 		Open  string `json:"open"`
@@ -570,23 +595,67 @@ func compileMatch(rm rawMatch, languages []string, defFiles files, ignore []patt
 	return m, nil
 }
 
-// changeRequestFields returns the first parameter of a change-request
-// detector that is set, or "".
-func (rm rawMatch) changeRequestFields() string {
-	for _, f := range []struct {
+// changeRequestParams lists the parameters of the change-request
+// detectors in a fixed order, with whether each is set.
+func (rm rawMatch) changeRequestParams() []struct {
+	name string
+	set  bool
+} {
+	return []struct {
 		name string
 		set  bool
 	}{
 		{"sources", rm.Sources != nil}, {"nameSuffixes", rm.NameSuffixes != nil}, {"moduleSeparator", rm.ModuleSeparator != nil},
 		{"testRoots", rm.TestRoots != nil}, {"testName", rm.TestName != nil}, {"testExtensions", rm.TestExtensions != nil},
 		{"groups", rm.Groups != nil}, {"groupsFrom", rm.GroupsFrom != nil}, {"groupPattern", rm.GroupPattern != nil},
-		{"stripSuffixes", rm.StripSuffixes != nil},
-	} {
+		{"stripSuffixes", rm.StripSuffixes != nil}, {"symbolChange", rm.SymbolChange != nil},
+		{"expectKeyword", rm.ExpectKeyword != nil}, {"actualKeyword", rm.ActualKeyword != nil}, {"commonGroup", rm.CommonGroup != nil},
+	}
+}
+
+// changeRequestFields returns the first parameter of a change-request
+// detector that is set, or "".
+func (rm rawMatch) changeRequestFields() string {
+	for _, f := range rm.changeRequestParams() {
 		if f.set {
 			return f.name
 		}
 	}
 	return ""
+}
+
+// detectorParams lists the parameters each change-request detector takes.
+var detectorParams = map[string][]string{
+	detectorMissingTest:  {"sources", "nameSuffixes", "moduleSeparator", "testRoots", "testName", "testExtensions"},
+	detectorCounterpart:  {"groups", "groupsFrom", "groupPattern", "stripSuffixes"},
+	detectorSymbolUsage:  {"symbolChange"},
+	detectorExpectActual: {"expectKeyword", "actualKeyword", "commonGroup", "groups", "groupPattern"},
+}
+
+// foreignParam returns an error for the first parameter that is set and
+// that the detector does not take, naming the detectors that take it.
+func (rm rawMatch) foreignParam(detector string) error {
+	takes := func(d, name string) bool {
+		for _, p := range detectorParams[d] {
+			if p == name {
+				return true
+			}
+		}
+		return false
+	}
+	for _, f := range rm.changeRequestParams() {
+		if !f.set || takes(detector, f.name) {
+			continue
+		}
+		var owners []string
+		for _, d := range []string{detectorMissingTest, detectorCounterpart, detectorSymbolUsage, detectorExpectActual} {
+			if takes(d, f.name) {
+				owners = append(owners, d)
+			}
+		}
+		return fmt.Errorf("%s is only for the %s detector", f.name, strings.Join(owners, " and "))
+	}
+	return nil
 }
 
 // fileFields returns the first file-level field of a match that is set,
@@ -627,6 +696,12 @@ func compileChangeRequestMatch(rm rawMatch) (*match, error) {
 		return nil, errors.New("the change-request scope needs a detector")
 	}
 	m := &match{changeRequest: true, detector: *rm.Detector}
+	if _, ok := detectorParams[m.detector]; !ok {
+		return nil, fmt.Errorf("unknown change-request detector %q", m.detector)
+	}
+	if err := rm.foreignParam(m.detector); err != nil {
+		return nil, err
+	}
 	distinct := func(name string, list []string, form *regexp.Regexp) error {
 		seen := map[string]bool{}
 		for _, s := range list {
@@ -639,9 +714,6 @@ func compileChangeRequestMatch(rm rawMatch) (*match, error) {
 	}
 	switch m.detector {
 	case detectorMissingTest:
-		if rm.GroupPattern != nil || rm.Groups != nil || rm.GroupsFrom != nil || rm.StripSuffixes != nil {
-			return nil, errors.New("groups, groupsFrom, groupPattern and stripSuffixes are only for the counterpart detector")
-		}
 		if len(rm.Sources) == 0 || len(rm.NameSuffixes) == 0 || len(rm.TestRoots) == 0 || len(rm.TestExtensions) == 0 ||
 			rm.ModuleSeparator == nil || rm.TestName == nil {
 			return nil, errors.New("missing-test needs sources, nameSuffixes, moduleSeparator, testRoots, testName and testExtensions")
@@ -672,9 +744,6 @@ func compileChangeRequestMatch(rm rawMatch) (*match, error) {
 		}
 		t.suffixes, t.moduleSeparator, t.roots, t.name, t.extensions = rm.NameSuffixes, sep, rm.TestRoots, *rm.TestName, rm.TestExtensions
 	case detectorCounterpart:
-		if rm.Sources != nil || rm.NameSuffixes != nil || rm.ModuleSeparator != nil || rm.TestRoots != nil || rm.TestName != nil || rm.TestExtensions != nil {
-			return nil, errors.New("sources, nameSuffixes, moduleSeparator, testRoots, testName and testExtensions are only for the missing-test detector")
-		}
 		c := &m.counterpart
 		switch {
 		case rm.Groups != nil && rm.GroupsFrom != nil, rm.Groups == nil && rm.GroupsFrom == nil:
@@ -700,10 +769,57 @@ func compileChangeRequestMatch(rm rawMatch) (*match, error) {
 			return nil, err
 		}
 		c.pattern, c.strip = *rm.GroupPattern, rm.StripSuffixes
-	default:
-		return nil, fmt.Errorf("unknown change-request detector %q", m.detector)
+	case detectorSymbolUsage:
+		switch {
+		case rm.SymbolChange == nil:
+			return nil, errors.New("symbol-usage needs a symbolChange")
+		case *rm.SymbolChange != symbolRemoved && *rm.SymbolChange != symbolRequiredParameter:
+			return nil, fmt.Errorf("symbolChange %q must be %s or %s", *rm.SymbolChange, symbolRemoved, symbolRequiredParameter)
+		}
+		m.symbolChange = *rm.SymbolChange
+	case detectorExpectActual:
+		e, err := compileExpect(rm, distinct)
+		if err != nil {
+			return nil, err
+		}
+		m.expect = e
 	}
 	return m, nil
+}
+
+// compileExpect checks the parameters of the expect-actual detector.
+func compileExpect(rm rawMatch, distinct func(string, []string, *regexp.Regexp) error) (expectParams, error) {
+	var e expectParams
+	for _, f := range []struct {
+		name string
+		v    *string
+		form *regexp.Regexp
+	}{
+		{"expectKeyword", rm.ExpectKeyword, word}, {"actualKeyword", rm.ActualKeyword, word}, {"commonGroup", rm.CommonGroup, groupName},
+	} {
+		if f.v == nil || !f.form.MatchString(*f.v) {
+			return e, fmt.Errorf("expect-actual needs a well-formed %s", f.name)
+		}
+	}
+	if *rm.ExpectKeyword == *rm.ActualKeyword {
+		return e, errors.New("expectKeyword and actualKeyword must differ")
+	}
+	if len(rm.Groups) < 2 {
+		return e, errors.New("expect-actual needs groups: at least two platform groups")
+	}
+	if err := distinct("groups", rm.Groups, groupName); err != nil {
+		return e, err
+	}
+	for _, g := range rm.Groups {
+		if g == *rm.CommonGroup {
+			return e, fmt.Errorf("commonGroup %q is also a platform group", g)
+		}
+	}
+	if rm.GroupPattern == nil || !groupPath.MatchString(*rm.GroupPattern) || strings.Count(*rm.GroupPattern, groupPlaceholder) != 1 {
+		return e, fmt.Errorf("expect-actual needs a groupPattern: a relative path ending with / with %s once", groupPlaceholder)
+	}
+	e.expect, e.actual, e.common, e.groups, e.pattern = *rm.ExpectKeyword, *rm.ActualKeyword, *rm.CommonGroup, rm.Groups, *rm.GroupPattern
+	return e, nil
 }
 
 func compileDoc(rm rawMatch) (docParams, error) {
