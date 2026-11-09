@@ -60,7 +60,8 @@ type Options struct {
 	Budget int
 }
 
-// Result is what a run found in one file.
+// Result is what a run found: in one file for Run, in the whole change
+// request for RunChangeRequest.
 type Result struct {
 	Signals     []Signal
 	NotVerified []NotVerified

@@ -8,11 +8,17 @@ import (
 	"github.com/Brg92/agent-code-review/internal/lexer"
 )
 
+// ReasonTreeUnavailable is the not-verified reason of a file a
+// change-request rule could not check because the repository tree at head
+// could not be read; the detail names the rule.
+const ReasonTreeUnavailable = "tree-unavailable"
+
 // Tree is the repository tree at the head of a change request.
 type Tree interface {
 	// List returns the paths of the files whose path starts with prefix,
-	// relative to the repository with forward slashes.
-	List(prefix string) []string
+	// relative to the repository with forward slashes, or why the tree
+	// could not be read.
+	List(prefix string) ([]string, error)
 }
 
 // ChangedFile is a file a change request changes, as the change-request
@@ -36,9 +42,9 @@ type ChangeRequest struct {
 	Variants []string
 }
 
-func (cr ChangeRequest) list(prefix string) []string {
+func (cr ChangeRequest) list(prefix string) ([]string, error) {
 	if cr.Tree == nil {
-		return nil
+		return nil, nil
 	}
 	return cr.Tree.List(prefix)
 }
@@ -47,7 +53,10 @@ func (cr ChangeRequest) list(prefix string) []string {
 // request; the others are left to Run. Every signal has origin mr: the
 // change request is what they are about. Signals follow the order of the
 // files, then line, column and rule order, one per rule, file and line.
-func RunChangeRequest(rules []*Rule, cr ChangeRequest) []Signal {
+// A file whose check needs the tree when it cannot be read is not
+// verified for the rule, and that rule then gives no signal at all, so a
+// failed read never passes for a missing file.
+func RunChangeRequest(rules []*Rule, cr ChangeRequest) Result {
 	fileAt := map[string]int{}
 	for i, f := range cr.Files {
 		if _, ok := fileAt[f.Path]; !ok {
@@ -56,6 +65,7 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) []Signal {
 	}
 	order := map[string]int{}
 	var sigs []Signal
+	var unverified []NotVerified
 	for i, r := range rules {
 		if !r.OnChangeRequest() {
 			continue
@@ -66,6 +76,11 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) []Signal {
 			line int
 		}
 		seen := map[place]bool{}
+		var ruleSigs []Signal
+		var failed []NotVerified
+		fail := func(f File) {
+			failed = append(failed, NotVerified{Path: f.Path, Reason: ReasonTreeUnavailable, Detail: r.ID})
+		}
 		add := func(f File, line, column int) {
 			key := place{f.Path, line}
 			if seen[key] {
@@ -74,14 +89,19 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) []Signal {
 			seen[key] = true
 			s := r.signal(f, line, column)
 			s.Origin = OriginMR
-			sigs = append(sigs, s)
+			ruleSigs = append(ruleSigs, s)
 		}
 		switch r.match.detector {
 		case detectorMissingTest:
-			detectMissingTest(r, cr, add)
+			detectMissingTest(r, cr, add, fail)
 		case detectorCounterpart:
-			detectCounterpart(r, cr, add)
+			detectCounterpart(r, cr, add, fail)
 		}
+		if len(failed) > 0 {
+			unverified = append(unverified, failed...)
+			continue
+		}
+		sigs = append(sigs, ruleSigs...)
 	}
 	sort.SliceStable(sigs, func(i, j int) bool {
 		a, b := sigs[i], sigs[j]
@@ -95,14 +115,18 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) []Signal {
 		}
 		return order[a.RuleID] < order[b.RuleID]
 	})
-	return sigs
+	sort.SliceStable(unverified, func(i, j int) bool {
+		return fileAt[unverified[i].Path] < fileAt[unverified[j].Path]
+	})
+	return Result{Signals: sigs, NotVerified: unverified}
 }
 
 // detectMissingTest signals the sources the change request adds or modifies
 // whose name ends with a suffix and whose test the change request neither
 // adds nor modifies, and that no test root of their module holds at head.
 // The signal is on the declaration named like the file, line 1 if none.
-func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int)) {
+// A source whose test roots cannot be read is passed to fail.
+func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int), fail func(File)) {
 	t := r.match.test
 	inChange := map[string]bool{}
 	for _, f := range cr.Files {
@@ -127,12 +151,24 @@ func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int)) {
 			found = found || inChange[test+ext]
 		}
 		module := modulePrefix(f.Path, t.moduleSeparator)
+		readable := true
 		for _, root := range t.roots {
-			for _, p := range cr.list(module + root + "/") {
+			if found {
+				break
+			}
+			paths, err := cr.list(module + root + "/")
+			if err != nil {
+				readable = false
+				break
+			}
+			for _, p := range paths {
 				found = found || names[path.Base(p)]
 			}
 		}
-		if !found {
+		switch {
+		case !readable:
+			fail(f.File)
+		case !found:
 			line, column := declaration(f.File, name)
 			add(f.File, line, column)
 		}
@@ -144,8 +180,9 @@ func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int)) {
 // platform suffix stripped, exists at head under another group of the
 // same module and the change request does not change it. The signal is a
 // candidate on the first added line, line 1 if none. Groups taken from
-// the variants need at least two of them.
-func detectCounterpart(r *Rule, cr ChangeRequest, add func(File, int, int)) {
+// the variants need at least two of them. A file whose other groups cannot
+// be read is passed to fail.
+func detectCounterpart(r *Rule, cr ChangeRequest, add func(File, int, int), fail func(File)) {
 	c := r.match.counterpart
 	groups := c.groups
 	if c.fromVariants {
@@ -170,7 +207,10 @@ func detectCounterpart(r *Rule, cr ChangeRequest, add func(File, int, int)) {
 				continue
 			}
 			key := stripSuffix(rel, c.strip)
-			if hasCounterpart(cr, c, groups, a, module, key, changed) {
+			switch has, err := hasCounterpart(cr, c, groups, a, module, key, changed); {
+			case err != nil:
+				fail(f.File)
+			case has:
 				add(f.File, firstAdded(f.Added), 1)
 			}
 			break
@@ -191,20 +231,24 @@ func underGroup(p, pattern, group string) (module, rel string, ok bool) {
 
 // hasCounterpart reports whether a group other than a holds, at head and
 // unchanged, a file of the module whose relative path is key once
-// stripped.
-func hasCounterpart(cr ChangeRequest, c counterpartParams, groups []string, a, module, key string, changed map[string]bool) bool {
+// stripped, or the error of a group that cannot be read.
+func hasCounterpart(cr ChangeRequest, c counterpartParams, groups []string, a, module, key string, changed map[string]bool) (bool, error) {
 	for _, b := range groups {
 		if b == a {
 			continue
 		}
 		dir := module + strings.Replace(c.pattern, groupPlaceholder, b, 1)
-		for _, p := range cr.list(dir) {
+		paths, err := cr.list(dir)
+		if err != nil {
+			return false, err
+		}
+		for _, p := range paths {
 			if !changed[p] && stripSuffix(strings.TrimPrefix(p, dir), c.strip) == key {
-				return true
+				return true, nil
 			}
 		}
 	}
-	return false
+	return false, nil
 }
 
 // stripSuffix removes the first of the suffixes that ends the file name

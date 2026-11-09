@@ -11,14 +11,14 @@ import (
 // tree is a repository tree at head held in memory.
 type tree []string
 
-func (t tree) List(prefix string) []string {
+func (t tree) List(prefix string) ([]string, error) {
 	var out []string
 	for _, p := range t {
 		if strings.HasPrefix(p, prefix) {
 			out = append(out, p)
 		}
 	}
-	return out
+	return out, nil
 }
 
 // crCase runs the change-request rules of the active packs on synthetic
@@ -53,7 +53,7 @@ func runChangeRequest(t *testing.T, set *Set, active []*Pack, c crCase) []rules.
 		cr.Files = append(cr.Files, f)
 	}
 	var out []rules.Signal
-	for _, s := range rules.RunChangeRequest(set.ActiveRules(active), cr) {
+	for _, s := range rules.RunChangeRequest(set.ActiveRules(active), cr).Signals {
 		if s.RuleID == c.rule {
 			out = append(out, s)
 		}

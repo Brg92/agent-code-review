@@ -79,14 +79,14 @@ func TestNumberSignals(t *testing.T) {
 
 type memTree []string
 
-func (t memTree) List(prefix string) []string {
+func (t memTree) List(prefix string) ([]string, error) {
 	var out []string
 	for _, p := range t {
 		if strings.HasPrefix(p, prefix) {
 			out = append(out, p)
 		}
 	}
-	return out
+	return out, nil
 }
 
 // TestChangeRequestSignalsBecomeFindings runs the change-request rules of
@@ -124,7 +124,7 @@ func TestChangeRequestSignalsBecomeFindings(t *testing.T) {
 		Tree:     memTree{"app/src/free/a/Ads.kt", "app/src/paid/a/Ads.kt", "app/src/main/a/AdsRepository.kt"},
 		Variants: []string{"free", "paid"},
 	}
-	r.Signals = NumberSignals(r.Files, nil, rules.RunChangeRequest(all, cr))
+	r.Signals = NumberSignals(r.Files, nil, rules.RunChangeRequest(all, cr).Signals)
 	want := []Signal{
 		{ID: "s1", Rule: "variant-asymmetry", Path: "app/src/free/a/Ads.kt", Line: 2, Column: 1, Origin: OriginMR, NeedsJudgement: true},
 		{ID: "s2", Rule: "missing-tests", Severity: Major, Path: "app/src/main/a/AdsRepository.kt", Line: 2, Column: 7, Origin: OriginMR},

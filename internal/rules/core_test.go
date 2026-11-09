@@ -65,7 +65,7 @@ func TestCoreVariantAsymmetry(t *testing.T) {
 		{"two variants", []string{"free", "paid"}, "app/src/free/res/values/strings.xml:1:1"},
 	}
 	for _, tt := range tests {
-		sigs := RunChangeRequest([]*Rule{rule}, ChangeRequest{Files: []ChangedFile{free}, Tree: tree, Variants: tt.variants})
+		sigs := RunChangeRequest([]*Rule{rule}, ChangeRequest{Files: []ChangedFile{free}, Tree: tree, Variants: tt.variants}).Signals
 		if got := signalsAt(sigs); got != tt.want {
 			t.Errorf("%s: signals %q, want %q", tt.name, got, tt.want)
 		}

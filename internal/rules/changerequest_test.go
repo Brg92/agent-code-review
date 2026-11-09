@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -10,14 +11,30 @@ import (
 // fakeTree is a repository tree at head held in memory.
 type fakeTree []string
 
-func (t fakeTree) List(prefix string) []string {
+func (t fakeTree) List(prefix string) ([]string, error) {
 	var out []string
 	for _, p := range t {
 		if strings.HasPrefix(p, prefix) {
 			out = append(out, p)
 		}
 	}
-	return out
+	return out, nil
+}
+
+// failingTree is a tree whose reads fail under the given prefixes and
+// otherwise list the files of ok.
+type failingTree struct {
+	failing []string
+	ok      fakeTree
+}
+
+func (t failingTree) List(prefix string) ([]string, error) {
+	for _, f := range t.failing {
+		if strings.HasPrefix(prefix, f) {
+			return nil, errors.New("tree read failed")
+		}
+	}
+	return t.ok.List(prefix)
 }
 
 // changed builds a changed file from a path: a .kt or .java path gets its
@@ -121,7 +138,7 @@ func TestMissingTest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sigs := RunChangeRequest(oneRule(t, `["kotlin","java"]`, tt.match), tt.cr)
+			sigs := RunChangeRequest(oneRule(t, `["kotlin","java"]`, tt.match), tt.cr).Signals
 			if got := signalsAt(sigs); got != tt.want {
 				t.Errorf("signals %q, want %q", got, tt.want)
 			}
@@ -132,7 +149,7 @@ func TestMissingTest(t *testing.T) {
 func TestMissingTestSignal(t *testing.T) {
 	sigs := RunChangeRequest(oneRule(t, `["kotlin"]`, androidMissingTest), ChangeRequest{Files: []ChangedFile{
 		changed(t, "app/src/main/a/FooViewModel.kt", viewModel),
-	}})
+	}}).Signals
 	want := []Signal{{RuleID: "r", Severity: "MAJOR", Path: "app/src/main/a/FooViewModel.kt", Line: 6, Column: 7, Origin: OriginMR}}
 	if !reflect.DeepEqual(sigs, want) {
 		t.Errorf("signals %+v, want %+v", sigs, want)
@@ -140,7 +157,7 @@ func TestMissingTestSignal(t *testing.T) {
 	// A rule of another language leaves the file alone.
 	if sigs := RunChangeRequest(oneRule(t, `["java"]`, androidMissingTest), ChangeRequest{Files: []ChangedFile{
 		changed(t, "app/src/main/a/FooViewModel.kt", viewModel),
-	}}); len(sigs) != 0 {
+	}}).Signals; len(sigs) != 0 {
 		t.Errorf("a java rule signals a kotlin file: %+v", sigs)
 	}
 }
@@ -165,7 +182,7 @@ func TestRunChangeRequestOrder(t *testing.T) {
 	sigs := RunChangeRequest(c.Rules, ChangeRequest{Files: []ChangedFile{
 		changed(t, "z/src/main/BRepository.kt", "class BRepository\n"),
 		changed(t, "a/src/main/ARepository.kt", "\nclass ARepository\n"),
-	}})
+	}}).Signals
 	var got []string
 	for _, s := range sigs {
 		got = append(got, s.RuleID+"@"+s.Path)
@@ -246,7 +263,7 @@ func TestCounterpart(t *testing.T) {
 			if tt.match == variantCounterpart {
 				languages = `[]`
 			}
-			sigs := RunChangeRequest(oneRule(t, languages, tt.match), tt.cr)
+			sigs := RunChangeRequest(oneRule(t, languages, tt.match), tt.cr).Signals
 			if got := signalsAt(sigs); got != tt.want {
 				t.Errorf("signals %q, want %q", got, tt.want)
 			}
@@ -263,9 +280,56 @@ func TestCounterpartSignal(t *testing.T) {
 	sigs := RunChangeRequest(c.Rules, ChangeRequest{
 		Files: []ChangedFile{changed(t, "app/src/paid/res/values/strings.xml", "<a/>\n", 1)},
 		Tree:  fakeTree{"app/src/free/res/values/strings.xml", "app/src/pro/res/values/strings.xml"}, Variants: []string{"free", "paid", "pro"},
-	})
+	}).Signals
 	want := []Signal{{RuleID: "r", NeedsJudgement: true, Path: "app/src/paid/res/values/strings.xml", Line: 1, Column: 1, Origin: OriginMR}}
 	if !reflect.DeepEqual(sigs, want) {
 		t.Errorf("signals %+v, want one candidate that needs judgement, without severity: %+v", sigs, want)
+	}
+}
+
+func TestRunChangeRequestTreeUnavailable(t *testing.T) {
+	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","rules":[` +
+		`{"id":"tests","title":"T","severity":"MAJOR","description":"D","why":"W","fix":"F","languages":[],"tags":[],"match":` + androidMissingTest + `},` +
+		`{"id":"platforms","title":"T","severity":"MAJOR","needsJudgement":true,"description":"D","languages":[],"tags":[],"match":` + kmpCounterpart + `}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	android, ios := "shared/src/androidMain/kotlin/a/Clock.kt", "shared/src/iosMain/kotlin/a/Clock.kt"
+	files := []ChangedFile{
+		changed(t, "app/src/main/a/AViewModel.kt", "class AViewModel\n", 1),
+		changed(t, "core/src/main/a/BViewModel.kt", "class BViewModel\n", 1),
+		changed(t, "core/src/main/a/CViewModel.kt", "class CViewModel\n", 1),
+		changed(t, "core/src/test/a/CViewModelTest.kt", "class CViewModelTest\n", 1),
+		changed(t, android, "a\n", 1),
+	}
+	tests := []struct {
+		name        string
+		failing     []string
+		signals     string
+		notVerified []NotVerified
+	}{
+		{"every read works", nil,
+			"app/src/main/a/AViewModel.kt:1:7 core/src/main/a/BViewModel.kt:1:7 " + android + ":1:1", nil},
+		// The test of CViewModel is in the change request: it needs no read.
+		{"the core module cannot be read", []string{"core/"}, android + ":1:1",
+			[]NotVerified{{Path: "core/src/main/a/BViewModel.kt", Reason: ReasonTreeUnavailable, Detail: "tests"}}},
+		{"one test root cannot be read", []string{"app/src/androidTest/"}, android + ":1:1",
+			[]NotVerified{{Path: "app/src/main/a/AViewModel.kt", Reason: ReasonTreeUnavailable, Detail: "tests"}}},
+		{"the tree cannot be read", []string{""}, "", []NotVerified{
+			{Path: "app/src/main/a/AViewModel.kt", Reason: ReasonTreeUnavailable, Detail: "tests"},
+			{Path: "core/src/main/a/BViewModel.kt", Reason: ReasonTreeUnavailable, Detail: "tests"},
+			{Path: android, Reason: ReasonTreeUnavailable, Detail: "platforms"},
+		}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := RunChangeRequest(c.Rules, ChangeRequest{Files: files, Tree: failingTree{failing: tt.failing, ok: fakeTree{ios}}})
+			if got := signalsAt(res.Signals); got != tt.signals {
+				t.Errorf("signals %q, want %q", got, tt.signals)
+			}
+			if !reflect.DeepEqual(res.NotVerified, tt.notVerified) {
+				t.Errorf("not verified %+v, want %+v", res.NotVerified, tt.notVerified)
+			}
+		})
 	}
 }
