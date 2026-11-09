@@ -1,6 +1,6 @@
 agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#2 "Prefetch the session on startup"
 Packs: android (profile app: set in .agent-code-review/config.json · ui-toolkit compose: androidx.compose in app/build.gradle.kts)
-Criteria: overlay .agent-code-review/ ＠main
+Criteria: overlay .agent-code-review/ @main
 Scope: 4 changed files · head 76ae5f13
 
 BLOCKER (3) — inline notes on publish

@@ -60,7 +60,7 @@ func Report(version string, d core.Document) string {
 		notes(&b, d)
 		return b.String()
 	}
-	b.line(fmt.Sprintf("Criteria: %s ＠%s", criteriaSources[d.Criteria.Source], d.BaseRef))
+	b.line(fmt.Sprintf("Criteria: %s @%s", criteriaSources[d.Criteria.Source], d.BaseRef))
 	b.line(fmt.Sprintf("Scope: %s · head %s", plural(len(d.Files), "changed file", "changed files"), head8(d.HeadSHA)))
 	b.line("")
 

@@ -61,7 +61,7 @@ func testDocument(t *testing.T) core.Document {
 func TestReportFullForm(t *testing.T) {
 	want := `agent-code-review v1.2.3 — acr-plugin-sandbox/sample-app#2 "Prefetch the session"
 Packs: android (profile app: set in config · ui-toolkit compose: found compose)
-Criteria: overlay .agent-code-review/ ＠main
+Criteria: overlay .agent-code-review/ @main
 Scope: 5 changed files · head 76ae5f13
 
 BLOCKER (1) — inline notes on publish
@@ -158,7 +158,7 @@ func TestCriteriaSources(t *testing.T) {
 	for source, want := range map[string]string{"overlay": "overlay .agent-code-review/", "legacy": "legacy .github/skills", "default": "defaults"} {
 		d := testDocument(t)
 		d.Criteria.Source = source
-		if got := Report("1.2.3", d); !strings.Contains(got, "\nCriteria: "+want+" ＠main\n") {
+		if got := Report("1.2.3", d); !strings.Contains(got, "\nCriteria: "+want+" @main\n") {
 			t.Errorf("%s: no criteria line %q in\n%s", source, want, got)
 		}
 	}

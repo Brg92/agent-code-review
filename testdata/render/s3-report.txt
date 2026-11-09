@@ -1,6 +1,6 @@
 agent-code-review v0.0.0-dev — acr-plugin-sandbox/core-lib#1 "Reorganize session files"
 Packs: android (profile library: set in .github/mr-review.json · ui-toolkit views: no Compose dependency)
-Criteria: legacy .github/skills ＠main
+Criteria: legacy .github/skills @main
 Scope: 6 changed files · head 1bb2c03a
 
 BLOCKER (0) — inline notes on publish

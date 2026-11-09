@@ -1,6 +1,6 @@
 agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#5 "Show profile initials"
 Packs: android (profile app: set in .agent-code-review/config.json · ui-toolkit compose: androidx.compose in app/build.gradle.kts)
-Criteria: overlay .agent-code-review/ ＠main
+Criteria: overlay .agent-code-review/ @main
 Scope: 2 changed files · head edf5ce35
 
 BLOCKER (0) — inline notes on publish
