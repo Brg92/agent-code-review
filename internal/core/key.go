@@ -119,6 +119,12 @@ func (k Key) String() string {
 	return fmt.Sprintf("%s:%s/%s#%d", k.Forge, k.Host, k.Project, k.Number)
 }
 
+// ProjectKey formats the project of the key, without the number:
+// <forge>:<host>/<project>.
+func (k Key) ProjectKey() string {
+	return fmt.Sprintf("%s:%s/%s", k.Forge, k.Host, k.Project)
+}
+
 // IsZero reports whether k is the zero key.
 func (k Key) IsZero() bool { return k == Key{} }
 
