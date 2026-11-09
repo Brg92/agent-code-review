@@ -1674,7 +1674,9 @@
       "id": "missing-tests",
       "title": "Missing unit tests",
       "severity": "MAJOR",
-      "description": "Unit tests for every ViewModel, repository, mapper or helper added or changed and, in a library, for every public entry point added or changed. It is checked on the whole change request, not on one file.",
+      "description": "Unit tests for every ViewModel, repository, mapper or helper added or changed and, in a library, for every public entry point added or changed. It is checked on the whole change request, not on one file: a source under `src/main` named with one of the suffixes needs a test named `<Name>Test` in the change request or under `src/test` or `src/androidTest` of its module. Dismiss the signal when the component has no logic to test.",
+      "why": "The component has no unit test, so regressions in its logic cannot be detected before release.",
+      "fix": "Add a unit test for the component under the module's `src/test` or `src/androidTest`.",
       "languages": [
         "kotlin",
         "java"
@@ -1682,7 +1684,36 @@
       "tags": [
         "tests"
       ],
-      "group": "Tests"
+      "group": "Tests",
+      "match": {
+        "scope": "change-request",
+        "detector": "missing-test",
+        "sources": [
+          "**/src/main/**/*.kt",
+          "**/src/main/**/*.java"
+        ],
+        "nameSuffixes": [
+          "ViewModel",
+          "Repository",
+          "UseCase",
+          "Mapper",
+          "Manager",
+          "Helper",
+          "Utils",
+          "Storage",
+          "DataSource"
+        ],
+        "moduleSeparator": "src/main/",
+        "testRoots": [
+          "src/test",
+          "src/androidTest"
+        ],
+        "testName": "{name}Test",
+        "testExtensions": [
+          ".kt",
+          ".java"
+        ]
+      }
     },
     {
       "id": "empty-test-stub",

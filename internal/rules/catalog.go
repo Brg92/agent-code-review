@@ -51,6 +51,10 @@ const ProfileKey = "profile"
 // them is only judged.
 func (r *Rule) Matched() bool { return r.match != nil }
 
+// OnChangeRequest reports whether the mechanical checks of the rule see
+// the whole change request instead of one file at a time.
+func (r *Rule) OnChangeRequest() bool { return r.match != nil && r.match.changeRequest }
+
 // Line selections of a match.
 const (
 	linesAll   = "all"
@@ -68,6 +72,24 @@ const (
 const (
 	detectorLineLength = "line-length"
 	detectorMissingDoc = "missing-doc"
+	// The detectors of the change-request scope.
+	detectorMissingTest = "missing-test"
+	detectorCounterpart = "counterpart"
+)
+
+// Scopes of a match.
+const (
+	scopeChangeRequest = "change-request"
+)
+
+// GroupsFromVariants is the groupsFrom value that takes the groups of a
+// counterpart rule from the variants of the repository configuration.
+const GroupsFromVariants = "config.variants"
+
+// Placeholders of the change-request detectors.
+const (
+	namePlaceholder  = "{name}"
+	groupPlaceholder = "{group}"
 )
 
 // match is the compiled match of a rule, with the catalog defaults
@@ -81,6 +103,33 @@ type match struct {
 	detector    string
 	maxLength   int
 	doc         docParams
+	// changeRequest is set when the detector sees the whole change
+	// request instead of one file.
+	changeRequest bool
+	test          testParams
+	counterpart   counterpartParams
+}
+
+// testParams are the parameters of the missing-test detector.
+type testParams struct {
+	sources         []Glob
+	suffixes        []string
+	moduleSeparator string
+	roots           []string
+	// name is the test file name without extension; namePlaceholder
+	// stands for the source name.
+	name       string
+	extensions []string
+}
+
+// counterpartParams are the parameters of the counterpart detector.
+type counterpartParams struct {
+	groups       []string
+	fromVariants bool
+	// pattern is how a group appears in a path; groupPlaceholder stands
+	// for the group.
+	pattern string
+	strip   []string
 }
 
 type files struct {
@@ -205,6 +254,17 @@ type (
 		SkipAnnotations []string     `json:"skipAnnotations"`
 		Header          *rawBracket  `json:"header"`
 		Body            *rawBracket  `json:"body"`
+		Scope           *string      `json:"scope"`
+		Sources         []string     `json:"sources"`
+		NameSuffixes    []string     `json:"nameSuffixes"`
+		ModuleSeparator *string      `json:"moduleSeparator"`
+		TestRoots       []string     `json:"testRoots"`
+		TestName        *string      `json:"testName"`
+		TestExtensions  []string     `json:"testExtensions"`
+		Groups          []string     `json:"groups"`
+		GroupsFrom      *string      `json:"groupsFrom"`
+		GroupPattern    *string      `json:"groupPattern"`
+		StripSuffixes   []string     `json:"stripSuffixes"`
 	}
 	rawBracket struct {
 		Open  string `json:"open"`
@@ -423,6 +483,15 @@ func compileWhen(raw map[string]json.RawMessage) (map[string][]string, error) {
 }
 
 func compileMatch(rm rawMatch, languages []string, defFiles files, ignore []pattern) (*match, error) {
+	if rm.Scope != nil {
+		if *rm.Scope != scopeChangeRequest {
+			return nil, fmt.Errorf("scope %q must be change-request", *rm.Scope)
+		}
+		return compileChangeRequestMatch(rm)
+	}
+	if f := rm.changeRequestFields(); f != "" {
+		return nil, fmt.Errorf("%s is only for the change-request scope", f)
+	}
 	m := &match{ignoreLines: ignore, files: defFiles}
 	if rm.Files != nil {
 		f, err := compileFiles(rm.Files, languages)
@@ -497,6 +566,142 @@ func compileMatch(rm rawMatch, languages []string, defFiles files, ignore []patt
 		m.doc = d
 	default:
 		return nil, fmt.Errorf("unknown detector %q", m.detector)
+	}
+	return m, nil
+}
+
+// changeRequestFields returns the first parameter of a change-request
+// detector that is set, or "".
+func (rm rawMatch) changeRequestFields() string {
+	for _, f := range []struct {
+		name string
+		set  bool
+	}{
+		{"sources", rm.Sources != nil}, {"nameSuffixes", rm.NameSuffixes != nil}, {"moduleSeparator", rm.ModuleSeparator != nil},
+		{"testRoots", rm.TestRoots != nil}, {"testName", rm.TestName != nil}, {"testExtensions", rm.TestExtensions != nil},
+		{"groups", rm.Groups != nil}, {"groupsFrom", rm.GroupsFrom != nil}, {"groupPattern", rm.GroupPattern != nil},
+		{"stripSuffixes", rm.StripSuffixes != nil},
+	} {
+		if f.set {
+			return f.name
+		}
+	}
+	return ""
+}
+
+// fileFields returns the first file-level field of a match that is set,
+// or "".
+func (rm rawMatch) fileFields() string {
+	for _, f := range []struct {
+		name string
+		set  bool
+	}{
+		{"patterns", rm.Patterns != nil}, {"exclude", rm.Exclude != nil}, {"files", rm.Files != nil}, {"lines", rm.Lines != nil},
+		{"max", rm.Max != nil}, {"declarations", rm.Declarations != nil}, {"modifiers", rm.Modifiers != nil},
+		{"skipModifiers", rm.SkipModifiers != nil}, {"types", rm.Types != nil}, {"notAfter", rm.NotAfter != nil},
+		{"annotation", rm.Annotation != nil}, {"skipAnnotations", rm.SkipAnnotations != nil}, {"header", rm.Header != nil},
+		{"body", rm.Body != nil},
+	} {
+		if f.set {
+			return f.name
+		}
+	}
+	return ""
+}
+
+var (
+	// pathPart is a relative path without wildcards or placeholders.
+	pathPart  = regexp.MustCompile(`^[^/\\*{}]+(?:/[^/\\*{}]+)*$`)
+	extension = regexp.MustCompile(`^\.[A-Za-z0-9]+$`)
+	suffix    = regexp.MustCompile(`^\.[A-Za-z0-9_-]+$`)
+	groupName = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+	testName  = regexp.MustCompile(`^[^/\\*{}]*\{name\}[^/\\*{}]*$`)
+	groupPath = regexp.MustCompile(`^(?:[^/\\*{}]+/)*[^/\\*{}]*\{group\}[^/\\*{}]*/$`)
+)
+
+func compileChangeRequestMatch(rm rawMatch) (*match, error) {
+	if f := rm.fileFields(); f != "" {
+		return nil, fmt.Errorf("%s is not for the change-request scope", f)
+	}
+	if rm.Detector == nil {
+		return nil, errors.New("the change-request scope needs a detector")
+	}
+	m := &match{changeRequest: true, detector: *rm.Detector}
+	distinct := func(name string, list []string, form *regexp.Regexp) error {
+		seen := map[string]bool{}
+		for _, s := range list {
+			if !form.MatchString(s) || seen[s] {
+				return fmt.Errorf("%s: %q is malformed or listed twice", name, s)
+			}
+			seen[s] = true
+		}
+		return nil
+	}
+	switch m.detector {
+	case detectorMissingTest:
+		if rm.GroupPattern != nil || rm.Groups != nil || rm.GroupsFrom != nil || rm.StripSuffixes != nil {
+			return nil, errors.New("groups, groupsFrom, groupPattern and stripSuffixes are only for the counterpart detector")
+		}
+		if len(rm.Sources) == 0 || len(rm.NameSuffixes) == 0 || len(rm.TestRoots) == 0 || len(rm.TestExtensions) == 0 ||
+			rm.ModuleSeparator == nil || rm.TestName == nil {
+			return nil, errors.New("missing-test needs sources, nameSuffixes, moduleSeparator, testRoots, testName and testExtensions")
+		}
+		t := &m.test
+		for _, s := range rm.Sources {
+			g, err := CompileGlob(s)
+			if err != nil {
+				return nil, fmt.Errorf("sources: %w", err)
+			}
+			t.sources = append(t.sources, g)
+		}
+		if err := distinct("nameSuffixes", rm.NameSuffixes, word); err != nil {
+			return nil, err
+		}
+		sep := *rm.ModuleSeparator
+		if !strings.HasSuffix(sep, "/") || !pathPart.MatchString(strings.TrimSuffix(sep, "/")) {
+			return nil, fmt.Errorf("moduleSeparator %q is not a relative path ending with /", sep)
+		}
+		if err := distinct("testRoots", rm.TestRoots, pathPart); err != nil {
+			return nil, err
+		}
+		if !testName.MatchString(*rm.TestName) {
+			return nil, fmt.Errorf("testName %q is not a file name with %s", *rm.TestName, namePlaceholder)
+		}
+		if err := distinct("testExtensions", rm.TestExtensions, extension); err != nil {
+			return nil, err
+		}
+		t.suffixes, t.moduleSeparator, t.roots, t.name, t.extensions = rm.NameSuffixes, sep, rm.TestRoots, *rm.TestName, rm.TestExtensions
+	case detectorCounterpart:
+		if rm.Sources != nil || rm.NameSuffixes != nil || rm.ModuleSeparator != nil || rm.TestRoots != nil || rm.TestName != nil || rm.TestExtensions != nil {
+			return nil, errors.New("sources, nameSuffixes, moduleSeparator, testRoots, testName and testExtensions are only for the missing-test detector")
+		}
+		c := &m.counterpart
+		switch {
+		case rm.Groups != nil && rm.GroupsFrom != nil, rm.Groups == nil && rm.GroupsFrom == nil:
+			return nil, errors.New("counterpart needs exactly one of groups and groupsFrom")
+		case rm.GroupsFrom != nil:
+			if *rm.GroupsFrom != GroupsFromVariants {
+				return nil, fmt.Errorf("groupsFrom %q must be %s", *rm.GroupsFrom, GroupsFromVariants)
+			}
+			c.fromVariants = true
+		default:
+			if len(rm.Groups) < 2 {
+				return nil, errors.New("groups needs at least two groups")
+			}
+			if err := distinct("groups", rm.Groups, groupName); err != nil {
+				return nil, err
+			}
+			c.groups = rm.Groups
+		}
+		if rm.GroupPattern == nil || !groupPath.MatchString(*rm.GroupPattern) || strings.Count(*rm.GroupPattern, groupPlaceholder) != 1 {
+			return nil, fmt.Errorf("counterpart needs a groupPattern: a relative path ending with / with %s once", groupPlaceholder)
+		}
+		if err := distinct("stripSuffixes", rm.StripSuffixes, suffix); err != nil {
+			return nil, err
+		}
+		c.pattern, c.strip = *rm.GroupPattern, rm.StripSuffixes
+	default:
+		return nil, fmt.Errorf("unknown change-request detector %q", m.detector)
 	}
 	return m, nil
 }

@@ -82,6 +82,36 @@ func TestLoadCatalogMatchesTheContract(t *testing.T) {
 	}
 }
 
+// Change-request matches for the loader tests.
+const (
+	missingTest = `{"scope":"change-request","detector":"missing-test","sources":["**/src/main/**/*.kt"],"nameSuffixes":["ViewModel"],` +
+		`"moduleSeparator":"src/main/","testRoots":["src/test"],"testName":"{name}Test","testExtensions":[".kt"]}`
+	counterpart = `{"scope":"change-request","detector":"counterpart","groups":["androidMain","iosMain"],"groupPattern":"src/{group}/",` +
+		`"stripSuffixes":[".android",".ios"]}`
+)
+
+func TestLoadCatalogChangeRequestScope(t *testing.T) {
+	for name, m := range map[string]string{
+		"missing-test":          missingTest,
+		"counterpart":           counterpart,
+		"counterpart, variants": strings.Replace(counterpart, `"groups":["androidMain","iosMain"]`, `"groupsFrom":"config.variants"`, 1),
+		"counterpart, no strip": strings.Replace(counterpart, `,"stripSuffixes":[".android",".ios"]`, ``, 1),
+	} {
+		c, err := LoadCatalog([]byte(catalogWith(m)))
+		if err != nil {
+			t.Errorf("%s: %v", name, err)
+			continue
+		}
+		if r := c.Rules[0]; !r.Matched() || !r.OnChangeRequest() {
+			t.Errorf("%s: matched %v, on the change request %v", name, r.Matched(), r.OnChangeRequest())
+		}
+	}
+	c, err := LoadCatalog([]byte(catalogWith(`{"detector":"line-length","max":1}`)))
+	if err != nil || c.Rules[0].OnChangeRequest() {
+		t.Errorf("a file rule is on the change request: %v", err)
+	}
+}
+
 // catalogWith returns a catalog with one rule whose match is the given
 // JSON.
 func catalogWith(match string) string {
@@ -132,6 +162,29 @@ func TestLoadCatalogRejects(t *testing.T) {
 		{"blank fix", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"fix":"F"`, `"fix":""`, 1), "fix"},
 		{"matched without why", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"why":"W",`, ``, 1), "why"},
 		{"matched without fix", strings.Replace(catalogWith(`{"detector":"line-length","max":1}`), `"fix":"F",`, ``, 1), "fix"},
+		{"unknown scope", catalogWith(`{"scope":"file","detector":"line-length","max":1}`), "scope"},
+		{"change-request parameter on a file", catalogWith(`{"detector":"line-length","max":1,"groupPattern":"src/{group}/"}`), "groupPattern"},
+		{"change-request without detector", catalogWith(`{"scope":"change-request"}`), "detector"},
+		{"file detector on the change request", catalogWith(`{"scope":"change-request","detector":"line-length","max":1}`), "max"},
+		{"unknown change-request detector", catalogWith(`{"scope":"change-request","detector":"todo"}`), "todo"},
+		{"missing-test without sources", catalogWith(strings.Replace(missingTest, `"sources":["**/src/main/**/*.kt"],`, ``, 1)), "sources"},
+		{"missing-test bad source glob", catalogWith(strings.Replace(missingTest, `**/src/main/**/*.kt`, `/a`, 1)), "glob"},
+		{"missing-test suffix not a word", catalogWith(strings.Replace(missingTest, `"ViewModel"`, `"View-Model"`, 1)), "nameSuffixes"},
+		{"missing-test separator without slash", catalogWith(strings.Replace(missingTest, `"src/main/"`, `"src/main"`, 1)), "moduleSeparator"},
+		{"missing-test root with wildcard", catalogWith(strings.Replace(missingTest, `"src/test"`, `"src/*"`, 1)), "testRoots"},
+		{"missing-test name without placeholder", catalogWith(strings.Replace(missingTest, `{name}Test`, `Test`, 1)), "testName"},
+		{"missing-test extension without dot", catalogWith(strings.Replace(missingTest, `".kt"`, `"kt"`, 1)), "testExtensions"},
+		{"missing-test with groups", catalogWith(strings.TrimSuffix(missingTest, "}") + `,"groups":["a","b"]}`), "counterpart"},
+		{"counterpart with test roots", catalogWith(strings.TrimSuffix(counterpart, "}") + `,"testRoots":["src/test"]}`), "missing-test"},
+		{"counterpart with both groups", catalogWith(strings.Replace(counterpart, `"groups"`, `"groupsFrom":"config.variants","groups"`, 1)), "exactly one"},
+		{"counterpart without groups", catalogWith(strings.Replace(counterpart, `"groups":["androidMain","iosMain"],`, ``, 1)), "exactly one"},
+		{"counterpart one group", catalogWith(strings.Replace(counterpart, `"androidMain",`, ``, 1)), "two"},
+		{"counterpart repeated group", catalogWith(strings.Replace(counterpart, `"iosMain"`, `"androidMain"`, 1)), "twice"},
+		{"counterpart unknown groupsFrom", catalogWith(strings.Replace(counterpart, `"groups":["androidMain","iosMain"]`, `"groupsFrom":"config.flavors"`, 1)), "groupsFrom"},
+		{"counterpart pattern without placeholder", catalogWith(strings.Replace(counterpart, `src/{group}/`, `src/main/`, 1)), "groupPattern"},
+		{"counterpart pattern twice", catalogWith(strings.Replace(counterpart, `src/{group}/`, `{group}/{group}/`, 1)), "groupPattern"},
+		{"counterpart pattern without final slash", catalogWith(strings.Replace(counterpart, `src/{group}/`, `src/{group}`, 1)), "groupPattern"},
+		{"counterpart suffix without dot", catalogWith(strings.Replace(counterpart, `".ios"`, `"ios"`, 1)), "stripSuffixes"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "pack": "android",
+  "rules": [
+    {
+      "id": "missing-tests",
+      "title": "Missing unit tests",
+      "severity": "MAJOR",
+      "description": "Unit tests for every ViewModel, repository or helper added or changed.",
+      "why": "Regressions in the logic of the component cannot be detected before release.",
+      "fix": "Add a unit test for the component.",
+      "languages": [
+        "kotlin",
+        "java"
+      ],
+      "tags": [
+        "tests"
+      ],
+      "match": {
+        "scope": "change-request",
+        "detector": "missing-test",
+        "sources": [
+          "**/src/main/**/*.kt",
+          "**/src/main/**/*.java"
+        ],
+        "nameSuffixes": [
+          "ViewModel",
+          "Repository"
+        ],
+        "moduleSeparator": "src/main/",
+        "testRoots": [
+          "src/test",
+          "src/androidTest"
+        ],
+        "testName": "{name}Test",
+        "testExtensions": [
+          ".kt",
+          ".java"
+        ],
+        "groupPattern": "src/{group}/"
+      }
+    }
+  ]
+}

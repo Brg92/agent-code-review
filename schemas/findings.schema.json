@@ -97,7 +97,10 @@
         "if": {
           "properties": {
             "reason": {
-              "const": "match-budget-exceeded"
+              "enum": [
+                "match-budget-exceeded",
+                "tree-unavailable"
+              ]
             }
           }
         },
@@ -112,18 +115,19 @@
             "$ref": "#/$defs/relativePath"
           },
           "reason": {
-            "description": "generated: marked as generated; binary: no text diff; patch-unavailable: the platform omitted the diff; noise: matches a noise glob; unsupported-language: no pack covers it; match-budget-exceeded: a rule ran out of matching steps on the file, and detail names the rule.",
+            "description": "generated: marked as generated; binary: no text diff; patch-unavailable: the platform omitted the diff; noise: matches a noise glob; unsupported-language: no pack covers it; match-budget-exceeded: a rule ran out of matching steps on the file, and detail names the rule; tree-unavailable: a change-request rule could not read the repository tree at head for the file, and detail names the rule.",
             "enum": [
               "generated",
               "binary",
               "patch-unavailable",
               "noise",
               "unsupported-language",
-              "match-budget-exceeded"
+              "match-budget-exceeded",
+              "tree-unavailable"
             ]
           },
           "detail": {
-            "description": "Optional human-readable detail; required for match-budget-exceeded, where it names the rule.",
+            "description": "Optional human-readable detail; required for match-budget-exceeded and tree-unavailable, where it names the rule.",
             "type": "string"
           }
         }
