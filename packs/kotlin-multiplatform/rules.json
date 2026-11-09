@@ -120,6 +120,50 @@
         "source-sets"
       ],
       "group": "Kotlin Multiplatform"
+    },
+    {
+      "id": "kmp-missing-tests",
+      "title": "Missing unit tests of shared code",
+      "severity": "MAJOR",
+      "description": "Unit tests for every repository, use case, mapper or helper added or changed in the shared code. It is checked on the whole change request, not on one file: a source under `src/commonMain` named with one of the suffixes needs a test named `<Name>Test` in the change request or under `src/commonTest`, `src/androidUnitTest` or `src/iosTest` of its module. Dismiss the signal when the component has no logic to test.",
+      "why": "The shared component has no unit test, so regressions in its logic cannot be detected on any target before release.",
+      "fix": "Add a unit test for the component under the module's `src/commonTest`, or under a platform test source set when it needs one.",
+      "languages": [
+        "kotlin"
+      ],
+      "tags": [
+        "tests",
+        "multiplatform"
+      ],
+      "group": "Tests",
+      "match": {
+        "scope": "change-request",
+        "detector": "missing-test",
+        "sources": [
+          "**/src/commonMain/**/*.kt"
+        ],
+        "nameSuffixes": [
+          "ViewModel",
+          "Repository",
+          "UseCase",
+          "Mapper",
+          "Manager",
+          "Helper",
+          "Utils",
+          "Storage",
+          "DataSource"
+        ],
+        "moduleSeparator": "src/commonMain/",
+        "testRoots": [
+          "src/commonTest",
+          "src/androidUnitTest",
+          "src/iosTest"
+        ],
+        "testName": "{name}Test",
+        "testExtensions": [
+          ".kt"
+        ]
+      }
     }
   ]
 }

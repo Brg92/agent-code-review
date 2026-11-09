@@ -75,6 +75,7 @@ func TestKMPRules(t *testing.T) {
 		"kmp-swift-unfriendly-api":  {"MINOR", true, false, map[string][]string{"platform": {"common"}}},
 		"kmp-expect-without-actual": {"BLOCKER", false, false, nil},
 		"kmp-source-set-asymmetry":  {"MAJOR", false, false, nil},
+		"kmp-missing-tests":         {"MAJOR", false, true, nil},
 	}
 	if len(p.Rules.Rules) != len(want) {
 		t.Errorf("%d rules, want %d", len(p.Rules.Rules), len(want))

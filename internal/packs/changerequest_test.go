@@ -127,6 +127,59 @@ func TestAndroidChangeRequestRules(t *testing.T) {
 	}
 }
 
+const repo = "shared/src/commonMain/kotlin/a/UserRepository.kt"
+
+var kmpCRCases = []crCase{
+	crCaseOf("common repository without a test", "kmp-missing-tests", tree{"shared/src/jvmTest/kotlin/a/UserRepositoryTest.kt"}, nil, repo+":3",
+		repo, "package a\n\ninterface UserRepository\n"),
+	crCaseOf("test under src/commonTest", "kmp-missing-tests", tree{"shared/src/commonTest/kotlin/a/UserRepositoryTest.kt"}, nil, "",
+		repo, "interface UserRepository\n"),
+	crCaseOf("test under src/androidUnitTest", "kmp-missing-tests", tree{"shared/src/androidUnitTest/kotlin/a/UserRepositoryTest.kt"}, nil, "",
+		repo, "interface UserRepository\n"),
+	crCaseOf("test under src/iosTest", "kmp-missing-tests", tree{"shared/src/iosTest/kotlin/a/UserRepositoryTest.kt"}, nil, "",
+		repo, "interface UserRepository\n"),
+	crCaseOf("test in the change request", "kmp-missing-tests", nil, nil, "",
+		repo, "interface UserRepository\n", "shared/src/commonTest/kotlin/a/UserRepositoryTest.kt", "class UserRepositoryTest\n"),
+	crCaseOf("platform source", "kmp-missing-tests", nil, nil, "",
+		"shared/src/androidMain/kotlin/a/UserRepository.kt", "class UserRepository\n"),
+}
+
+func packOf(t *testing.T, set *Set, id string) *Pack {
+	t.Helper()
+	for _, p := range set.Packs {
+		if p.ID == id {
+			return p
+		}
+	}
+	t.Fatalf("no %s pack", id)
+	return nil
+}
+
+func TestKMPChangeRequestRules(t *testing.T) {
+	set, err := Load(packsDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kmp := []*Pack{packOf(t, set, "kotlin-multiplatform")}
+	for _, c := range kmpCRCases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := sigLines(runChangeRequest(t, set, kmp, c)); got != c.want {
+				t.Errorf("%s signals %q, want %q", c.rule, got, c.want)
+			}
+		})
+	}
+	// With both packs active, each rule checks the sources of its own
+	// layout only.
+	both := []*Pack{packOf(t, set, "kotlin-multiplatform"), packOf(t, set, "android")}
+	c := crCaseOf("both packs", "", nil, nil, "", repo, "interface UserRepository\n", vm, "class LoginViewModel\n")
+	for rule, want := range map[string]string{"kmp-missing-tests": repo + ":1", "missing-tests": vm + ":1"} {
+		c.rule = rule
+		if got := sigLines(runChangeRequest(t, set, both, c)); got != want {
+			t.Errorf("both packs: %s signals %q, want %q", rule, got, want)
+		}
+	}
+}
+
 // TestChangeRequestRulesAreCovered checks that every change-request rule of
 // the packs has a case that signals and one that does not.
 func TestChangeRequestRulesAreCovered(t *testing.T) {
@@ -152,5 +205,5 @@ func TestChangeRequestRulesAreCovered(t *testing.T) {
 }
 
 func changeRequestCases() []crCase {
-	return androidCRCases
+	return append(append([]crCase{}, androidCRCases...), kmpCRCases...)
 }
