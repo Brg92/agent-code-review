@@ -89,6 +89,142 @@
           "lexer": {
             "description": "Lexer table of the language, relative to the pack directory.",
             "$ref": "#/$defs/relativePath"
+          },
+          "symbols": {
+            "description": "How the public declarations of the language are found in its tokens, to compare the API of a file at base and at head. Absent: the language declares no symbols that are compared. The core knows no language: every word and bracket comes from here.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "packageKeyword",
+              "declarations",
+              "hidingModifiers",
+              "publicModifiers",
+              "publicByDefault",
+              "annotation",
+              "qualifiers",
+              "body",
+              "parameters",
+              "typeParameters",
+              "parameterSeparator"
+            ],
+            "properties": {
+              "packageKeyword": {
+                "description": "Word that starts the package statement at top level, followed by the dotted package name.",
+                "$ref": "#/$defs/word"
+              },
+              "declarations": {
+                "description": "Words that start a declaration, with the kind of symbol they declare. Words before the declaration word on the same declaration are its modifiers.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "description": "One declaration word.",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "word",
+                    "kind"
+                  ],
+                  "properties": {
+                    "word": {
+                      "description": "The declaration word, for example fun or class.",
+                      "$ref": "#/$defs/word"
+                    },
+                    "kind": {
+                      "description": "function: has a parameter list; property: a value; type: a type whose body holds members.",
+                      "enum": [
+                        "function",
+                        "property",
+                        "type"
+                      ]
+                    }
+                  }
+                }
+              },
+              "typedMembers": {
+                "description": "Members of a type body declared without a declaration word, as <modifiers> <type> <name>: a function when the name is followed by the parameter list, a property when it is followed by one of ends. Absent: every declaration has a declaration word.",
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ends"
+                ],
+                "properties": {
+                  "ends": {
+                    "description": "Punctuation that ends the name of a property, for example = and ;.",
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "$ref": "#/$defs/marker"
+                    }
+                  }
+                }
+              },
+              "hidingModifiers": {
+                "description": "Modifiers that hide a declaration and everything inside it from other modules, for example private and internal.",
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/word"
+                }
+              },
+              "publicModifiers": {
+                "description": "Modifiers that make a declaration public, for example public and protected.",
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/word"
+                }
+              },
+              "publicByDefault": {
+                "description": "Whether a declaration without a hiding or public modifier is public.",
+                "type": "boolean"
+              },
+              "publicMembersIn": {
+                "description": "Declaration words of types whose members are public without a public modifier, for example interface in Java.",
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/word"
+                }
+              },
+              "annotation": {
+                "description": "Punctuation that starts an annotation, for example @. Annotations before a declaration are skipped, with their arguments.",
+                "$ref": "#/$defs/marker"
+              },
+              "qualifiers": {
+                "description": "Punctuation between a receiver type and the name of an extension, for example . and ?.; the name is the word after the last one.",
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/marker"
+                }
+              },
+              "body": {
+                "description": "Brackets of a body.",
+                "$ref": "#/$defs/bracketPair"
+              },
+              "parameters": {
+                "description": "Brackets of a parameter list.",
+                "$ref": "#/$defs/bracketPair"
+              },
+              "typeParameters": {
+                "description": "Brackets of type parameters and type arguments, which are skipped. A token made only of closing characters closes once per character.",
+                "$ref": "#/$defs/bracketPair"
+              },
+              "parameterSeparator": {
+                "description": "Punctuation between two parameters.",
+                "$ref": "#/$defs/marker"
+              },
+              "parameterType": {
+                "description": "Punctuation between a parameter name and its type, for example :; the name is the word right before it. Absent: the name is the last word of the parameter before its default.",
+                "$ref": "#/$defs/marker"
+              },
+              "parameterDefault": {
+                "description": "Punctuation that starts the default value of a parameter, for example =. Absent: parameters have no defaults.",
+                "$ref": "#/$defs/marker"
+              }
+            }
           }
         }
       }
@@ -297,6 +433,25 @@
     }
   },
   "$defs": {
+    "bracketPair": {
+      "description": "A pair of brackets.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "open",
+        "close"
+      ],
+      "properties": {
+        "open": {
+          "description": "Opening character.",
+          "$ref": "#/$defs/lexerBracket"
+        },
+        "close": {
+          "description": "Closing character.",
+          "$ref": "#/$defs/lexerBracket"
+        }
+      }
+    },
     "dimensionId": {
       "description": "Identifier of a dimension or of one of its values: lowercase words joined by hyphens.",
       "type": "string",
@@ -306,6 +461,16 @@
       "description": "Path glob with forward slashes: '*' matches within a segment, '**' matches any number of segments.",
       "type": "string",
       "pattern": "^[^/\\\\]+(?:/[^/\\\\]+)*$"
+    },
+    "lexerBracket": {
+      "description": "A single punctuation character: not blank, not a letter, digit or underscore.",
+      "type": "string",
+      "pattern": "^[^\\sA-Za-z0-9_]$"
+    },
+    "marker": {
+      "description": "Punctuation of the language, without spaces.",
+      "type": "string",
+      "pattern": "^[^\\sA-Za-z0-9_]+$"
     },
     "packId": {
       "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
@@ -323,6 +488,11 @@
       "description": "Relative path with forward slashes, without empty, '.' or '..' segments.",
       "type": "string",
       "pattern": "^(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*$"
+    },
+    "word": {
+      "description": "A word of the language: a letter or underscore, then letters, digits or underscores.",
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
     }
   }
 }
