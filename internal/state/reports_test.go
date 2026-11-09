@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -114,6 +115,9 @@ func TestSaveReportRefusesAGitWorkTree(t *testing.T) {
 			var ge *InsideGitError
 			if !errors.As(err, &ge) {
 				t.Fatalf("error %v, want an *InsideGitError", err)
+			}
+			if msg := err.Error(); !strings.Contains(msg, dir) || !strings.Contains(msg, ge.WorkTree) {
+				t.Errorf("message %q names neither the folder nor the work tree", msg)
 			}
 			if _, err := os.Stat(filepath.Join(dir, "r-1-01234567_2026-10-21_1717.txt")); err == nil {
 				t.Error("the report was written")

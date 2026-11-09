@@ -90,7 +90,10 @@ func TestLoadUserConfigRejects(t *testing.T) {
 			_, err := LoadUserConfig(p)
 			var ue *UserConfigError
 			if !errors.As(err, &ue) || len(ue.Errors) != 1 || ue.Errors[0].Pointer != tt.pointer {
-				t.Errorf("error %v, want one at %q", err, tt.pointer)
+				t.Fatalf("error %v, want one at %q", err, tt.pointer)
+			}
+			if msg := err.Error(); !strings.Contains(msg, p) || !strings.Contains(msg, tt.pointer+": ") {
+				t.Errorf("message %q does not name the file and the field", msg)
 			}
 		})
 	}
