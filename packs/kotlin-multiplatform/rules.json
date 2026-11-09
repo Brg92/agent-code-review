@@ -111,7 +111,10 @@
       "id": "kmp-source-set-asymmetry",
       "title": "Behaviour changed in one source set only",
       "severity": "MAJOR",
-      "description": "A change in one platform source set without the matching change in the others, so the targets behave differently. The check comes with the source set analysis.",
+      "needsJudgement": true,
+      "description": "A change in one platform source set without the matching change in the others, so the targets behave differently. A file changed under `androidMain`, `iosMain` or `jvmMain` whose counterpart in another platform source set (platform suffix such as `.android` stripped) exists and is not changed is a candidate; judge whether the change is deliberately platform-specific.",
+      "why": "The targets now behave differently: the same call does one thing on one platform and another on the others.",
+      "fix": "Make the matching change in the other platform source sets, or state why the behaviour is meant to differ.",
       "languages": [
         "kotlin"
       ],
@@ -119,7 +122,22 @@
         "multiplatform",
         "source-sets"
       ],
-      "group": "Kotlin Multiplatform"
+      "group": "Kotlin Multiplatform",
+      "match": {
+        "scope": "change-request",
+        "detector": "counterpart",
+        "groups": [
+          "androidMain",
+          "iosMain",
+          "jvmMain"
+        ],
+        "groupPattern": "src/{group}/",
+        "stripSuffixes": [
+          ".android",
+          ".ios",
+          ".jvm"
+        ]
+      }
     },
     {
       "id": "kmp-missing-tests",

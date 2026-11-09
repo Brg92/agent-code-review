@@ -144,6 +144,33 @@ var kmpCRCases = []crCase{
 		"shared/src/androidMain/kotlin/a/UserRepository.kt", "class UserRepository\n"),
 }
 
+const (
+	androidClock = "shared/src/androidMain/kotlin/a/Clock.android.kt"
+	iosClock     = "shared/src/iosMain/kotlin/a/Clock.ios.kt"
+)
+
+var kmpAsymmetryCases = []crCase{
+	crCaseOf("android changed, ios counterpart unchanged", "kmp-source-set-asymmetry", tree{androidClock, iosClock}, nil, androidClock+":1",
+		androidClock, "actual fun now() = 1L\n"),
+	crCaseOf("both platforms changed", "kmp-source-set-asymmetry", tree{androidClock, iosClock}, nil, "",
+		androidClock, "actual fun now() = 1L\n", iosClock, "actual fun now() = 1L\n"),
+	crCaseOf("no counterpart", "kmp-source-set-asymmetry", tree{androidClock}, nil, "",
+		androidClock, "fun androidOnly() = 1\n"),
+	crCaseOf("common code", "kmp-source-set-asymmetry", tree{"shared/src/commonMain/kotlin/a/Clock.kt", iosClock}, nil, "",
+		"shared/src/commonMain/kotlin/a/Clock.kt", "expect fun now(): Long\n"),
+}
+
+func TestKMPSourceSetAsymmetryNeedsJudgement(t *testing.T) {
+	set, err := Load(packsDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sigs := runChangeRequest(t, set, []*Pack{packOf(t, set, "kotlin-multiplatform")}, kmpAsymmetryCases[0])
+	if len(sigs) != 1 || !sigs[0].NeedsJudgement || sigs[0].Severity != "" {
+		t.Errorf("signals %+v, want one candidate for the judgement", sigs)
+	}
+}
+
 func packOf(t *testing.T, set *Set, id string) *Pack {
 	t.Helper()
 	for _, p := range set.Packs {
@@ -161,7 +188,7 @@ func TestKMPChangeRequestRules(t *testing.T) {
 		t.Fatal(err)
 	}
 	kmp := []*Pack{packOf(t, set, "kotlin-multiplatform")}
-	for _, c := range kmpCRCases {
+	for _, c := range append(append([]crCase{}, kmpCRCases...), kmpAsymmetryCases...) {
 		t.Run(c.name, func(t *testing.T) {
 			if got := sigLines(runChangeRequest(t, set, kmp, c)); got != c.want {
 				t.Errorf("%s signals %q, want %q", c.rule, got, c.want)
@@ -205,5 +232,5 @@ func TestChangeRequestRulesAreCovered(t *testing.T) {
 }
 
 func changeRequestCases() []crCase {
-	return append(append([]crCase{}, androidCRCases...), kmpCRCases...)
+	return append(append(append([]crCase{}, androidCRCases...), kmpCRCases...), kmpAsymmetryCases...)
 }
