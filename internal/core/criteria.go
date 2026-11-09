@@ -103,7 +103,14 @@ func ReadCriteria(ctx context.Context, files Files, in CriteriaInput) (RepoCrite
 	if err != nil {
 		return RepoCriteria{}, err
 	}
-	if !found {
+	legacy, err := r.legacy(&c, rr, !found)
+	if err != nil {
+		return RepoCriteria{}, err
+	}
+	switch {
+	case found && legacy:
+		c.Notes = append(c.Notes, "Legacy criteria ignored: .agent-code-review/ is present, so .github/skills and .github/mr-review.json are not read.")
+	case !found && !legacy:
 		c.Notes = append(c.Notes, fmt.Sprintf("No repository criteria on %s: only the pack and core rules apply.", in.Ref))
 	}
 	if changed := changedCriteria(in.Changed); len(changed) > 0 {

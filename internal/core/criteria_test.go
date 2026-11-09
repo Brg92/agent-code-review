@@ -167,3 +167,115 @@ func testRules(t *testing.T) []*rules.Rule {
 	}
 	return all
 }
+
+const (
+	legacySkill   = ".github/skills/app-code-review/SKILL.md"
+	legacyRefA    = ".github/skills/app-code-review/references/a.md"
+	legacyRefB    = ".github/skills/app-code-review/references/b.md"
+	legacyMRRules = ".github/mr-review.json"
+)
+
+func TestReadCriteriaLegacy(t *testing.T) {
+	files := newMemFiles(t, map[string]string{
+		legacySkill: "---\nname: app-code-review\n---\n# App review\n\n- Prose.\n\n## Project rules\n\n- `app-tracker` — **MAJOR**. Use the tracker.\n",
+		legacyRefB:  "# B\n\n## Naming\n\n- `app-naming` — **MINOR**. Names say what they hold.\n",
+		legacyRefA:  "# A\n\n## Threads\n\n- `app-main-thread` — **BLOCKER**. No disk access on the main thread.\n",
+		".github/skills/app-code-review/references/notes.txt": "- `app-not-markdown` — **MAJOR**. Not read.\n",
+		".github/skills/other-skill/SKILL.md":                 "- `other-rule` — **MAJOR**. Not a code-review skill.\n",
+		legacyMRRules: `{"uiToolkit":"compose","kind":"library","lineLength":120,"variants":["free","paid"],` +
+			`"publicApi":["src/main/java/com/acme/api/**"],"consumers":["acme/sample-app"],` +
+			`"approvals":{"enabled":false},"sharedLibraries":["core-lib"],"reviewers":["someone"]}`,
+	})
+	c := readCriteria(t, files)
+	if c.Source != SourceLegacy || c.Profile != "library" || !reflect.DeepEqual(c.Variants, []string{"free", "paid"}) {
+		t.Errorf("source %s, profile %q, variants %q", c.Source, c.Profile, c.Variants)
+	}
+	if want := []string{legacySkill, legacyRefA, legacyRefB, legacyMRRules}; !reflect.DeepEqual(c.Files, want) {
+		t.Errorf("files = %q, want %q", c.Files, want)
+	}
+	var ids []string
+	for _, r := range c.Rules {
+		ids = append(ids, r.ID)
+	}
+	if want := []string{"app-tracker", "app-main-thread", "app-naming"}; !reflect.DeepEqual(ids, want) {
+		t.Errorf("rules %q, want %q", ids, want)
+	}
+	if !reflect.DeepEqual(c.Dimensions, map[string]string{"ui-toolkit": "compose"}) ||
+		!reflect.DeepEqual(c.RuleOptions, map[string]map[string]int{"line-too-long": {"max": 120}}) {
+		t.Errorf("dimensions %v, rule options %v", c.Dimensions, c.RuleOptions)
+	}
+	if !reflect.DeepEqual(c.PublicAPI, []string{"src/main/java/com/acme/api/**"}) || !reflect.DeepEqual(c.Consumers, []string{"github:github.com/acme/sample-app"}) {
+		t.Errorf("public API %q, consumers %q", c.PublicAPI, c.Consumers)
+	}
+	want := []string{
+		"Legacy criteria are in use: .github/skills and .github/mr-review.json.",
+		"Repository criteria ignored: `approvals` (.github/mr-review.json) — the plugin never approves",
+		"Repository criteria ignored: `reviewers` (.github/mr-review.json) — not a setting of .github/mr-review.json",
+		"Repository criteria ignored: `sharedLibraries` (.github/mr-review.json) — not used; write the shared libraries in the criteria",
+	}
+	if !reflect.DeepEqual(c.Notes, want) {
+		t.Errorf("notes =\n%q\nwant\n%q", c.Notes, want)
+	}
+}
+
+func TestReadCriteriaLegacyParts(t *testing.T) {
+	skills := readCriteria(t, newMemFiles(t, map[string]string{legacySkill: "- `app-tracker` — **MAJOR**. Text.\n"}))
+	if skills.Source != SourceLegacy || skills.Notes[0] != "Legacy criteria are in use: .github/skills." {
+		t.Errorf("skills alone: %s, %q", skills.Source, skills.Notes)
+	}
+	config := readCriteria(t, newMemFiles(t, map[string]string{legacyMRRules: `{"profile":"library"}`}))
+	if config.Source != SourceLegacy || config.Profile != "library" || config.Notes[0] != "Legacy criteria are in use: .github/mr-review.json." {
+		t.Errorf("mr-review.json alone, with profile: %s, %q, %q", config.Source, config.Profile, config.Notes)
+	}
+	empty := readCriteria(t, newMemFiles(t, map[string]string{legacyRefA: "- `app-rule` — **MAJOR**. Text.\n"}))
+	want := []string{"Legacy criteria are in use: .github/skills.",
+		"Repository criteria ignored: `app-code-review` (.github/skills/app-code-review) — it has no SKILL.md"}
+	if empty.Source != SourceLegacy || !reflect.DeepEqual(empty.Notes, want) || len(empty.Rules) != 0 {
+		t.Errorf("skill without SKILL.md: %s, %q, %+v", empty.Source, empty.Notes, empty.Rules)
+	}
+}
+
+func TestReadCriteriaLegacyConfigErrors(t *testing.T) {
+	tests := []struct{ name, data, pointer string }{
+		{"not JSON", `{`, ""},
+		{"ui toolkit", `{"uiToolkit":"flutter"}`, "/uiToolkit"},
+		{"kind", `{"kind":"service"}`, "/kind"},
+		{"kind and profile disagree", `{"kind":"app","profile":"library"}`, "/profile"},
+		{"line length", `{"lineLength":"120"}`, "/lineLength"},
+		{"variants", `{"variants":"free"}`, "/variants"},
+		{"public API", `{"publicApi":["/abs"]}`, "/publicApi/0"},
+		{"consumer", `{"consumers":["sample-app"]}`, "/consumers/0"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ReadCriteria(context.Background(), newMemFiles(t, map[string]string{legacyMRRules: tt.data}), CriteriaInput{Project: testProject, Ref: "main"})
+			var ce *CriteriaError
+			if !errors.As(err, &ce) || ce.File != legacyMRRules || len(ce.Errors) != 1 || ce.Errors[0].Pointer != tt.pointer {
+				t.Errorf("error %v, want one at %s %q", err, legacyMRRules, tt.pointer)
+			}
+		})
+	}
+}
+
+func TestReadCriteriaBothLayouts(t *testing.T) {
+	files := newMemFiles(t, map[string]string{
+		ConfigFile:    `{"schema":1,"profile":"app"}`,
+		legacySkill:   "- `app-legacy` — **MAJOR**. Not read.\n",
+		legacyMRRules: `{"kind":"library"}`,
+	})
+	c := readCriteria(t, files)
+	if c.Source != SourceOverlay || c.Profile != "app" || len(c.Rules) != 0 || !reflect.DeepEqual(c.Files, []string{ConfigFile}) {
+		t.Errorf("criteria = %+v, want the neutral layout alone", c)
+	}
+	want := []string{"Legacy criteria ignored: .agent-code-review/ is present, so .github/skills and .github/mr-review.json are not read."}
+	if !reflect.DeepEqual(c.Notes, want) {
+		t.Errorf("notes = %q, want %q", c.Notes, want)
+	}
+	// Finding the legacy layout fetches .github/mr-review.json, as a real
+	// run does, but reads no skill file.
+	for _, p := range files.read {
+		if strings.HasPrefix(p, ".github/skills/app-code-review/") {
+			t.Errorf("read %s although the neutral layout is present", p)
+		}
+	}
+}
