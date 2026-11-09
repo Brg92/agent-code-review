@@ -205,7 +205,17 @@ func (c *RepoCriteria) applyConfig(cfg RepoConfig) {
 // the rule options that a pack or core rule declares, within its bounds,
 // noting each one it drops: pack and core rules always apply.
 func (c *RepoCriteria) checkSettings(known []*rules.Rule) {
-	ignore := func(item, reason string) { c.ignore(IgnoredItem{Item: item, Reason: reason}) }
+	for _, i := range c.settle(known) {
+		c.ignore(i)
+	}
+}
+
+// settle keeps the disabled rules that are repository rules and the rule
+// options that one of known declares, within its bounds, and returns each
+// one it drops with the reason.
+func (c *RepoCriteria) settle(known []*rules.Rule) []IgnoredItem {
+	var ignored []IgnoredItem
+	ignore := func(item, reason string) { ignored = append(ignored, IgnoredItem{Item: item, Reason: reason}) }
 	byID := map[string]*rules.Rule{}
 	for _, r := range known {
 		byID[r.ID] = r
@@ -253,6 +263,7 @@ func (c *RepoCriteria) checkSettings(known []*rules.Rule) {
 			delete(c.RuleOptions, id)
 		}
 	}
+	return ignored
 }
 
 // optionProblem says why a rule option cannot be set; empty when it can.
