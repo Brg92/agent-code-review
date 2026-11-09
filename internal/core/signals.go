@@ -72,10 +72,17 @@ func NumberSignals(files []ChangedFile, lists ...[]rules.Signal) []Signal {
 	})
 	out := make([]Signal, 0, len(all))
 	for i, s := range all {
-		out = append(out, Signal{
+		sig := Signal{
 			ID: "s" + strconv.Itoa(i+1), Rule: s.RuleID, Severity: Severity(s.Severity), Path: s.Path,
 			Line: s.Line, Column: s.Column, Origin: Origin(s.Origin), NeedsJudgement: s.NeedsJudgement,
-		})
+		}
+		if s.Side == rules.SideLeft {
+			sig.Side = Left
+		}
+		for _, r := range s.References {
+			sig.References = append(sig.References, Reference{Project: r.Project, Ref: r.Ref, Path: r.Path, Line: r.Line})
+		}
+		out = append(out, sig)
 	}
 	return out
 }

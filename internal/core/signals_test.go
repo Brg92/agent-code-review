@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -155,5 +156,43 @@ func TestChangeRequestSignalsBecomeFindings(t *testing.T) {
 	j.Signals = []SignalDecision{{ID: "s1", Decision: Dismiss, Reason: "the paid variant has no ads"}, {ID: "s2", Decision: Dismiss, Reason: "no logic to test"}}
 	if res, err = Finalize(r, j); err != nil || len(res.Findings) != 0 || len(res.Dismissed) != 2 {
 		t.Errorf("dismissed: %d findings, %d dismissed, %v", len(res.Findings), len(res.Dismissed), err)
+	}
+}
+
+// TestRemovedLineSignalBecomesFinding numbers a signal on a removed line
+// with references, and finalizes it on the LEFT side with them.
+func TestRemovedLineSignalBecomesFinding(t *testing.T) {
+	r := testReview(t)
+	ref := rules.Reference{Project: "github:github.com/acr-plugin-sandbox/core-lib", Ref: "main", Path: "src/Use.kt", Line: 20}
+	sig := rules.Signal{RuleID: "dead-code", NeedsJudgement: true, Path: "app/Old.kt", Side: rules.SideLeft, Line: 2, Column: 1,
+		Origin: rules.OriginMR, References: []rules.Reference{ref}}
+	r.Signals = NumberSignals(r.Files, nil, []rules.Signal{sig})
+	want := []Signal{{ID: "s1", Rule: "dead-code", Path: "app/Old.kt", Side: Left, Line: 2, Column: 1, Origin: OriginMR, NeedsJudgement: true,
+		References: []Reference{{Project: ref.Project, Ref: ref.Ref, Path: ref.Path, Line: ref.Line}}}}
+	if !reflect.DeepEqual(r.Signals, want) {
+		t.Fatalf("signals %+v, want %+v", r.Signals, want)
+	}
+	data, err := json.Marshal(r.Signals[0])
+	if err != nil || !strings.Contains(string(data), `"side":"LEFT"`) || !strings.Contains(string(data), `"references":[{`) {
+		t.Errorf("signal JSON %s, %v", data, err)
+	}
+	if data, _ := json.Marshal(Signal{ID: "s2"}); strings.Contains(string(data), "side") || strings.Contains(string(data), "references") {
+		t.Errorf("a signal on the RIGHT side without references writes %s", data)
+	}
+	j := Judgement{Schema: 1, CR: testCR, HeadSHA: testHead, Findings: []JudgedFinding{}, PreExisting: []JudgedFinding{},
+		Signals: []SignalDecision{{ID: "s1", Decision: Confirm, Severity: Blocker}}}
+	res, err := Finalize(r, j)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := brief(res.Findings); !reflect.DeepEqual(got, []string{"dead-code BLOCKER app/Old.kt:LEFT2 removed LEFT 2 inline from s1"}) {
+		t.Errorf("findings %q", got)
+	}
+	if f := res.Findings[0]; !reflect.DeepEqual(f.References, want[0].References) {
+		t.Errorf("references %+v", f.References)
+	}
+	res.Findings[0].References[0].Line = 99
+	if r.Signals[0].References[0].Line != 20 {
+		t.Error("the finding shares its references with the signal")
 	}
 }

@@ -34,6 +34,10 @@ type File struct {
 	Added map[int]bool
 }
 
+// SideLeft is the side of a signal on the base version of a file, such
+// as a removed declaration.
+const SideLeft = "LEFT"
+
 // Signal is a place a rule points at.
 type Signal struct {
 	RuleID string `json:"ruleId"`
@@ -41,9 +45,24 @@ type Signal struct {
 	Severity       string `json:"severity,omitempty"`
 	NeedsJudgement bool   `json:"needsJudgement,omitempty"`
 	Path           string `json:"path"`
-	Line           int    `json:"line"`
-	Column         int    `json:"column"`
-	Origin         string `json:"origin"`
+	// Side is SideLeft for a line of the base version; empty for a line
+	// at head.
+	Side   string `json:"side,omitempty"`
+	Line   int    `json:"line"`
+	Column int    `json:"column"`
+	Origin string `json:"origin"`
+	// References are the places in the code the signal relies on,
+	// possibly in other projects.
+	References []Reference `json:"references,omitempty"`
+}
+
+// Reference is a line of a file in a project at a ref.
+type Reference struct {
+	// Project is the project key.
+	Project string `json:"project"`
+	Ref     string `json:"ref"`
+	Path    string `json:"path"`
+	Line    int    `json:"line"`
 }
 
 // NotVerified is a file a rule could not check.
