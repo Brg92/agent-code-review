@@ -174,3 +174,47 @@ func firstDiff(a, b string) int {
 	}
 	return len(la) + 1
 }
+
+func existing(rule string, s core.Severity, path string, line int, why, fix string, crash bool) core.Finding {
+	return core.Finding{Rule: rule, Severity: s, Path: path, Side: core.Right, Line: line, Title: "Asserts a value",
+		Why: why, Fix: fix, Crash: crash, Placement: core.Summary}
+}
+
+func TestReportGroupsExistingCode(t *testing.T) {
+	d := testDocument(t)
+	d.PreExisting = []core.Finding{
+		existing("no-double-bang", core.Major, "lib/R.kt", 73, "It throws.", "Handle null.", false),
+		existing("no-double-bang", core.Major, "lib/R.kt", 69, "It throws.", "Handle null.", false),
+		existing("no-double-bang", core.Major, "lib/R.kt", 81, "It throws.", "Return early.", false),
+		existing("no-double-bang", core.Blocker, "lib/R.kt", 90, "It crashes.", "Handle null.", true),
+		existing("no-double-bang", core.Blocker, "lib/R.kt", 95, "It crashes.", "Handle null.", true),
+		existing("no-double-bang", core.Major, "lib/S.kt", 5, "It throws.", "Handle null.", false),
+		existing("no-double-bang", core.Major, "lib/R.kt", 101, "It throws.", "Handle null.", false),
+	}
+	got := Report("1.2.3", d)
+	want := `Existing code in touched files (7) — not written in this change request
+  [BLOCKER] lib/R.kt:90 — Asserts a value  [no-double-bang] [crash]
+            why: It crashes.
+            fix: Handle null.
+  [BLOCKER] lib/R.kt:95 — Asserts a value  [no-double-bang] [crash]
+            why: It crashes.
+            fix: Handle null.
+  [MAJOR]   lib/R.kt — Asserts a value  [no-double-bang] (3)
+            lines: 69, 73, 101
+            why: It throws.
+            fix: Handle null.
+  [MAJOR]   lib/R.kt:81 — Asserts a value  [no-double-bang]
+            why: It throws.
+            fix: Return early.
+  [MAJOR]   lib/S.kt:5 — Asserts a value  [no-double-bang]
+            why: It throws.
+            fix: Handle null.
+
+`
+	if !strings.Contains(got, want) {
+		t.Errorf("got\n%s\nwant the section\n%s", got, want)
+	}
+	if !strings.Contains(got, "\nVerdict: BLOCKED — 1 blocker in the change and 2 crashing defects in existing code to fix") {
+		t.Errorf("verdict:\n%s", got)
+	}
+}

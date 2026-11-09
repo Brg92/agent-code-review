@@ -75,8 +75,12 @@ func Report(version string, d core.Document) string {
 
 	existing := sorted(d.PreExisting)
 	b.line(fmt.Sprintf("Existing code in touched files (%d) — not written in this change request", len(existing)))
-	for _, f := range existing {
-		entry(&b, f)
+	for _, g := range grouped(existing) {
+		if len(g) == 1 {
+			entry(&b, g[0])
+			continue
+		}
+		groupEntry(&b, g)
 	}
 	b.line("")
 
@@ -157,6 +161,45 @@ func entry(b *builder, f core.Finding) {
 		fix += "   (suggestion)"
 	}
 	b.line(indent + fix)
+}
+
+// grouped turns sorted pre-existing findings into entries: occurrences of
+// one rule in one file with the same severity, why and fix share an entry,
+// except crashes, which are always listed one by one. The entries are in
+// the order of their first finding.
+func grouped(existing []core.Finding) [][]core.Finding {
+	type key struct {
+		rule, path, why, fix string
+		severity             core.Severity
+	}
+	var out [][]core.Finding
+	at := map[key]int{}
+	for _, f := range existing {
+		k := key{f.Rule, f.Path, f.Why, f.Fix, f.Severity}
+		if i, ok := at[k]; ok && !f.Crash {
+			out[i] = append(out[i], f)
+			continue
+		}
+		if !f.Crash {
+			at[k] = len(out)
+		}
+		out = append(out, []core.Finding{f})
+	}
+	return out
+}
+
+// groupEntry writes occurrences of one rule in one file as one entry,
+// with their count and every line. The title is that of the first.
+func groupEntry(b *builder, g []core.Finding) {
+	f := g[0]
+	lines := make([]string, len(g))
+	for i, o := range g {
+		lines[i] = fmt.Sprint(o.Line)
+	}
+	b.line(fmt.Sprintf("  %s %s — %s  [%s] (%d)", marker(f.Severity), f.Path, oneLine(f.Title), f.Rule, len(g)))
+	b.line(indent + "lines: " + strings.Join(lines, ", "))
+	b.line(indent + "why: " + oneLine(f.Why))
+	b.line(indent + "fix: " + oneLine(f.Fix))
 }
 
 func footer(b *builder, d core.Document) {
