@@ -39,7 +39,7 @@
       "id": "dependency-mr-undeclared",
       "title": "Relies on an undeclared change of a shared library",
       "severity": "MAJOR",
-      "description": "The change request relies on a change in a shared library (a new version, a new or changed symbol) and its Related Changes section has no entry for it. Which libraries are shared comes from the repository criteria.",
+      "description": "The change request relies on a change in a shared library (a new version, a new or changed symbol) and its Related Changes section has no entry for it. The shared libraries are the sharedLibraries of the repository criteria, as project keys.",
       "languages": [],
       "tags": [
         "cascade"

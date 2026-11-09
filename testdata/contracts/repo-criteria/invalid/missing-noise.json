@@ -17,6 +17,7 @@
   "rules": [],
   "publicApi": [],
   "consumers": [],
+  "sharedLibraries": [],
   "cascade": {},
   "files": [
     ".agent-code-review/config.json",

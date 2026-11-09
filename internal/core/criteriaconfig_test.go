@@ -39,7 +39,8 @@ func TestDecodeRepoConfigMatchesTheContract(t *testing.T) {
 
 func TestDecodeRepoConfig(t *testing.T) {
 	data := `{"schema":1,"profile":"library","packs":["android"],"variants":["free","paid"],"dimensions":{"ui-toolkit":"compose"},` +
-		`"disabledRules":["app-tracker"],"ruleOptions":{"line-too-long":{"max":120}},"noise":["docs/**"],"cascade":{"maxDepth":1}}`
+		`"disabledRules":["app-tracker"],"ruleOptions":{"line-too-long":{"max":120}},"noise":["docs/**"],"cascade":{"maxDepth":1},` +
+		`"sharedLibraries":["github:github.com/acme/core-lib"]}`
 	c, err := DecodeRepoConfig(ConfigFile, []byte(data))
 	if err != nil {
 		t.Fatal(err)
@@ -49,7 +50,7 @@ func TestDecodeRepoConfig(t *testing.T) {
 		Profile: "library", Packs: []string{"android"}, Variants: []string{"free", "paid"},
 		Dimensions: map[string]string{"ui-toolkit": "compose"}, DisabledRules: []string{"app-tracker"},
 		RuleOptions: map[string]map[string]int{"line-too-long": {"max": 120}}, Noise: []string{"docs/**"},
-		Cascade: CascadeConfig{MaxDepth: &depth},
+		Cascade: CascadeConfig{MaxDepth: &depth}, SharedLibraries: []string{"github:github.com/acme/core-lib"},
 	}
 	if !reflect.DeepEqual(c, want) {
 		t.Errorf("config = %+v, want %+v", c, want)
@@ -102,6 +103,8 @@ func TestDecodeRepoConfigRejects(t *testing.T) {
 		{"rule option not an object", `{"schema":1,"ruleOptions":{"line-too-long":120}}`, "/ruleOptions/line-too-long"},
 		{"rule option not an integer", `{"schema":1,"ruleOptions":{"line-too-long":{"max":1.5}}}`, "/ruleOptions/line-too-long/max"},
 		{"noise glob", `{"schema":1,"noise":["/abs/**"]}`, "/noise/0"},
+		{"shared library without a forge", `{"schema":1,"sharedLibraries":["acme/core-lib"]}`, "/sharedLibraries/0"},
+		{"shared library with a number", `{"schema":1,"sharedLibraries":["github:github.com/acme/core-lib#1"]}`, "/sharedLibraries/0"},
 		{"cascade field", `{"schema":1,"cascade":{"depth":1}}`, "/cascade/depth"},
 		{"negative depth", `{"schema":1,"cascade":{"maxDepth":-1}}`, "/cascade/maxDepth"},
 		{"zero count", `{"schema":1,"cascade":{"maxChangeRequests":0}}`, "/cascade/maxChangeRequests"},

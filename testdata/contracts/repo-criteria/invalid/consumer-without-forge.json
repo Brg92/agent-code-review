@@ -22,6 +22,7 @@
   "consumers": [
     "acr-plugin-sandbox/sample-app"
   ],
+  "sharedLibraries": [],
   "cascade": {},
   "files": [
     ".agent-code-review/config.json",

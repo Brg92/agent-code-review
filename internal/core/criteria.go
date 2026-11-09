@@ -56,7 +56,10 @@ type RepoCriteria struct {
 	Noise         []string                  `json:"noise"`
 	PublicAPI     []string                  `json:"publicApi"`
 	Consumers     []string                  `json:"consumers"`
-	Cascade       CascadeConfig             `json:"cascade"`
+	// SharedLibraries are the project keys of the libraries the
+	// repository consumes, which dependency-mr-undeclared reads.
+	SharedLibraries []string      `json:"sharedLibraries"`
+	Cascade         CascadeConfig `json:"cascade"`
 	// Files are the criteria files read, in order.
 	Files []string `json:"files"`
 	Notes []string `json:"notes"`
@@ -92,7 +95,7 @@ func ReadCriteria(ctx context.Context, files Files, in CriteriaInput) (RepoCrite
 		Schema: 1, Project: in.Project.ProjectKey(), Ref: in.Ref, Source: SourceDefault,
 		Packs: []string{}, Variants: []string{}, Dimensions: map[string]string{}, DisabledRules: []string{},
 		RuleOptions: map[string]map[string]int{}, Rules: []RepositoryRule{}, Noise: []string{}, PublicAPI: []string{},
-		Consumers: []string{}, Files: []string{}, Notes: []string{},
+		Consumers: []string{}, SharedLibraries: []string{}, Files: []string{}, Notes: []string{},
 	}
 	r := &reader{ctx: ctx, files: files, in: in}
 	reserved := map[string]bool{}
@@ -175,7 +178,8 @@ func (c *RepoCriteria) applyConfig(cfg RepoConfig) {
 	for _, set := range []struct {
 		to   *[]string
 		from []string
-	}{{&c.Packs, cfg.Packs}, {&c.Variants, cfg.Variants}, {&c.DisabledRules, cfg.DisabledRules}, {&c.Noise, cfg.Noise}} {
+	}{{&c.Packs, cfg.Packs}, {&c.Variants, cfg.Variants}, {&c.DisabledRules, cfg.DisabledRules}, {&c.Noise, cfg.Noise},
+		{&c.SharedLibraries, cfg.SharedLibraries}} {
 		*set.to = append(*set.to, set.from...)
 	}
 	for id, v := range cfg.Dimensions {

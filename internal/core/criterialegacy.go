@@ -11,8 +11,7 @@ import (
 // legacyIgnored are the known settings of .github/mr-review.json that are
 // not read, with the reason the note gives.
 var legacyIgnored = map[string]string{
-	"approvals":       "the plugin never approves",
-	"sharedLibraries": "not used; write the shared libraries in the criteria",
+	"approvals": "the plugin never approves",
 }
 
 // legacy reads the legacy layout into c, reporting whether it exists. With
@@ -101,7 +100,9 @@ func (r *reader) skill(c *RepoCriteria, rr *ruleReader, dir string) error {
 
 // applyLegacyConfig takes the settings of .github/mr-review.json: uiToolkit
 // is the ui-toolkit dimension, kind (or profile) the profile, lineLength
-// the max option of line-too-long. An invalid value fails with a
+// the max option of line-too-long, and the project paths of consumers and
+// sharedLibraries become project keys on the reviewed host. An invalid
+// value fails with a
 // *CriteriaError; a setting that is not read is noted.
 func (c *RepoCriteria) applyLegacyConfig(data []byte, project Key) error {
 	var f fields
@@ -150,9 +151,11 @@ func (c *RepoCriteria) applyLegacyConfig(data []byte, project Key) error {
 	if raw, ok := obj["publicApi"]; ok {
 		c.PublicAPI = append(c.PublicAPI, f.strings("/publicApi", raw, globForm, "a glob")...)
 	}
-	if raw, ok := obj["consumers"]; ok {
-		for _, p := range f.strings("/consumers", raw, projectPattern, "a project path") {
-			c.Consumers = append(c.Consumers, Key{Forge: project.Forge, Host: project.Host, Project: p}.ProjectKey())
+	for name, to := range map[string]*[]string{"consumers": &c.Consumers, "sharedLibraries": &c.SharedLibraries} {
+		if raw, ok := obj[name]; ok {
+			for _, p := range f.strings("/"+name, raw, projectPattern, "a project path") {
+				*to = append(*to, Key{Forge: project.Forge, Host: project.Host, Project: p}.ProjectKey())
+			}
 		}
 	}
 	var names []string
@@ -162,7 +165,7 @@ func (c *RepoCriteria) applyLegacyConfig(data []byte, project Key) error {
 	sort.Strings(names)
 	for _, name := range names {
 		switch name {
-		case "uiToolkit", "kind", "profile", "lineLength", "variants", "publicApi", "consumers":
+		case "uiToolkit", "kind", "profile", "lineLength", "variants", "publicApi", "consumers", "sharedLibraries":
 		default:
 			reason, ok := legacyIgnored[name]
 			if !ok {

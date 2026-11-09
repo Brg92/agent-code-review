@@ -30,6 +30,9 @@ type RepoConfig struct {
 	RuleOptions map[string]map[string]int
 	Noise       []string
 	Cascade     CascadeConfig
+	// SharedLibraries are the project keys of the libraries the
+	// repository consumes.
+	SharedLibraries []string
 }
 
 // CascadeConfig holds the cascade limits a repository sets; nil is the
@@ -73,6 +76,8 @@ var (
 	variantName = regexp.MustCompile(`^[a-z][A-Za-z0-9]*$`)
 	ruleIDForm  = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*$`)
 	globForm    = regexp.MustCompile(`^[^/\\]+(?:/[^/\\]+)*$`)
+	// projectKeyForm is <forge>:<host>/<project>, without a number.
+	projectKeyForm = regexp.MustCompile(`^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$`)
 )
 
 // fields collects the problems of one JSON document.
@@ -178,6 +183,8 @@ func DecodeRepoConfig(file string, data []byte) (RepoConfig, error) {
 			c.DisabledRules = f.strings(at, raw, ruleIDForm, "a rule id")
 		case "noise":
 			c.Noise = f.strings(at, raw, globForm, "a glob")
+		case "sharedLibraries":
+			c.SharedLibraries = f.strings(at, raw, projectKeyForm, "a project key")
 		case "dimensions":
 			c.Dimensions = f.dimensions(at, raw)
 		case "ruleOptions":

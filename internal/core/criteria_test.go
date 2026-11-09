@@ -85,7 +85,8 @@ func TestKeyProjectKey(t *testing.T) {
 
 func TestReadCriteriaNeutral(t *testing.T) {
 	files := newMemFiles(t, map[string]string{
-		ConfigFile:   `{"schema":1,"profile":"app","packs":["android"],"variants":["free","paid"],"noise":["docs/**"],"cascade":{"maxDepth":1}}`,
+		ConfigFile: `{"schema":1,"profile":"app","packs":["android"],"variants":["free","paid"],"noise":["docs/**"],"cascade":{"maxDepth":1},` +
+			`"sharedLibraries":["gitlab:gitlab.example.com/acme/libs/core"]}`,
 		CriteriaFile: "# Criteria\n\n- Prose.\n\n## Project rules\n\n- `app-tracker` — **MAJOR**. Analytics go through the tracker.\n",
 	})
 	c := readCriteria(t, files)
@@ -95,8 +96,9 @@ func TestReadCriteriaNeutral(t *testing.T) {
 		Profile: "app", Packs: []string{"android"}, Variants: []string{"free", "paid"}, Dimensions: map[string]string{},
 		DisabledRules: []string{}, RuleOptions: map[string]map[string]int{},
 		Rules: []RepositoryRule{{ID: "app-tracker", Source: RepositorySource, Severity: Major, Text: "Analytics go through the tracker.", File: CriteriaFile, Line: 7}},
-		Noise: []string{"docs/**"}, PublicAPI: []string{}, Consumers: []string{}, Cascade: CascadeConfig{MaxDepth: &depth},
-		Files: []string{ConfigFile, CriteriaFile}, Notes: []string{},
+		Noise: []string{"docs/**"}, PublicAPI: []string{}, Consumers: []string{}, SharedLibraries: []string{"gitlab:gitlab.example.com/acme/libs/core"},
+		Cascade: CascadeConfig{MaxDepth: &depth},
+		Files:   []string{ConfigFile, CriteriaFile}, Notes: []string{},
 	}
 	if !reflect.DeepEqual(c, want) {
 		t.Errorf("criteria =\n%+v\nwant\n%+v", c, want)
@@ -185,7 +187,7 @@ func TestReadCriteriaLegacy(t *testing.T) {
 		".github/skills/other-skill/SKILL.md":                 "- `other-rule` — **MAJOR**. Not a code-review skill.\n",
 		legacyMRRules: `{"uiToolkit":"compose","kind":"library","lineLength":120,"variants":["free","paid"],` +
 			`"publicApi":["src/main/java/com/acme/api/**"],"consumers":["acme/sample-app"],` +
-			`"approvals":{"enabled":false},"sharedLibraries":["core-lib"],"reviewers":["someone"]}`,
+			`"approvals":{"enabled":false},"sharedLibraries":["acme/core-lib","acme/libs/feature"],"reviewers":["someone"]}`,
 	})
 	c := readCriteria(t, files)
 	if c.Source != SourceLegacy || c.Profile != "library" || !reflect.DeepEqual(c.Variants, []string{"free", "paid"}) {
@@ -208,11 +210,13 @@ func TestReadCriteriaLegacy(t *testing.T) {
 	if !reflect.DeepEqual(c.PublicAPI, []string{"src/main/java/com/acme/api/**"}) || !reflect.DeepEqual(c.Consumers, []string{"github:github.com/acme/sample-app"}) {
 		t.Errorf("public API %q, consumers %q", c.PublicAPI, c.Consumers)
 	}
+	if want := []string{"github:github.com/acme/core-lib", "github:github.com/acme/libs/feature"}; !reflect.DeepEqual(c.SharedLibraries, want) {
+		t.Errorf("shared libraries %q, want %q", c.SharedLibraries, want)
+	}
 	want := []string{
 		"Legacy criteria are in use: .github/skills and .github/mr-review.json.",
 		"Repository criteria ignored: `approvals` (.github/mr-review.json) — the plugin never approves",
 		"Repository criteria ignored: `reviewers` (.github/mr-review.json) — not a setting of .github/mr-review.json",
-		"Repository criteria ignored: `sharedLibraries` (.github/mr-review.json) — not used; write the shared libraries in the criteria",
 	}
 	if !reflect.DeepEqual(c.Notes, want) {
 		t.Errorf("notes =\n%q\nwant\n%q", c.Notes, want)
@@ -246,6 +250,7 @@ func TestReadCriteriaLegacyConfigErrors(t *testing.T) {
 		{"variants", `{"variants":"free"}`, "/variants"},
 		{"public API", `{"publicApi":["/abs"]}`, "/publicApi/0"},
 		{"consumer", `{"consumers":["sample-app"]}`, "/consumers/0"},
+		{"shared library", `{"sharedLibraries":["core-lib"]}`, "/sharedLibraries/0"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

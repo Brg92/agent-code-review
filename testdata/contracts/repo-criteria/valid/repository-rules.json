@@ -43,6 +43,9 @@
   ],
   "publicApi": [],
   "consumers": [],
+  "sharedLibraries": [
+    "github:github.com/acr-plugin-sandbox/core-lib"
+  ],
   "cascade": {},
   "files": [
     ".agent-code-review/config.json",
