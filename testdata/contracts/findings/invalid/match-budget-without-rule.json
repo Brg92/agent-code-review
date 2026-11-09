@@ -15,6 +15,10 @@
       "reason": "match-budget-exceeded"
     }
   ],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
   "ci": {
     "state": "passing",
     "checks": [

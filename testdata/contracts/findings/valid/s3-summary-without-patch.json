@@ -25,6 +25,10 @@
       "reason": "binary"
     }
   ],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
   "ci": {
     "state": "passing",
     "checks": [

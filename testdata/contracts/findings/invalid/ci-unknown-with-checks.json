@@ -16,6 +16,10 @@
       "reason": "noise"
     }
   ],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
   "ci": {
     "state": "unknown",
     "reason": "error",

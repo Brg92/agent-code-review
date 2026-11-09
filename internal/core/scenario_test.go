@@ -41,6 +41,7 @@ func checkContract(t *testing.T, res core.Result) {
 	doc, err := json.Marshal(map[string]any{
 		"schema": 1, "cr": res.CR, "headSha": res.HeadSHA, "verdict": res.Verdict,
 		"findings": res.Findings, "preExisting": res.PreExisting, "notVerified": []any{},
+		"agentNotVerified": []any{}, "signalsDismissed": []any{}, "questions": []any{}, "notes": []any{},
 		"ci":       map[string]any{"state": "none", "checks": []any{}},
 		"criteria": map[string]any{"source": "default", "profile": "app", "packs": []any{}, "notes": []any{}},
 	})

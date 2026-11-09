@@ -6,6 +6,10 @@
   "findings": [],
   "preExisting": [],
   "notVerified": [],
+  "agentNotVerified": [],
+  "signalsDismissed": [],
+  "questions": [],
+  "notes": [],
   "ci": {
     "state": "failing",
     "checks": [
