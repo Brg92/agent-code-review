@@ -61,6 +61,13 @@
         "$ref": "#/$defs/glob"
       }
     },
+    "sharedLibraries": {
+      "description": "Libraries this repository consumes whose change requests it may depend on, as project keys. The rule dependency-mr-undeclared reads them.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/projectKey"
+      }
+    },
     "cascade": {
       "description": "Limits of the Related Changes cascade. They apply when the review starts from a change request of this repository; the root change request's repository sets the limits for the whole cascade.",
       "type": "object",
@@ -109,6 +116,11 @@
         "app",
         "library"
       ]
+    },
+    "projectKey": {
+      "description": "Project key: <forge>:<host>/<project>, for example github:github.com/acr-plugin-sandbox/sample-app.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
     },
     "ruleId": {
       "description": "Rule identifier: lowercase words joined by hyphens, optionally in dot-separated groups, for example no-double-bang.",
