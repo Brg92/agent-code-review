@@ -79,6 +79,8 @@ func RunChangeRequest(rules []*Rule, cr ChangeRequest) []Signal {
 		switch r.match.detector {
 		case detectorMissingTest:
 			detectMissingTest(r, cr, add)
+		case detectorCounterpart:
+			detectCounterpart(r, cr, add)
 		}
 	}
 	sort.SliceStable(sigs, func(i, j int) bool {
@@ -137,6 +139,103 @@ func detectMissingTest(r *Rule, cr ChangeRequest, add func(File, int, int)) {
 	}
 }
 
+// detectCounterpart signals a file the change request adds or modifies
+// under one group when a file with the same path relative to its group,
+// platform suffix stripped, exists at head under another group of the
+// same module and the change request does not change it. The signal is a
+// candidate on the first added line, line 1 if none. Groups taken from
+// the variants need at least two of them.
+func detectCounterpart(r *Rule, cr ChangeRequest, add func(File, int, int)) {
+	c := r.match.counterpart
+	groups := c.groups
+	if c.fromVariants {
+		if groups = cr.Variants; len(groups) < 2 {
+			return
+		}
+	}
+	changed := map[string]bool{}
+	for _, f := range cr.Files {
+		changed[f.Path] = true
+		if f.OldPath != "" {
+			changed[f.OldPath] = true
+		}
+	}
+	for _, f := range cr.Files {
+		if f.Removed || !r.appliesTo(f.Language) {
+			continue
+		}
+		for _, a := range groups {
+			module, rel, ok := underGroup(f.Path, c.pattern, a)
+			if !ok {
+				continue
+			}
+			key := stripSuffix(rel, c.strip)
+			if hasCounterpart(cr, c, groups, a, module, key, changed) {
+				add(f.File, firstAdded(f.Added), 1)
+			}
+			break
+		}
+	}
+}
+
+// underGroup reports whether the path contains the pattern of the group
+// at the start of a segment, and returns what comes before and after it.
+func underGroup(p, pattern, group string) (module, rel string, ok bool) {
+	needle := strings.Replace(pattern, groupPlaceholder, group, 1)
+	i := segmentIndex(p, needle)
+	if i < 0 {
+		return "", "", false
+	}
+	return p[:i], p[i+len(needle):], true
+}
+
+// hasCounterpart reports whether a group other than a holds, at head and
+// unchanged, a file of the module whose relative path is key once
+// stripped.
+func hasCounterpart(cr ChangeRequest, c counterpartParams, groups []string, a, module, key string, changed map[string]bool) bool {
+	for _, b := range groups {
+		if b == a {
+			continue
+		}
+		dir := module + strings.Replace(c.pattern, groupPlaceholder, b, 1)
+		for _, p := range cr.list(dir) {
+			if !changed[p] && stripSuffix(strings.TrimPrefix(p, dir), c.strip) == key {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// stripSuffix removes the first of the suffixes that ends the file name
+// before its extension.
+func stripSuffix(rel string, suffixes []string) string {
+	dir, base := path.Split(rel)
+	ext := path.Ext(base)
+	stem := strings.TrimSuffix(base, ext)
+	for _, s := range suffixes {
+		if strings.HasSuffix(stem, s) {
+			stem = strings.TrimSuffix(stem, s)
+			break
+		}
+	}
+	return dir + stem + ext
+}
+
+// firstAdded returns the first added line, 1 if none.
+func firstAdded(added map[int]bool) int {
+	first := 0
+	for l := range added {
+		if first == 0 || l < first {
+			first = l
+		}
+	}
+	if first == 0 {
+		return 1
+	}
+	return first
+}
+
 func hasAnySuffix(name string, suffixes []string) bool {
 	for _, s := range suffixes {
 		if strings.HasSuffix(name, s) {
@@ -146,14 +245,23 @@ func hasAnySuffix(name string, suffixes []string) bool {
 	return false
 }
 
-// modulePrefix returns the part of a path before the first occurrence of
-// the separator at the start of a segment, with its final slash; "" when
-// the separator starts the path or does not occur.
-func modulePrefix(p, separator string) string {
-	for i := 0; i+len(separator) <= len(p); i++ {
-		if (i == 0 || p[i-1] == '/') && strings.HasPrefix(p[i:], separator) {
-			return p[:i]
+// segmentIndex returns the index of the first occurrence of the fragment
+// at the start of a segment of the path, or -1.
+func segmentIndex(p, fragment string) int {
+	for i := 0; i+len(fragment) <= len(p); i++ {
+		if (i == 0 || p[i-1] == '/') && strings.HasPrefix(p[i:], fragment) {
+			return i
 		}
+	}
+	return -1
+}
+
+// modulePrefix returns the part of a path before the module separator,
+// with its final slash; "" when the separator starts the path or does not
+// occur at the start of a segment.
+func modulePrefix(p, separator string) string {
+	if i := segmentIndex(p, separator); i > 0 {
+		return p[:i]
 	}
 	return ""
 }

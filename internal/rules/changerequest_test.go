@@ -175,3 +175,97 @@ func TestRunChangeRequestOrder(t *testing.T) {
 		t.Errorf("order %v, want %v (files in change-request order, then rules in catalog order)", got, want)
 	}
 }
+
+const (
+	kmpCounterpart = `{"scope":"change-request","detector":"counterpart","groups":["androidMain","iosMain","jvmMain"],` +
+		`"groupPattern":"src/{group}/","stripSuffixes":[".android",".ios",".jvm"]}`
+	variantCounterpart = `{"scope":"change-request","detector":"counterpart","groupsFrom":"config.variants","groupPattern":"src/{group}/"}`
+)
+
+func TestCounterpart(t *testing.T) {
+	android := "shared/src/androidMain/kotlin/a/Clock.kt"
+	ios := "shared/src/iosMain/kotlin/a/Clock.kt"
+	tree := fakeTree{android, ios, "shared/src/commonMain/kotlin/a/Clock.kt"}
+	tests := []struct {
+		name  string
+		match string
+		cr    ChangeRequest
+		want  string
+	}{
+		{"counterpart exists and is unchanged: first added line", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, android, "a\nb\nc\nd\n", 4, 3)}, Tree: tree}, android + ":3:1"},
+		{"no added line: line 1", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, android, "a\n")}, Tree: tree}, android + ":1:1"},
+		{"counterpart changed too", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, android, "a\n", 1), changed(t, ios, "a\n", 1)}, Tree: tree}, ""},
+		{"counterpart missing", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, android, "a\n", 1)}, Tree: fakeTree{android, "shared/src/iosMain/kotlin/a/Other.kt"}}, ""},
+		{"counterpart in another module", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, android, "a\n", 1)}, Tree: fakeTree{android, "other/src/iosMain/kotlin/a/Clock.kt"}}, ""},
+		{"one of two counterparts changed", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, android, "a\n", 1), changed(t, ios, "a\n", 1)},
+				Tree: append(fakeTree{"shared/src/jvmMain/kotlin/a/Clock.kt"}, tree...)}, android + ":1:1 " + ios + ":1:1"},
+		{"platform suffixes stripped", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "shared/src/androidMain/kotlin/a/Foo.android.kt", "a\n", 1)},
+				Tree: fakeTree{"shared/src/androidMain/kotlin/a/Foo.android.kt", "shared/src/iosMain/kotlin/a/Foo.ios.kt"}},
+			"shared/src/androidMain/kotlin/a/Foo.android.kt:1:1"},
+		{"platform suffixes stripped, counterpart changed", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "shared/src/androidMain/kotlin/a/Foo.android.kt", "a\n", 1),
+				changed(t, "shared/src/iosMain/kotlin/a/Foo.ios.kt", "a\n", 1)},
+				Tree: fakeTree{"shared/src/androidMain/kotlin/a/Foo.android.kt", "shared/src/iosMain/kotlin/a/Foo.ios.kt"}}, ""},
+		{"suffixes not stripped without stripSuffixes", strings.Replace(kmpCounterpart, `,"stripSuffixes":[".android",".ios",".jvm"]`, ``, 1),
+			ChangeRequest{Files: []ChangedFile{changed(t, "shared/src/androidMain/kotlin/a/Foo.android.kt", "a\n", 1)},
+				Tree: fakeTree{"shared/src/iosMain/kotlin/a/Foo.ios.kt"}}, ""},
+		{"counterpart renamed by the change request", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, android, "a\n", 1),
+				{File: File{Path: "shared/src/iosMain/kotlin/b/Clock.kt"}, OldPath: ios}}, Tree: fakeTree{android, ios}}, ""},
+		{"not under a group", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "shared/src/commonMain/kotlin/a/Clock.kt", "a\n", 1)}, Tree: tree}, ""},
+		{"group not at the start of a segment", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "shared/mysrc/androidMain/a/Clock.kt", "a\n", 1)},
+				Tree: fakeTree{"shared/mysrc/iosMain/a/Clock.kt"}}, ""},
+		{"removed file", kmpCounterpart, ChangeRequest{Files: []ChangedFile{removed(t, android)}, Tree: tree}, ""},
+		{"language of another rule", kmpCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "shared/src/androidMain/res/a.xml", "a\n", 1)},
+				Tree: fakeTree{"shared/src/iosMain/res/a.xml"}}, ""},
+		{"variants absent", variantCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "app/src/free/a/Ads.kt", "a\n", 1)}, Tree: fakeTree{"app/src/paid/a/Ads.kt"}}, ""},
+		{"a single variant", variantCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "app/src/free/a/Ads.kt", "a\n", 1)}, Tree: fakeTree{"app/src/paid/a/Ads.kt"},
+				Variants: []string{"free"}}, ""},
+		{"two variants with asymmetry", variantCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "app/src/free/a/Ads.kt", "a\nb\n", 2)}, Tree: fakeTree{"app/src/free/a/Ads.kt", "app/src/paid/a/Ads.kt"},
+				Variants: []string{"free", "paid"}}, "app/src/free/a/Ads.kt:2:1"},
+		{"two variants changed together", variantCounterpart,
+			ChangeRequest{Files: []ChangedFile{changed(t, "app/src/free/a/Ads.kt", "a\n", 1), changed(t, "app/src/paid/a/Ads.kt", "a\n", 1)},
+				Tree: fakeTree{"app/src/free/a/Ads.kt", "app/src/paid/a/Ads.kt"}, Variants: []string{"free", "paid"}}, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			languages := `["kotlin"]`
+			if tt.match == variantCounterpart {
+				languages = `[]`
+			}
+			sigs := RunChangeRequest(oneRule(t, languages, tt.match), tt.cr)
+			if got := signalsAt(sigs); got != tt.want {
+				t.Errorf("signals %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCounterpartSignal(t *testing.T) {
+	c, err := LoadCatalog([]byte(`{"schema":1,"pack":"test","rules":[{"id":"r","title":"T","severity":"MAJOR","needsJudgement":true,` +
+		`"description":"D","languages":[],"tags":[],"match":` + variantCounterpart + `}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sigs := RunChangeRequest(c.Rules, ChangeRequest{
+		Files: []ChangedFile{changed(t, "app/src/paid/res/values/strings.xml", "<a/>\n", 1)},
+		Tree:  fakeTree{"app/src/free/res/values/strings.xml", "app/src/pro/res/values/strings.xml"}, Variants: []string{"free", "paid", "pro"},
+	})
+	want := []Signal{{RuleID: "r", NeedsJudgement: true, Path: "app/src/paid/res/values/strings.xml", Line: 1, Column: 1, Origin: OriginMR}}
+	if !reflect.DeepEqual(sigs, want) {
+		t.Errorf("signals %+v, want one candidate that needs judgement, without severity: %+v", sigs, want)
+	}
+}
