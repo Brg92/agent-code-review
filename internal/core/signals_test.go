@@ -24,24 +24,27 @@ func TestAddedLines(t *testing.T) {
 	if got := (FileDiff{Path: "b.png", Status: FileAdded}).AddedLines(); len(got) != 0 {
 		t.Errorf("a diff without hunks adds %v", got)
 	}
+	if got, want := d.RemovedLines(), map[int]bool{2: true}; !reflect.DeepEqual(got, want) {
+		t.Errorf("removed %v, want %v", got, want)
+	}
 }
 
 func TestRulesFile(t *testing.T) {
-	d, err := NewFileDiff("app/src/main/B.kt", "app/src/main/A.kt", FileRenamed, "@@ -1,1 +1,2 @@\n a\n+b\n")
+	d, err := NewFileDiff("app/src/main/B.kt", "app/src/main/A.kt", FileRenamed, "@@ -1,2 +1,2 @@\n a\n-c\n+b\n")
 	if err != nil {
 		t.Fatal(err)
 	}
 	assigned := rules.File{Path: "ignored", Language: "kotlin", Test: true, Source: "ignored"}
-	got := ChangedFile{Diff: d, Head: []string{"a", "b"}}.RulesFile(assigned)
+	got := ChangedFile{Diff: d, Base: []string{"a", "c"}, Head: []string{"a", "b"}}.RulesFile(assigned)
 	want := rules.ChangedFile{
 		File:    rules.File{Path: "app/src/main/B.kt", Language: "kotlin", Test: true, Source: "a\nb\n", Added: map[int]bool{2: true}},
-		OldPath: "app/src/main/A.kt",
+		OldPath: "app/src/main/A.kt", Base: "a\nc\n", RemovedLines: map[int]bool{2: true},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("RulesFile = %+v, want %+v", got, want)
 	}
 	gone := ChangedFile{Diff: FileDiff{Path: "app/src/main/C.kt", Status: FileRemoved}, Base: []string{"x"}}.RulesFile(rules.File{})
-	if !gone.Removed || gone.Source != "" || gone.Path != "app/src/main/C.kt" || len(gone.Added) != 0 {
+	if !gone.Removed || gone.Source != "" || gone.Base != "x\n" || gone.Path != "app/src/main/C.kt" || len(gone.Added) != 0 {
 		t.Errorf("removed file = %+v", gone)
 	}
 }
