@@ -2,6 +2,7 @@ package packs
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -197,6 +198,33 @@ func TestAndroidJudgedSignalsCarryNoSeverity(t *testing.T) {
 		_, sigs := runAndroidRule(t, set, c)
 		if len(sigs) == 0 || sigs[0].Severity != "" || !sigs[0].NeedsJudgement {
 			t.Errorf("%s: signals %+v, want ones that need judgement and carry no severity", rule, sigs)
+		}
+	}
+}
+
+// TestAndroidLineLengthIsOverridable checks that a repository may set the
+// line length between 60 and 200, the bounds of the legacy lineLength,
+// and that the text of the rule follows the value in use.
+func TestAndroidLineLengthIsOverridable(t *testing.T) {
+	var rule *rules.Rule
+	for _, r := range loadAndroid(t).Rules.Rules {
+		if r.ID == "line-too-long" {
+			rule = r
+		}
+	}
+	if rule == nil {
+		t.Fatal("no line-too-long rule")
+	}
+	if want := []rules.Option{{Name: "max", Min: 60, Max: 200, Default: 100}}; !reflect.DeepEqual(rule.Options(), want) {
+		t.Errorf("options = %+v, want %+v", rule.Options(), want)
+	}
+	wider, err := rule.WithOptions(map[string]int{"max": 120})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, text := range []string{wider.Description, wider.Why, wider.Fix} {
+		if !strings.Contains(text, "120") || strings.Contains(text, "100") {
+			t.Errorf("text with max 120: %q", text)
 		}
 	}
 }
