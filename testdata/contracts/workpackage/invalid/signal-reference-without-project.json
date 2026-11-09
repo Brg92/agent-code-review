@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "runId": "20261102-101500-s2cascade",
+  "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",
+  "url": "https://github.com/acr-plugin-sandbox/core-lib/pull/3",
+  "title": "Replace legacyToken with expiresAt",
+  "description": "Removes the deprecated `legacyToken()` and adds `expiresAt()`.",
+  "headSha": "df06e9a9f2bef2854b522d926923ee6550a4f46c",
+  "baseSha": "d83c3b464e4cb6a40e366f2a7bed9964d91c62f5",
+  "baseRef": "main",
+  "criteria": {
+    "source": "legacy",
+    "profile": "library",
+    "packs": [
+      "android"
+    ],
+    "files": [
+      "cr/core-lib-3/criteria/.github/mr-review.json"
+    ]
+  },
+  "rules": [
+    {
+      "id": "uses-removed-api",
+      "severity": "BLOCKER",
+      "title": "Removes API that a related change still uses"
+    }
+  ],
+  "files": [
+    {
+      "path": "src/main/java/com/example/core/session/SessionManager.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "patch": "cr/core-lib-3/patches/SessionManager.kt.diff",
+      "head": "cr/core-lib-3/head/SessionManager.kt",
+      "base": "cr/core-lib-3/base/SessionManager.kt"
+    }
+  ],
+  "signals": [
+    {
+      "id": "s1",
+      "rule": "uses-removed-api",
+      "severity": null,
+      "path": "src/main/java/com/example/core/session/SessionManager.kt",
+      "side": "LEFT",
+      "line": 39,
+      "column": 9,
+      "origin": "mr",
+      "needsJudgement": true,
+      "references": [
+        {
+          "ref": "main",
+          "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+          "line": 20
+        }
+      ]
+    }
+  ],
+  "relatedChanges": [],
+  "judgementPath": "cr/core-lib-3/judgement.json"
+}

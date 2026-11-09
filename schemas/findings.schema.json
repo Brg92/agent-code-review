@@ -99,7 +99,8 @@
             "reason": {
               "enum": [
                 "match-budget-exceeded",
-                "tree-unavailable"
+                "tree-unavailable",
+                "search-unavailable"
               ]
             }
           }
@@ -115,7 +116,7 @@
             "$ref": "#/$defs/relativePath"
           },
           "reason": {
-            "description": "generated: marked as generated; binary: no text diff; patch-unavailable: the platform omitted the diff; noise: matches a noise glob; unsupported-language: no pack covers it; match-budget-exceeded: a rule ran out of matching steps on the file, and detail names the rule; tree-unavailable: a change-request rule could not read the repository tree at head for the file, and detail names the rule.",
+            "description": "generated: marked as generated; binary: no text diff; patch-unavailable: the platform omitted the diff; noise: matches a noise glob; unsupported-language: no pack covers it; match-budget-exceeded: a rule ran out of matching steps on the file, and detail names the rule; tree-unavailable: a change-request rule could not read the repository tree at head for the file, and detail names the rule; search-unavailable: a change-request rule could not search the code for a symbol of the file, and detail names the rule and the symbol.",
             "enum": [
               "generated",
               "binary",
@@ -123,11 +124,12 @@
               "noise",
               "unsupported-language",
               "match-budget-exceeded",
-              "tree-unavailable"
+              "tree-unavailable",
+              "search-unavailable"
             ]
           },
           "detail": {
-            "description": "Optional human-readable detail; required for match-budget-exceeded and tree-unavailable, where it names the rule.",
+            "description": "Optional human-readable detail; required for match-budget-exceeded, tree-unavailable and search-unavailable, where it starts with the rule.",
             "type": "string"
           }
         }
