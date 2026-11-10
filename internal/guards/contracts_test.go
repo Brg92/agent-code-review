@@ -25,10 +25,11 @@ const structureOnlyPrefix = "structure-"
 // moreValidExamples lists files outside testdata/contracts that must match
 // a schema.
 var moreValidExamples = map[string][]string{
-	"judgement":     {"testdata/scenarios/*/judgements/*.json"},
+	"judgement":     {"testdata/scenarios/*/judgements/*.json", "testdata/workpackage/*-judgement.json"},
 	"lexer-table":   {"packs/*/lexer/*.json", "testdata/packs/*/lexer/*.json"},
 	"pack-manifest": {"packs/*/manifest.json", "testdata/packs/*/manifest.json"},
 	"rules-catalog": {"internal/rules/core.json", "packs/*/rules.json", "testdata/packs/*/rules.json"},
+	"workpackage":   {"testdata/workpackage/*-workpackage.json"},
 }
 
 func schemaFiles(t *testing.T) map[string]string {

@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "findings": [
+    {
+      "rule": "logic-defect",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
+      "side": "RIGHT",
+      "line": 27,
+      "title": "requireUser() always throws in refresh()",
+      "why": "This change removes the `warmUp()` call from `init`, and nothing else calls `warmUp()`. `cachedUser` therefore stays null, and `requireUser()` always throws IllegalStateException when `refresh()` runs.",
+      "fix": "Keep the `repository.warmUp()` call in `init`.",
+      "references": []
+    }
+  ],
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s1",
+      "decision": "confirm"
+    },
+    {
+      "id": "s2",
+      "decision": "confirm",
+      "severity": "BLOCKER",
+      "crash": true
+    },
+    {
+      "id": "s3",
+      "decision": "dismiss",
+      "reason": "hasDisplayName() says what it returns; a comment would repeat the name."
+    },
+    {
+      "id": "s4",
+      "decision": "confirm"
+    },
+    {
+      "id": "s5",
+      "decision": "confirm",
+      "severity": "MINOR"
+    },
+    {
+      "id": "s6",
+      "decision": "confirm"
+    },
+    {
+      "id": "s7",
+      "decision": "confirm",
+      "severity": "MAJOR"
+    }
+  ]
+}

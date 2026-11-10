@@ -335,3 +335,46 @@ func TestReadCriteriaRuleOptions(t *testing.T) {
 		t.Errorf("legacy lineLength 300: options %v, notes %q", legacy.RuleOptions, legacy.Notes)
 	}
 }
+
+// TestReadCriteriaIgnoredItems checks that every part of the criteria
+// left out is also kept as an item with its reason, in the order of the
+// notes, which are made from the items.
+func TestReadCriteriaIgnoredItems(t *testing.T) {
+	tests := []struct {
+		name  string
+		files map[string]string
+	}{
+		{"disabled rules", map[string]string{
+			ConfigFile:   `{"schema":1,"disabledRules":["app-tracker","no-double-bang","app-unknown"]}`,
+			CriteriaFile: "- `app-tracker` — **MAJOR**. Use the tracker.\n",
+		}},
+		{"rule options", map[string]string{ConfigFile: `{"schema":1,"ruleOptions":{"line-too-long":{"max":20,"min":3},"app-rule":{"max":1}}}`}},
+		{"criteria items", map[string]string{CriteriaFile: "## Rules\n\n- `Bad Id` — **MAJOR**. Text.\n- `no-double-bang` — **MINOR**. Mine.\n- no id\n\n## Severity changes\n"}},
+		{"legacy settings", map[string]string{legacyMRRules: `{"approvals":{},"lineLength":300}`, legacyRefA: "- `app-rule` — **MAJOR**. Text.\n"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := readCriteria(t, newMemFiles(t, tt.files))
+			var want, got []string
+			for _, n := range c.Notes {
+				if strings.HasPrefix(n, IgnoredPrefix) {
+					want = append(want, n)
+				}
+			}
+			for _, i := range c.Ignored {
+				if strings.TrimSpace(i.Item) == "" || strings.TrimSpace(i.Reason) == "" {
+					t.Errorf("item %+v lacks what or why", i)
+				}
+				got = append(got, i.Note())
+			}
+			if len(want) == 0 || !reflect.DeepEqual(got, want) {
+				t.Errorf("items =\n%q\nnotes =\n%q", got, want)
+			}
+		})
+	}
+	c := readCriteria(t, newMemFiles(t, map[string]string{ConfigFile: `{"schema":1,"disabledRules":["no-double-bang"]}`}))
+	want := []IgnoredItem{{Item: "`no-double-bang` in disabledRules (.agent-code-review/config.json)", Reason: "pack and core rules always apply"}}
+	if !reflect.DeepEqual(c.Ignored, want) {
+		t.Errorf("ignored = %+v, want %+v", c.Ignored, want)
+	}
+}

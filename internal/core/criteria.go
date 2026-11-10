@@ -63,6 +63,15 @@ type RepoCriteria struct {
 	// Files are the criteria files read, in order.
 	Files []string `json:"files"`
 	Notes []string `json:"notes"`
+	// Ignored are the parts of the criteria left out, in the order of
+	// their notes, which Notes also holds.
+	Ignored []IgnoredItem `json:"-"`
+}
+
+// ignore leaves out a part of the criteria, with its note.
+func (c *RepoCriteria) ignore(i IgnoredItem) {
+	c.Notes = append(c.Notes, i.Note())
+	c.Ignored = append(c.Ignored, i)
 }
 
 // CriteriaInput is what reading the criteria of a repository needs.
@@ -123,7 +132,9 @@ func ReadCriteria(ctx context.Context, files Files, in CriteriaInput) (RepoCrite
 		c.Notes = append(c.Notes, fmt.Sprintf("Criteria changed in this change request are not applied: %s. The criteria of %s are used.",
 			strings.Join(changed, ", "), in.Ref))
 	}
-	c.Notes = append(c.Notes, rr.notes...)
+	for _, i := range rr.ignored {
+		c.ignore(i)
+	}
 	return c, nil
 }
 
@@ -194,7 +205,17 @@ func (c *RepoCriteria) applyConfig(cfg RepoConfig) {
 // the rule options that a pack or core rule declares, within its bounds,
 // noting each one it drops: pack and core rules always apply.
 func (c *RepoCriteria) checkSettings(known []*rules.Rule) {
-	ignore := func(item, reason string) { c.Notes = append(c.Notes, IgnoredPrefix+item+" — "+reason) }
+	for _, i := range c.settle(known) {
+		c.ignore(i)
+	}
+}
+
+// settle keeps the disabled rules that are repository rules and the rule
+// options that one of known declares, within its bounds, and returns each
+// one it drops with the reason.
+func (c *RepoCriteria) settle(known []*rules.Rule) []IgnoredItem {
+	var ignored []IgnoredItem
+	ignore := func(item, reason string) { ignored = append(ignored, IgnoredItem{Item: item, Reason: reason}) }
 	byID := map[string]*rules.Rule{}
 	for _, r := range known {
 		byID[r.ID] = r
@@ -242,6 +263,7 @@ func (c *RepoCriteria) checkSettings(known []*rules.Rule) {
 			delete(c.RuleOptions, id)
 		}
 	}
+	return ignored
 }
 
 // optionProblem says why a rule option cannot be set; empty when it can.

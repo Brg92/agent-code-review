@@ -1,0 +1,1257 @@
+{
+  "schema": 1,
+  "runId": "20261109-130000-s1",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "url": "https://github.com/acr-plugin-sandbox/sample-app/pull/2",
+  "title": "S1 sample-app#2",
+  "description": "Recorded scenario S1.",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "baseSha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
+  "baseRef": "main",
+  "criteria": {
+    "source": "overlay",
+    "profile": "app",
+    "profileReason": "set in the repository criteria",
+    "packs": [
+      "android"
+    ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "compose",
+        "reason": "android: **/build.gradle.kts contains \"androidx.compose\""
+      }
+    },
+    "files": [
+      ".agent-code-review/config.json",
+      ".agent-code-review/criteria.md"
+    ],
+    "ignored": []
+  },
+  "rules": [
+    {
+      "id": "logic-defect",
+      "severity": "BLOCKER",
+      "title": "A defect in the logic of the change",
+      "source": "core",
+      "group": "Logic",
+      "needsJudgement": true
+    },
+    {
+      "id": "variant-asymmetry",
+      "severity": "MAJOR",
+      "title": "A change in one variant without its counterpart",
+      "source": "core",
+      "needsJudgement": true
+    },
+    {
+      "id": "dependency-mr-undeclared",
+      "severity": "MAJOR",
+      "title": "Relies on an undeclared change of a shared library",
+      "source": "core",
+      "needsJudgement": false
+    },
+    {
+      "id": "uses-removed-api",
+      "severity": "BLOCKER",
+      "title": "Removes API that a related change still uses",
+      "source": "core",
+      "needsJudgement": true
+    },
+    {
+      "id": "missing-required-argument",
+      "severity": "BLOCKER",
+      "title": "Adds a required parameter that a related change does not pass",
+      "source": "core",
+      "needsJudgement": true
+    },
+    {
+      "id": "contract-misuse",
+      "severity": "MAJOR",
+      "title": "Uses a changed API against its new contract",
+      "source": "core",
+      "needsJudgement": false
+    },
+    {
+      "id": "global-scope",
+      "severity": "BLOCKER",
+      "title": "Coroutine launched in GlobalScope",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "async-task",
+      "severity": "MAJOR",
+      "title": "AsyncTask used",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "run-blocking-prod",
+      "severity": "BLOCKER",
+      "title": "runBlocking in production code",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "hardcoded-dispatcher",
+      "severity": "MAJOR",
+      "title": "Dispatcher hard-coded",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "blocking-on-main",
+      "severity": "BLOCKER",
+      "title": "Blocking work on the main thread",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "unstructured-launch",
+      "severity": "MAJOR",
+      "title": "Coroutine launched outside a lifecycle scope",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "async-without-concurrency",
+      "severity": "MINOR",
+      "title": "async awaited at once",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "flow-error-unhandled",
+      "severity": "MAJOR",
+      "title": "Flow errors not handled",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "missing-flow-on",
+      "severity": "MINOR",
+      "title": "Cold flow without flowOn",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "exposed-mutable-flow",
+      "severity": "MAJOR",
+      "title": "Mutable flow exposed",
+      "source": "android",
+      "group": "State exposure",
+      "needsJudgement": false
+    },
+    {
+      "id": "mutable-collection-exposed",
+      "severity": "MAJOR",
+      "title": "Mutable collection in a public API",
+      "source": "android",
+      "group": "State exposure",
+      "needsJudgement": false
+    },
+    {
+      "id": "state-not-modelled",
+      "severity": "MAJOR",
+      "title": "Screen state not modelled",
+      "source": "android",
+      "group": "State exposure",
+      "needsJudgement": false
+    },
+    {
+      "id": "events-in-state",
+      "severity": "MAJOR",
+      "title": "One-shot event in the state",
+      "source": "android",
+      "group": "State exposure",
+      "needsJudgement": false
+    },
+    {
+      "id": "new-live-data",
+      "severity": "MAJOR",
+      "title": "LiveData in new code",
+      "source": "android",
+      "group": "State exposure",
+      "needsJudgement": false
+    },
+    {
+      "id": "local-broadcast-manager",
+      "severity": "MAJOR",
+      "title": "Broadcast used inside the process",
+      "source": "android",
+      "group": "State exposure",
+      "needsJudgement": false
+    },
+    {
+      "id": "empty-catch",
+      "severity": "BLOCKER",
+      "title": "Empty catch block",
+      "source": "android",
+      "group": "Error handling",
+      "needsJudgement": false
+    },
+    {
+      "id": "generic-exception",
+      "severity": "MAJOR",
+      "title": "Generic exception caught",
+      "source": "android",
+      "group": "Error handling",
+      "needsJudgement": false
+    },
+    {
+      "id": "swallowed-error",
+      "severity": "MAJOR",
+      "title": "Failure logged and dropped",
+      "source": "android",
+      "group": "Error handling",
+      "needsJudgement": false
+    },
+    {
+      "id": "no-double-bang",
+      "severity": "MAJOR",
+      "title": "Not-null assertion",
+      "source": "android",
+      "group": "Error handling",
+      "needsJudgement": true
+    },
+    {
+      "id": "manual-throw-precondition",
+      "severity": "MINOR",
+      "title": "Hand-written precondition",
+      "source": "android",
+      "group": "Error handling",
+      "needsJudgement": false
+    },
+    {
+      "id": "field-injection",
+      "severity": "MAJOR",
+      "title": "Field injection",
+      "source": "android",
+      "group": "Dependency injection",
+      "needsJudgement": false
+    },
+    {
+      "id": "manual-instantiation",
+      "severity": "MAJOR",
+      "title": "Dependency built by hand",
+      "source": "android",
+      "group": "Dependency injection",
+      "needsJudgement": false
+    },
+    {
+      "id": "missing-di-annotation",
+      "severity": "MAJOR",
+      "title": "DI annotation missing",
+      "source": "android",
+      "group": "Dependency injection",
+      "needsJudgement": false
+    },
+    {
+      "id": "duplicate-di-module",
+      "severity": "MAJOR",
+      "title": "Binding provided twice",
+      "source": "android",
+      "group": "Dependency injection",
+      "needsJudgement": false
+    },
+    {
+      "id": "service-locator",
+      "severity": "MAJOR",
+      "title": "Static accessor as a hidden dependency",
+      "source": "android",
+      "group": "Dependency injection",
+      "needsJudgement": false
+    },
+    {
+      "id": "var-never-reassigned",
+      "severity": "MINOR",
+      "title": "var never reassigned",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "mutable-collection-default",
+      "severity": "MINOR",
+      "title": "Collection built by mutation",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "data-class-missing",
+      "severity": "MINOR",
+      "title": "Data holder is not a data class",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "raw-type-wrapper",
+      "severity": "MINOR",
+      "title": "Identifier passed as a raw type",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "manual-loop",
+      "severity": "MINOR",
+      "title": "Hand-rolled loop",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "reimplemented-stdlib",
+      "severity": "MINOR",
+      "title": "Standard library reimplemented",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "sequence-for-large-pipeline",
+      "severity": "MINOR",
+      "title": "Large pipeline not lazy",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "non-exhaustive-when",
+      "severity": "MAJOR",
+      "title": "when with else over a closed type",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "long-if-chain",
+      "severity": "MINOR",
+      "title": "Long if/else-if chain",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "unsafe-cast",
+      "severity": "MAJOR",
+      "title": "Unsafe cast",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "index-can-throw",
+      "severity": "MINOR",
+      "title": "Indexing that can throw",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "boolean-flag-parameter",
+      "severity": "MAJOR",
+      "title": "Boolean flag parameter",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "expression-body",
+      "severity": "MINOR",
+      "title": "Block body for one expression",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "redundant-type-annotation",
+      "severity": "MINOR",
+      "title": "Redundant type annotation",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "utils-class-over-extension",
+      "severity": "MINOR",
+      "title": "Utils holder instead of extension",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "nested-scope-functions",
+      "severity": "MINOR",
+      "title": "Scope functions nested",
+      "source": "android",
+      "group": "Idiomatic Kotlin",
+      "needsJudgement": false
+    },
+    {
+      "id": "java-in-new-code",
+      "severity": "MAJOR",
+      "title": "Java in new code",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false
+    },
+    {
+      "id": "out-of-scope-refactor",
+      "severity": "MAJOR",
+      "title": "Refactoring outside the ticket",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false
+    },
+    {
+      "id": "logic-in-wrong-layer",
+      "severity": "MAJOR",
+      "title": "Business logic in the wrong layer",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false
+    },
+    {
+      "id": "class-too-large",
+      "severity": "MINOR",
+      "title": "Class with more than one responsibility",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false
+    },
+    {
+      "id": "long-function",
+      "severity": "MINOR",
+      "title": "Long function",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false
+    },
+    {
+      "id": "deep-nesting",
+      "severity": "MINOR",
+      "title": "Deep nesting",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false
+    },
+    {
+      "id": "duplicated-logic",
+      "severity": "MINOR",
+      "title": "Logic duplicated across classes",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false
+    },
+    {
+      "id": "line-too-long",
+      "severity": "MINOR",
+      "title": "Line too long",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false,
+      "options": {
+        "max": 100
+      }
+    },
+    {
+      "id": "package-organization",
+      "severity": "MINOR",
+      "title": "Package structure not followed",
+      "source": "android",
+      "group": "Structure and scope",
+      "needsJudgement": false
+    },
+    {
+      "id": "context-leak",
+      "severity": "BLOCKER",
+      "title": "Context retained beyond its lifecycle",
+      "source": "android",
+      "group": "Memory and performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "context-in-viewmodel",
+      "severity": "MAJOR",
+      "title": "Context in a ViewModel",
+      "source": "android",
+      "group": "Memory and performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "listener-not-removed",
+      "severity": "MAJOR",
+      "title": "Listener never removed",
+      "source": "android",
+      "group": "Memory and performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "unnecessary-weak-reference",
+      "severity": "MINOR",
+      "title": "Unnecessary WeakReference",
+      "source": "android",
+      "group": "Memory and performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "bitmap-in-model",
+      "severity": "MAJOR",
+      "title": "Bitmap in a model",
+      "source": "android",
+      "group": "Memory and performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "full-list-refresh",
+      "severity": "MAJOR",
+      "title": "Whole list refreshed",
+      "source": "android",
+      "group": "Memory and performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "strict-version-pin",
+      "severity": "BLOCKER",
+      "title": "Strict dependency version",
+      "source": "android",
+      "group": "Dependencies",
+      "needsJudgement": false
+    },
+    {
+      "id": "dependency-version-bump",
+      "severity": "MAJOR",
+      "title": "Dependency version changed",
+      "source": "android",
+      "group": "Dependencies",
+      "needsJudgement": false
+    },
+    {
+      "id": "new-dependency",
+      "severity": "MAJOR",
+      "title": "New third-party dependency",
+      "source": "android",
+      "group": "Dependencies",
+      "needsJudgement": false
+    },
+    {
+      "id": "nested-module-import",
+      "severity": "MAJOR",
+      "title": "Shared library imports another",
+      "source": "android",
+      "group": "Dependencies",
+      "needsJudgement": false
+    },
+    {
+      "id": "naming-convention",
+      "severity": "MINOR",
+      "title": "Naming convention broken",
+      "source": "android",
+      "group": "Naming and documentation",
+      "needsJudgement": false
+    },
+    {
+      "id": "non-descriptive-name",
+      "severity": "MINOR",
+      "title": "Name does not say what it is",
+      "source": "android",
+      "group": "Naming and documentation",
+      "needsJudgement": false
+    },
+    {
+      "id": "missing-kdoc",
+      "severity": "MINOR",
+      "title": "Declaration without KDoc",
+      "source": "android",
+      "group": "Naming and documentation",
+      "needsJudgement": true
+    },
+    {
+      "id": "over-commenting",
+      "severity": "MINOR",
+      "title": "Comment that adds nothing",
+      "source": "android",
+      "group": "Naming and documentation",
+      "needsJudgement": false
+    },
+    {
+      "id": "hardcoded-secret",
+      "severity": "BLOCKER",
+      "title": "Secret in the source",
+      "source": "android",
+      "group": "Security",
+      "needsJudgement": false
+    },
+    {
+      "id": "sensitive-logging",
+      "severity": "BLOCKER",
+      "title": "Sensitive data logged",
+      "source": "android",
+      "group": "Security",
+      "needsJudgement": false
+    },
+    {
+      "id": "unvalidated-external-input",
+      "severity": "MAJOR",
+      "title": "External input not validated",
+      "source": "android",
+      "group": "Security",
+      "needsJudgement": false
+    },
+    {
+      "id": "webview-bridge-exposure",
+      "severity": "BLOCKER",
+      "title": "WebView bridge exposes too much",
+      "source": "android",
+      "group": "Security",
+      "needsJudgement": false
+    },
+    {
+      "id": "insecure-storage",
+      "severity": "MAJOR",
+      "title": "Sensitive value in plain storage",
+      "source": "android",
+      "group": "Security",
+      "needsJudgement": false
+    },
+    {
+      "id": "missing-tests",
+      "severity": "MAJOR",
+      "title": "Missing unit tests",
+      "source": "android",
+      "group": "Tests",
+      "needsJudgement": false
+    },
+    {
+      "id": "empty-test-stub",
+      "severity": "MAJOR",
+      "title": "Empty test stub",
+      "source": "android",
+      "group": "Tests",
+      "needsJudgement": false
+    },
+    {
+      "id": "undescriptive-test-name",
+      "severity": "MINOR",
+      "title": "Test name says nothing",
+      "source": "android",
+      "group": "Tests",
+      "needsJudgement": false
+    },
+    {
+      "id": "test-asserts-nothing",
+      "severity": "MAJOR",
+      "title": "Test without assertions",
+      "source": "android",
+      "group": "Tests",
+      "needsJudgement": false
+    },
+    {
+      "id": "state-without-remember",
+      "severity": "BLOCKER",
+      "title": "State without remember",
+      "source": "android",
+      "group": "Compose: State",
+      "needsJudgement": false
+    },
+    {
+      "id": "remember-missing-key",
+      "severity": "MAJOR",
+      "title": "remember without a key",
+      "source": "android",
+      "group": "Compose: State",
+      "needsJudgement": false
+    },
+    {
+      "id": "state-not-hoisted",
+      "severity": "MAJOR",
+      "title": "State not hoisted",
+      "source": "android",
+      "group": "Compose: State",
+      "needsJudgement": false
+    },
+    {
+      "id": "exposed-mutable-state",
+      "severity": "MAJOR",
+      "title": "MutableState exposed",
+      "source": "android",
+      "group": "Compose: State",
+      "needsJudgement": false
+    },
+    {
+      "id": "unstable-parameter",
+      "severity": "MINOR",
+      "title": "Unstable parameter",
+      "source": "android",
+      "group": "Compose: State",
+      "needsJudgement": false
+    },
+    {
+      "id": "side-effect-in-composition",
+      "severity": "BLOCKER",
+      "title": "Side effect in the composable body",
+      "source": "android",
+      "group": "Compose: Side effects",
+      "needsJudgement": false
+    },
+    {
+      "id": "launched-effect-key",
+      "severity": "MAJOR",
+      "title": "LaunchedEffect with a wrong key",
+      "source": "android",
+      "group": "Compose: Side effects",
+      "needsJudgement": false
+    },
+    {
+      "id": "missing-disposable-effect",
+      "severity": "MAJOR",
+      "title": "Registration without DisposableEffect",
+      "source": "android",
+      "group": "Compose: Side effects",
+      "needsJudgement": false
+    },
+    {
+      "id": "collect-without-lifecycle",
+      "severity": "MAJOR",
+      "title": "collectAsState without lifecycle",
+      "source": "android",
+      "group": "Compose: Side effects",
+      "needsJudgement": false
+    },
+    {
+      "id": "logic-in-composable",
+      "severity": "MAJOR",
+      "title": "Business logic in a composable",
+      "source": "android",
+      "group": "Compose: Structure",
+      "needsJudgement": false
+    },
+    {
+      "id": "viewmodel-passed-down",
+      "severity": "MAJOR",
+      "title": "ViewModel passed to a leaf composable",
+      "source": "android",
+      "group": "Compose: Structure",
+      "needsJudgement": false
+    },
+    {
+      "id": "context-captured",
+      "severity": "MAJOR",
+      "title": "Context captured in a composable",
+      "source": "android",
+      "group": "Compose: Structure",
+      "needsJudgement": false
+    },
+    {
+      "id": "missing-modifier-param",
+      "severity": "MINOR",
+      "title": "Public composable without a Modifier",
+      "source": "android",
+      "group": "Compose: Structure",
+      "needsJudgement": false
+    },
+    {
+      "id": "modifier-not-forwarded",
+      "severity": "MINOR",
+      "title": "Modifier not applied",
+      "source": "android",
+      "group": "Compose: Structure",
+      "needsJudgement": false
+    },
+    {
+      "id": "heavy-work-in-composition",
+      "severity": "MAJOR",
+      "title": "Heavy work in the composable body",
+      "source": "android",
+      "group": "Compose: Performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "lazy-list-no-key",
+      "severity": "MAJOR",
+      "title": "Lazy list items without a key",
+      "source": "android",
+      "group": "Compose: Performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "whole-list-in-lazy-item",
+      "severity": "MAJOR",
+      "title": "Whole list inside one lazy item",
+      "source": "android",
+      "group": "Compose: Performance",
+      "needsJudgement": false
+    },
+    {
+      "id": "hardcoded-string",
+      "severity": "MINOR",
+      "title": "User-visible text in the code",
+      "source": "android",
+      "group": "Compose: Accessibility and resources",
+      "needsJudgement": false
+    },
+    {
+      "id": "compose-missing-content-description",
+      "severity": "MINOR",
+      "title": "Image without content description",
+      "source": "android",
+      "group": "Compose: Accessibility and resources",
+      "needsJudgement": false
+    }
+  ],
+  "checklist": {
+    "sections": [
+      {
+        "heading": "Logic",
+        "rules": [
+          "logic-defect"
+        ]
+      },
+      {
+        "rules": [
+          "variant-asymmetry",
+          "dependency-mr-undeclared",
+          "uses-removed-api",
+          "missing-required-argument",
+          "contract-misuse"
+        ]
+      },
+      {
+        "heading": "Coroutines and concurrency",
+        "rules": [
+          "global-scope",
+          "async-task",
+          "run-blocking-prod",
+          "hardcoded-dispatcher",
+          "blocking-on-main",
+          "unstructured-launch",
+          "async-without-concurrency",
+          "flow-error-unhandled",
+          "missing-flow-on"
+        ]
+      },
+      {
+        "heading": "State exposure",
+        "rules": [
+          "exposed-mutable-flow",
+          "mutable-collection-exposed",
+          "state-not-modelled",
+          "events-in-state",
+          "new-live-data",
+          "local-broadcast-manager"
+        ]
+      },
+      {
+        "heading": "Error handling",
+        "rules": [
+          "empty-catch",
+          "generic-exception",
+          "swallowed-error",
+          "no-double-bang",
+          "manual-throw-precondition"
+        ]
+      },
+      {
+        "heading": "Dependency injection",
+        "rules": [
+          "field-injection",
+          "manual-instantiation",
+          "missing-di-annotation",
+          "duplicate-di-module",
+          "service-locator"
+        ]
+      },
+      {
+        "heading": "Idiomatic Kotlin",
+        "rules": [
+          "var-never-reassigned",
+          "mutable-collection-default",
+          "data-class-missing",
+          "raw-type-wrapper",
+          "manual-loop",
+          "reimplemented-stdlib",
+          "sequence-for-large-pipeline",
+          "non-exhaustive-when",
+          "long-if-chain",
+          "unsafe-cast",
+          "index-can-throw",
+          "boolean-flag-parameter",
+          "expression-body",
+          "redundant-type-annotation",
+          "utils-class-over-extension",
+          "nested-scope-functions"
+        ]
+      },
+      {
+        "heading": "Structure and scope",
+        "rules": [
+          "java-in-new-code",
+          "out-of-scope-refactor",
+          "logic-in-wrong-layer",
+          "class-too-large",
+          "long-function",
+          "deep-nesting",
+          "duplicated-logic",
+          "line-too-long",
+          "package-organization"
+        ]
+      },
+      {
+        "heading": "Memory and performance",
+        "rules": [
+          "context-leak",
+          "context-in-viewmodel",
+          "listener-not-removed",
+          "unnecessary-weak-reference",
+          "bitmap-in-model",
+          "full-list-refresh"
+        ]
+      },
+      {
+        "heading": "Dependencies",
+        "rules": [
+          "strict-version-pin",
+          "dependency-version-bump",
+          "new-dependency",
+          "nested-module-import"
+        ]
+      },
+      {
+        "heading": "Naming and documentation",
+        "rules": [
+          "naming-convention",
+          "non-descriptive-name",
+          "missing-kdoc",
+          "over-commenting"
+        ]
+      },
+      {
+        "heading": "Security",
+        "rules": [
+          "hardcoded-secret",
+          "sensitive-logging",
+          "unvalidated-external-input",
+          "webview-bridge-exposure",
+          "insecure-storage"
+        ]
+      },
+      {
+        "heading": "Tests",
+        "rules": [
+          "missing-tests",
+          "empty-test-stub",
+          "undescriptive-test-name",
+          "test-asserts-nothing"
+        ]
+      },
+      {
+        "heading": "Compose: State",
+        "rules": [
+          "state-without-remember",
+          "remember-missing-key",
+          "state-not-hoisted",
+          "exposed-mutable-state",
+          "unstable-parameter"
+        ]
+      },
+      {
+        "heading": "Compose: Side effects",
+        "rules": [
+          "side-effect-in-composition",
+          "launched-effect-key",
+          "missing-disposable-effect",
+          "collect-without-lifecycle"
+        ]
+      },
+      {
+        "heading": "Compose: Structure",
+        "rules": [
+          "logic-in-composable",
+          "viewmodel-passed-down",
+          "context-captured",
+          "missing-modifier-param",
+          "modifier-not-forwarded"
+        ]
+      },
+      {
+        "heading": "Compose: Performance",
+        "rules": [
+          "heavy-work-in-composition",
+          "lazy-list-no-key",
+          "whole-list-in-lazy-item"
+        ]
+      },
+      {
+        "heading": "Compose: Accessibility and resources",
+        "rules": [
+          "hardcoded-string",
+          "compose-missing-content-description"
+        ]
+      }
+    ],
+    "repository": []
+  },
+  "files": [
+    {
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -3,11 +3,14 @@ package com.example.sample\n import android.os.Bundle\n import androidx.activity.ComponentActivity\n import androidx.activity.compose.setContent\n+import com.example.core.session.SessionManager\n import com.example.sample.ui.HomeScreen\n+import kotlinx.coroutines.runBlocking\n \n class MainActivity : ComponentActivity() {\n     override fun onCreate(savedInstanceState: Bundle?) {\n         super.onCreate(savedInstanceState)\n+        runBlocking { SessionManager.instance.refresh() }\n         setContent { HomeScreen() }\n     }\n }\n",
+      "code": {
+        "whole": true,
+        "regions": [
+          {
+            "start": 1,
+            "lines": [
+              "package com.example.sample",
+              "",
+              "import android.os.Bundle",
+              "import androidx.activity.ComponentActivity",
+              "import androidx.activity.compose.setContent",
+              "import com.example.core.session.SessionManager",
+              "import com.example.sample.ui.HomeScreen",
+              "import kotlinx.coroutines.runBlocking",
+              "",
+              "class MainActivity : ComponentActivity() {",
+              "    override fun onCreate(savedInstanceState: Bundle?) {",
+              "        super.onCreate(savedInstanceState)",
+              "        runBlocking { SessionManager.instance.refresh() }",
+              "        setContent { HomeScreen() }",
+              "    }",
+              "}"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -7,6 +7,8 @@ class ProfileStore(context: Context) {\n \n     fun displayName(): String = prefs.getString(\"display_name\", null)!!\n \n+    fun hasDisplayName(): Boolean = prefs.contains(\"display_name\")\n+\n     fun saveDisplayName(name: String) {\n         prefs.edit().putString(\"display_name\", name).apply()\n     }\n",
+      "code": {
+        "whole": true,
+        "regions": [
+          {
+            "start": 1,
+            "lines": [
+              "package com.example.sample.data",
+              "",
+              "import android.content.Context",
+              "",
+              "class ProfileStore(context: Context) {",
+              "    private val prefs = context.getSharedPreferences(\"profile\", Context.MODE_PRIVATE)",
+              "",
+              "    fun displayName(): String = prefs.getString(\"display_name\", null)!!",
+              "",
+              "    fun hasDisplayName(): Boolean = prefs.contains(\"display_name\")",
+              "",
+              "    fun saveDisplayName(name: String) {",
+              "        prefs.edit().putString(\"display_name\", name).apply()",
+              "    }",
+              "}"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -15,6 +15,13 @@ class SessionRepository(\n         }\n     }\n \n+    fun prefetch() {\n+        GlobalScope.launch {\n+            val user = sessionManager.current()!!.userName\n+            cachedUser = user\n+        }\n+    }\n+\n     fun requireUser(): String = checkNotNull(cachedUser) { \"warmUp() must run first\" }\n \n     fun authHeader(): String = \"Bearer ${sessionManager.legacyToken()}\"\n",
+      "code": {
+        "whole": true,
+        "regions": [
+          {
+            "start": 1,
+            "lines": [
+              "package com.example.sample.data",
+              "",
+              "import com.example.core.session.SessionManager",
+              "import kotlinx.coroutines.GlobalScope",
+              "import kotlinx.coroutines.launch",
+              "",
+              "class SessionRepository(",
+              "    private val sessionManager: SessionManager = SessionManager.instance,",
+              ") {",
+              "    private var cachedUser: String? = null",
+              "",
+              "    fun warmUp() {",
+              "        GlobalScope.launch {",
+              "            cachedUser = sessionManager.refresh()?.userName",
+              "        }",
+              "    }",
+              "",
+              "    fun prefetch() {",
+              "        GlobalScope.launch {",
+              "            val user = sessionManager.current()!!.userName",
+              "            cachedUser = user",
+              "        }",
+              "    }",
+              "",
+              "    fun requireUser(): String = checkNotNull(cachedUser) { \"warmUp() must run first\" }",
+              "",
+              "    fun authHeader(): String = \"Bearer ${sessionManager.legacyToken()}\"",
+              "}"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -11,10 +11,6 @@ class HomeViewModel(\n     private val repository: SessionRepository = SessionRepository(),\n ) : ViewModel() {\n \n-    init {\n-        repository.warmUp()\n-    }\n-\n     private val _state = MutableStateFlow(HomeState(title = \"Welcome\"))\n     val state: StateFlow\u003cHomeState\u003e = _state\n \n",
+      "code": {
+        "whole": true,
+        "regions": [
+          {
+            "start": 1,
+            "lines": [
+              "package com.example.sample.ui",
+              "",
+              "import androidx.lifecycle.ViewModel",
+              "import androidx.lifecycle.viewModelScope",
+              "import com.example.sample.data.SessionRepository",
+              "import kotlinx.coroutines.flow.MutableStateFlow",
+              "import kotlinx.coroutines.flow.StateFlow",
+              "import kotlinx.coroutines.launch",
+              "",
+              "class HomeViewModel(",
+              "    private val repository: SessionRepository = SessionRepository(),",
+              ") : ViewModel() {",
+              "",
+              "    private val _state = MutableStateFlow(HomeState(title = \"Welcome\"))",
+              "    val state: StateFlow\u003cHomeState\u003e = _state",
+              "",
+              "    fun onRetry() {",
+              "        refresh()",
+              "    }",
+              "",
+              "    fun onSignOut() {",
+              "        _state.value = HomeState(title = \"Welcome\")",
+              "    }",
+              "",
+              "    fun refresh() {",
+              "        viewModelScope.launch {",
+              "            _state.value = HomeState(title = \"Hello, ${repository.requireUser()}\")",
+              "        }",
+              "    }",
+              "}",
+              "",
+              "data class HomeState(val title: String)"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "signals": [
+    {
+      "id": "s1",
+      "rule": "run-blocking-prod",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "line": 13,
+      "column": 9,
+      "origin": "mr",
+      "needsJudgement": false
+    },
+    {
+      "id": "s2",
+      "rule": "no-double-bang",
+      "severity": null,
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "line": 8,
+      "column": 70,
+      "origin": "existing",
+      "needsJudgement": true
+    },
+    {
+      "id": "s3",
+      "rule": "missing-kdoc",
+      "severity": null,
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "line": 10,
+      "column": 5,
+      "origin": "mr",
+      "needsJudgement": true
+    },
+    {
+      "id": "s4",
+      "rule": "global-scope",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 13,
+      "column": 9,
+      "origin": "existing",
+      "needsJudgement": false
+    },
+    {
+      "id": "s5",
+      "rule": "missing-kdoc",
+      "severity": null,
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 18,
+      "column": 5,
+      "origin": "mr",
+      "needsJudgement": true
+    },
+    {
+      "id": "s6",
+      "rule": "global-scope",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 19,
+      "column": 9,
+      "origin": "mr",
+      "needsJudgement": false
+    },
+    {
+      "id": "s7",
+      "rule": "no-double-bang",
+      "severity": null,
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 20,
+      "column": 48,
+      "origin": "mr",
+      "needsJudgement": true
+    }
+  ],
+  "notVerified": [],
+  "relatedChanges": [],
+  "cascade": {
+    "ancestors": []
+  },
+  "parts": {
+    "total": 1,
+    "changeRequestSignals": [],
+    "files": [
+      [
+        "app/src/main/java/com/example/sample/MainActivity.kt",
+        "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+        "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+        "app/src/main/java/com/example/sample/ui/HomeViewModel.kt"
+      ]
+    ]
+  },
+  "judgementPath": "acr-plugin-sandbox_sample-app/judgement.json"
+}

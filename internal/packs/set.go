@@ -2,6 +2,7 @@ package packs
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -17,18 +18,35 @@ type Set struct {
 	Rules []*rules.Rule
 }
 
-// Load loads every pack in the given directories, each holding one pack
-// per subdirectory: the built-in packs first, then any configured extra
-// directories. Packs are listed by directory, then by name. Pack ids and
-// rule ids, the core rules included, must be unique.
+// Location is a directory of packs, one pack per subdirectory, read
+// through FS; Dir names it in paths and errors.
+type Location struct {
+	Dir string
+	FS  fs.FS
+}
+
+// Load loads every pack in the given directories from the disk; see
+// LoadFS.
 func Load(dirs ...string) (*Set, error) {
+	locs := make([]Location, 0, len(dirs))
+	for _, dir := range dirs {
+		locs = append(locs, Location{Dir: dir, FS: os.DirFS(dir)})
+	}
+	return LoadFS(locs...)
+}
+
+// LoadFS loads every pack in the given locations: the built-in packs
+// first, then any configured extra directories. Packs are listed by
+// location, then by name. Pack ids and rule ids, the core rules included,
+// must be unique.
+func LoadFS(locs ...Location) (*Set, error) {
 	set := &Set{}
 	seen := map[string]string{}
 	catalogs := []*rules.Catalog{rules.Core()}
-	for _, dir := range dirs {
-		entries, err := os.ReadDir(dir)
+	for _, loc := range locs {
+		entries, err := fs.ReadDir(loc.FS, ".")
 		if err != nil {
-			return nil, fmt.Errorf("packs: %w", err)
+			return nil, fmt.Errorf("packs: %s: %w", loc.Dir, err)
 		}
 		var names []string
 		for _, e := range entries {
@@ -38,7 +56,11 @@ func Load(dirs ...string) (*Set, error) {
 		}
 		sort.Strings(names)
 		for _, name := range names {
-			p, err := LoadPack(filepath.Join(dir, name))
+			sub, err := fs.Sub(loc.FS, name)
+			if err != nil {
+				return nil, fmt.Errorf("packs: %w", err)
+			}
+			p, err := loadPack(sub, filepath.Join(loc.Dir, name))
 			if err != nil {
 				return nil, err
 			}

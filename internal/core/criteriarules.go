@@ -28,6 +28,16 @@ type RepositoryRule struct {
 // that is not applied.
 const IgnoredPrefix = "Repository criteria ignored: "
 
+// IgnoredItem is a part of the repository criteria that is not applied:
+// what it is and where, and why.
+type IgnoredItem struct {
+	Item   string `json:"item"`
+	Reason string `json:"reason"`
+}
+
+// Note is the note of the summary about the item.
+func (i IgnoredItem) Note() string { return IgnoredPrefix + i.Item + " — " + i.Reason }
+
 var (
 	// ruleItem is a list item that starts with a backticked id, a
 	// separator and a bold severity; the text follows.
@@ -57,14 +67,23 @@ const (
 )
 
 // ruleReader collects the repository rules of the criteria files of one
-// layout, in file order, and a note for each part it ignores.
+// layout, in file order, and each part it ignores.
 type ruleReader struct {
 	// reserved are the ids of the pack and core rules.
 	reserved map[string]bool
 	// first is where each id was defined first.
-	first map[string]string
-	rules []RepositoryRule
-	notes []string
+	first   map[string]string
+	rules   []RepositoryRule
+	ignored []IgnoredItem
+}
+
+// notes are the notes of the parts the reader ignored.
+func (r *ruleReader) notes() []string {
+	var out []string
+	for _, i := range r.ignored {
+		out = append(out, i.Note())
+	}
+	return out
 }
 
 func newRuleReader(reserved map[string]bool) *ruleReader {
@@ -72,7 +91,7 @@ func newRuleReader(reserved map[string]bool) *ruleReader {
 }
 
 func (r *ruleReader) ignore(item, at, reason string) {
-	r.notes = append(r.notes, fmt.Sprintf("%s%s (%s) — %s", IgnoredPrefix, item, at, reason))
+	r.ignored = append(r.ignored, IgnoredItem{Item: item + " (" + at + ")", Reason: reason})
 }
 
 // read reads the rules of one criteria file. Front matter and code fences

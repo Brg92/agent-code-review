@@ -1,0 +1,122 @@
+Work package github:github.com/acr-plugin-sandbox/sample-app#12 — part 2 of 3
+Title: Load the screens
+Head: cccccccccccccccccccccccccccccccccccccccc · base main at dddddddd
+
+Signals: [DECIDE] needs a decision: confirm it with a severity, or dismiss it with a reason.
+  [<SEVERITY>] becomes a finding at that severity unless dismissed with a reason; a confirmation keeps the severity.
+  existing: the line is already on the target branch, so its finding is pre-existing; only a pre-existing signal
+  can be confirmed as a crash, and a crash is a BLOCKER.
+  Decide a signal; do not repeat it as a finding.
+
+Files in this part: 1 of 3
+
+== app/src/main/java/com/example/screens/ListScreen.kt (modified, kotlin)
+diff:
+@@ -2,1 +2,1 @@ class Screen {
+-    val old2 = 0
++    val value2 = 2
+@@ -200,1 +200,1 @@ class Screen {
+-    val old200 = 0
++    val value200 = 200
+@@ -230,1 +230,1 @@ class Screen {
+-    val old230 = 0
++    val value230 = 230
+code at head (regions):
+  1 | package com.example.screens
+  2 |     val value2 = 2
+  3 |     val value3 = 3
+  4 |     val value4 = 4
+  5 |     val value5 = 5
+  6 |     val value6 = 6
+  7 |     val value7 = 7
+  8 |     val value8 = 8
+  9 |     val value9 = 9
+ 10 |     val value10 = 10
+ 11 |     val value11 = 11
+ 12 |     val value12 = 12
+ 13 |     val value13 = 13
+ 14 |     val value14 = 14
+ 15 |     val value15 = 15
+ 16 |     val value16 = 16
+ 17 |     val value17 = 17
+ 18 |     val value18 = 18
+ 19 |     val value19 = 19
+ 20 |     val value20 = 20
+ 21 |     val value21 = 21
+ 22 |     val value22 = 22
+    ...
+180 |     val value180 = 180
+181 |     val value181 = 181
+182 |     val value182 = 182
+183 |     val value183 = 183
+184 |     val value184 = 184
+185 |     val value185 = 185
+186 |     val value186 = 186
+187 |     val value187 = 187
+188 |     val value188 = 188
+189 |     val value189 = 189
+190 |     val value190 = 190
+191 |     val value191 = 191
+192 |     val value192 = 192
+193 |     val value193 = 193
+194 |     val value194 = 194
+195 |     val value195 = 195
+196 |     val value196 = 196
+197 |     val value197 = 197
+198 |     val value198 = 198
+199 |     val value199 = 199
+200 |     val value200 = 200
+201 |     val value201 = 201
+202 |     val value202 = 202
+203 |     val value203 = 203
+204 |     val value204 = 204
+205 |     val value205 = 205
+206 |     val value206 = 206
+207 |     val value207 = 207
+208 |     val value208 = 208
+209 |     val value209 = 209
+210 |     val value210 = 210
+211 |     val value211 = 211
+212 |     val value212 = 212
+213 |     val value213 = 213
+214 |     val value214 = 214
+215 |     val value215 = 215
+216 |     val value216 = 216
+217 |     val value217 = 217
+218 |     val value218 = 218
+219 |     val value219 = 219
+220 |     val value220 = 220
+221 |     val value221 = 221
+222 |     val value222 = 222
+223 |     val value223 = 223
+224 |     val value224 = 224
+225 |     val value225 = 225
+226 |     val value226 = 226
+227 |     val value227 = 227
+228 |     val value228 = 228
+229 |     val value229 = 229
+230 |     val value230 = 230
+231 |     val value231 = 231
+232 |     val value232 = 232
+233 |     val value233 = 233
+234 |     val value234 = 234
+235 |     val value235 = 235
+236 |     val value236 = 236
+237 |     val value237 = 237
+238 |     val value238 = 238
+239 |     val value239 = 239
+240 |     val value240 = 240
+241 |     val value241 = 241
+242 |     val value242 = 242
+243 |     val value243 = 243
+244 |     val value244 = 244
+245 |     val value245 = 245
+246 |     val value246 = 246
+247 |     val value247 = 247
+248 |     val value248 = 248
+249 |     val value249 = 249
+250 |     val value250 = 250
+signals:
+  s4 [MINOR] mobile-lines at 200:121, mr
+
+Judgement: write acr-plugin-sandbox_sample-app-12-cccccccc/judgement.json as defined by schemas/judgement.schema.json.
