@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -28,7 +29,9 @@ type Pack struct {
 	Name        string
 	Description string
 	// Dir is the pack directory; the file paths below are inside it.
-	Dir            string
+	Dir string
+	// files reads the pack directory.
+	files          fs.FS
 	Detect         []Sign
 	Languages      []Language
 	Profiles       []string
@@ -154,15 +157,21 @@ type (
 // catalog. The manifest id must be the directory name, every file it
 // names must exist in the pack, and unknown fields are rejected.
 func LoadPack(dir string) (*Pack, error) {
-	p, err := loadPack(dir)
+	return loadPack(os.DirFS(dir), dir)
+}
+
+// loadPack loads the pack whose directory files reads; dir names the
+// directory in paths and errors, and its base name is the pack id.
+func loadPack(files fs.FS, dir string) (*Pack, error) {
+	p, err := readPack(files, dir)
 	if err != nil {
 		return nil, fmt.Errorf("pack %s: %w", dir, err)
 	}
 	return p, nil
 }
 
-func loadPack(dir string) (*Pack, error) {
-	data, err := os.ReadFile(filepath.Join(dir, ManifestFile))
+func readPack(files fs.FS, dir string) (*Pack, error) {
+	data, err := fs.ReadFile(files, ManifestFile)
 	if err != nil {
 		return nil, fmt.Errorf("read the manifest: %w", err)
 	}
@@ -181,7 +190,7 @@ func loadPack(dir string) (*Pack, error) {
 	if *raw.Schema != 1 {
 		return nil, errors.New("manifest: schema must be 1")
 	}
-	p := &Pack{ID: *raw.ID, Name: *raw.Name, Description: *raw.Description, Dir: dir, GeneratedMarkers: *raw.GeneratedMarkers}
+	p := &Pack{ID: *raw.ID, Name: *raw.Name, Description: *raw.Description, Dir: dir, files: files, GeneratedMarkers: *raw.GeneratedMarkers}
 	if !packID.MatchString(p.ID) {
 		return nil, fmt.Errorf("id %q is not a lowercase pack id", p.ID)
 	}
@@ -393,11 +402,7 @@ func (p *Pack) loadLanguages(raws []rawLanguage) error {
 		if rl.Lexer == nil {
 			return fmt.Errorf("language %s: lexer is required", l.ID)
 		}
-		path, err := p.file("lexer of "+l.ID, *rl.Lexer)
-		if err != nil {
-			return err
-		}
-		data, err := os.ReadFile(path)
+		data, err := p.file("lexer of "+l.ID, *rl.Lexer)
 		if err != nil {
 			return err
 		}
@@ -417,29 +422,24 @@ func (p *Pack) loadLanguages(raws []rawLanguage) error {
 	return nil
 }
 
-// file resolves a path of the manifest and checks it is a file inside the
-// pack.
-func (p *Pack) file(what, rel string) (string, error) {
+// file checks that a path of the manifest is a file inside the pack and
+// returns its contents.
+func (p *Pack) file(what, rel string) ([]byte, error) {
 	if !relativePath.MatchString(rel) {
-		return "", fmt.Errorf("%s: %q is not a relative path inside the pack", what, rel)
+		return nil, fmt.Errorf("%s: %q is not a relative path inside the pack", what, rel)
 	}
-	path := filepath.Join(p.Dir, filepath.FromSlash(rel))
-	info, err := os.Stat(path)
+	info, err := fs.Stat(p.files, rel)
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", what, err)
+		return nil, fmt.Errorf("%s: %w", what, err)
 	}
 	if !info.Mode().IsRegular() {
-		return "", fmt.Errorf("%s: %s is not a regular file", what, rel)
+		return nil, fmt.Errorf("%s: %s is not a regular file", what, rel)
 	}
-	return path, nil
+	return fs.ReadFile(p.files, rel)
 }
 
 func (p *Pack) loadFiles(raw rawManifest) error {
-	path, err := p.file("rules", *raw.Rules)
-	if err != nil {
-		return err
-	}
-	data, err := os.ReadFile(path)
+	data, err := p.file("rules", *raw.Rules)
 	if err != nil {
 		return err
 	}
@@ -461,11 +461,10 @@ func (p *Pack) loadFiles(raw rawManifest) error {
 		}
 	}
 	for _, t := range *raw.Templates {
-		path, err := p.file("template", t)
-		if err != nil {
+		if _, err := p.file("template", t); err != nil {
 			return err
 		}
-		p.Templates = append(p.Templates, path)
+		p.Templates = append(p.Templates, filepath.Join(p.Dir, filepath.FromSlash(t)))
 	}
 	return nil
 }

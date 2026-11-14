@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Brg92/agent-code-review/schemas/workpackage.schema.json",
   "title": "Work package",
-  "description": "Everything the agent needs to judge one change request, as handed out by the next command. Paths of copied files are relative to the run's work directory.",
+  "description": "Everything the agent needs to judge one change request, as handed out by the next command: the rules that apply, the checklist, the criteria, the changed files with their code, and the signals. The next command may serve it in parts; the work package itself is one document. The judgement path and related work packages are relative to the run's work directory.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,9 +17,13 @@
     "baseRef",
     "criteria",
     "rules",
+    "checklist",
     "files",
     "signals",
+    "notVerified",
     "relatedChanges",
+    "cascade",
+    "parts",
     "judgementPath"
   ],
   "properties": {
@@ -68,8 +72,11 @@
       "required": [
         "source",
         "profile",
+        "profileReason",
         "packs",
-        "files"
+        "dimensions",
+        "files",
+        "ignored"
       ],
       "properties": {
         "source": {
@@ -80,6 +87,11 @@
           "description": "Profile in use.",
           "$ref": "#/$defs/profile"
         },
+        "profileReason": {
+          "description": "Why the profile was chosen, in a few words, for example set in .agent-code-review/config.json.",
+          "type": "string",
+          "pattern": "\\S"
+        },
         "packs": {
           "description": "Stack packs in use.",
           "type": "array",
@@ -87,17 +99,66 @@
             "$ref": "#/$defs/packId"
           }
         },
+        "dimensions": {
+          "description": "Repository dimensions of the packs in use, by dimension id (lowercase words joined by hyphens), with the value chosen and why. File dimensions, such as platform, vary per file and are not listed.",
+          "type": "object",
+          "additionalProperties": {
+            "description": "The value of one dimension and why it was chosen.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "reason"
+            ],
+            "properties": {
+              "value": {
+                "description": "Value of the dimension.",
+                "$ref": "#/$defs/dimensionId"
+              },
+              "reason": {
+                "description": "Why the value was chosen, in a few words.",
+                "type": "string",
+                "pattern": "\\S"
+              }
+            }
+          }
+        },
         "files": {
-          "description": "Copies of the criteria and checklist files to read, in order.",
+          "description": "Criteria files read on the target branch, relative to the repository root, in the order they were read.",
           "type": "array",
           "items": {
             "$ref": "#/$defs/relativePath"
+          }
+        },
+        "ignored": {
+          "description": "Parts of the repository criteria that are not applied, each with the reason, for the Repository criteria ignored section of the report.",
+          "type": "array",
+          "items": {
+            "description": "One ignored item.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "item",
+              "reason"
+            ],
+            "properties": {
+              "item": {
+                "description": "What is ignored and where, for example `no-double-bang` in disabledRules (.agent-code-review/config.json).",
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "reason": {
+                "description": "Why it is ignored.",
+                "type": "string",
+                "pattern": "\\S"
+              }
+            }
           }
         }
       }
     },
     "rules": {
-      "description": "Rules that apply, after disabled rules are removed.",
+      "description": "Rules that apply to the change request: the core rules, then those of each active pack in activation order, then the repository rules, each in catalog order. Conditions on the profile and the repository dimensions are already applied; conditions on file dimensions, such as platform, are checked per file. Disabled repository rules are left out.",
       "type": "array",
       "items": {
         "description": "One rule.",
@@ -106,7 +167,9 @@
         "required": [
           "id",
           "severity",
-          "title"
+          "title",
+          "source",
+          "needsJudgement"
         ],
         "properties": {
           "id": {
@@ -114,18 +177,85 @@
             "$ref": "#/$defs/ruleId"
           },
           "severity": {
-            "description": "Default severity of the rule.",
+            "description": "Severity of the rule: of the catalog, or of the repository criteria.",
             "$ref": "#/$defs/severity"
           },
           "title": {
-            "description": "One-line summary of the rule.",
+            "description": "One-line summary of the rule; for a repository rule, its text.",
             "type": "string"
+          },
+          "source": {
+            "description": "Where the rule comes from: core, repository, or the id of the pack that defines it.",
+            "$ref": "#/$defs/packId"
+          },
+          "group": {
+            "description": "Checklist section the rule is listed under; absent when it has none.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "needsJudgement": {
+            "description": "True when the signals of the rule need a decision of the judgement.",
+            "type": "boolean"
+          },
+          "options": {
+            "description": "Resolved values of the overridable parameters of the rule, by name: the catalog value or the one the repository set.",
+            "type": "object",
+            "additionalProperties": {
+              "description": "Value of one parameter.",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "checklist": {
+      "description": "Checklist for the agent, generated from the rules: the pack and core rules grouped by their group, then the repository rules in their own section.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sections",
+        "repository"
+      ],
+      "properties": {
+        "sections": {
+          "description": "Sections of pack and core rules, in the order their group first appears in the rules.",
+          "type": "array",
+          "items": {
+            "description": "One section.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rules"
+            ],
+            "properties": {
+              "heading": {
+                "description": "Group of the rules; absent for the rules that have none.",
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "rules": {
+                "description": "Ids of the rules of the section, in order.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/ruleId"
+                }
+              }
+            }
+          }
+        },
+        "repository": {
+          "description": "Ids of the repository rules, in order.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ruleId"
           }
         }
       }
     },
     "files": {
-      "description": "Changed files to review. Files that are not reviewed are listed in the findings instead.",
+      "description": "Changed files, in diff order. Files that are not reviewed are listed here too, without code, and in notVerified.",
       "type": "array",
       "items": {
         "description": "One changed file.",
@@ -134,8 +264,7 @@
         "required": [
           "path",
           "status",
-          "language",
-          "patch"
+          "placement"
         ],
         "properties": {
           "path": {
@@ -157,22 +286,82 @@
             ]
           },
           "language": {
-            "description": "Language identifier from the pack that covers the file.",
+            "description": "Language identifier from the pack that covers the file; absent when no pack covers it.",
             "type": "string",
             "pattern": "^[a-z0-9-]+$"
           },
-          "patch": {
-            "description": "Copy of the unified diff of the file.",
-            "$ref": "#/$defs/relativePath"
+          "placement": {
+            "description": "inline when the diff shows lines of the file, so findings can be anchored on them; summary when it shows none, as for a file without a patch or a rename without changes.",
+            "enum": [
+              "inline",
+              "summary"
+            ]
           },
-          "head": {
-            "description": "Copy of the file at the head commit; absent for a removed file.",
-            "$ref": "#/$defs/relativePath"
+          "reason": {
+            "description": "Why a file is placed in the summary, for example patch-unavailable or renamed-without-changes.",
+            "type": "string",
+            "pattern": "^[a-z]+(?:-[a-z]+)*$"
           },
-          "base": {
-            "description": "Copy of the file on the target branch; absent for an added file.",
-            "$ref": "#/$defs/relativePath"
+          "diff": {
+            "description": "The hunks of the unified diff of the file; absent when the diff shows no lines.",
+            "type": "string",
+            "pattern": "^@@ "
+          },
+          "code": {
+            "description": "Code of the file at the head commit, with line numbers: the whole file when it is short, else regions around the hunks. Absent for a removed file, a file no pack covers, and a file whose diff shows no lines.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "whole",
+              "regions"
+            ],
+            "properties": {
+              "whole": {
+                "description": "True when regions holds the whole file in one region.",
+                "type": "boolean"
+              },
+              "regions": {
+                "description": "Regions of the file, in line order, neither overlapping nor adjacent.",
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "description": "Consecutive lines of the file.",
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "start",
+                    "lines"
+                  ],
+                  "properties": {
+                    "start": {
+                      "description": "Line number of the first line.",
+                      "$ref": "#/$defs/line"
+                    },
+                    "lines": {
+                      "description": "The lines, without line endings.",
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
+        },
+        "if": {
+          "properties": {
+            "placement": {
+              "const": "summary"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "reason"
+          ]
         }
       }
     },
@@ -275,6 +464,58 @@
         }
       }
     },
+    "notVerified": {
+      "description": "Changed files, or parts of them, that the rules could not check, and why.",
+      "type": "array",
+      "items": {
+        "description": "One file that was not reviewed.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "reason"
+        ],
+        "if": {
+          "properties": {
+            "reason": {
+              "enum": [
+                "match-budget-exceeded",
+                "tree-unavailable",
+                "search-unavailable"
+              ]
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "detail"
+          ]
+        },
+        "properties": {
+          "path": {
+            "description": "File path in the change request.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "reason": {
+            "description": "generated: marked as generated; binary: no text diff; patch-unavailable: the platform omitted the diff; noise: matches a noise glob; unsupported-language: no pack covers it; match-budget-exceeded: a rule ran out of matching steps on the file, and detail names the rule; tree-unavailable: a change-request rule could not read the repository tree at head for the file, and detail names the rule; search-unavailable: a change-request rule could not search the code for a symbol of the file, and detail names the rule and the symbol.",
+            "enum": [
+              "generated",
+              "binary",
+              "patch-unavailable",
+              "noise",
+              "unsupported-language",
+              "match-budget-exceeded",
+              "tree-unavailable",
+              "search-unavailable"
+            ]
+          },
+          "detail": {
+            "description": "Optional human-readable detail; required for match-budget-exceeded, tree-unavailable and search-unavailable, where it starts with the rule.",
+            "type": "string"
+          }
+        }
+      }
+    },
     "relatedChanges": {
       "description": "Other change requests reviewed in the same cascade, so that changes made together are not reported as missing.",
       "type": "array",
@@ -302,6 +543,76 @@
         }
       }
     },
+    "cascade": {
+      "description": "Where the change request is in the cascade.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ancestors"
+      ],
+      "properties": {
+        "ancestors": {
+          "description": "Change requests above it, from the root down to the one that lists it; empty for the root.",
+          "type": "array",
+          "items": {
+            "description": "One ancestor.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "cr",
+              "title"
+            ],
+            "properties": {
+              "cr": {
+                "description": "Key of the ancestor.",
+                "$ref": "#/$defs/crKey"
+              },
+              "title": {
+                "description": "Its title.",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "parts": {
+      "description": "How the work package is served: each part carries whole files within a byte budget, in diff order. Part 1 also carries the header, checklist, criteria, cascade and change-request signals.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total",
+        "changeRequestSignals",
+        "files"
+      ],
+      "properties": {
+        "total": {
+          "description": "Number of parts.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "changeRequestSignals": {
+          "description": "Ids of the signals of the change-request rules, served in part 1.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^s[1-9][0-9]*$"
+          }
+        },
+        "files": {
+          "description": "Paths of the files of each part, part 1 first; one entry per part.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "description": "The files of one part, in diff order.",
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/relativePath"
+            }
+          }
+        }
+      }
+    },
     "judgementPath": {
       "description": "Where the agent writes its judgement.",
       "$ref": "#/$defs/relativePath"
@@ -320,6 +631,11 @@
         "legacy",
         "default"
       ]
+    },
+    "dimensionId": {
+      "description": "Identifier of a dimension or of one of its values: lowercase words joined by hyphens.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },
     "line": {
       "description": "Line number, starting at 1, in the file version of the chosen side.",

@@ -14,7 +14,8 @@ const conditional = `{"schema":1,"pack":"test","rules":[
  {"id":"library-only","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],"group":"Library","when":{"profile":["library"]}},
  {"id":"library-views","title":"T","severity":"MAJOR","description":"D","languages":[],"tags":[],"group":"Library","when":{"profile":["library"],"ui-toolkit":["views"]}},
  {"id":"more-common","title":"T","severity":"MINOR","description":"D","languages":[],"tags":[],"group":"Common"},
- {"id":"ungrouped","title":"T","severity":"MINOR","description":"D","languages":[],"tags":[]}
+ {"id":"ungrouped","title":"T","severity":"MINOR","description":"D","languages":[],"tags":[]},
+ {"id":"android-views","title":"T","severity":"MINOR","description":"D","languages":[],"tags":[],"when":{"platform":["android"],"ui-toolkit":["views"]}}
 ]}`
 
 func loadConditional(t *testing.T) []*Rule {
@@ -49,6 +50,12 @@ func TestApplicable(t *testing.T) {
 			"always views-only library-only library-views more-common ungrouped"},
 		{"a dimension the repository lacks", Context{Profile: "app"}, "always more-common ungrouped"},
 		{"no profile", Context{Dimensions: map[string]string{"ui-toolkit": "views"}}, "always views-only more-common ungrouped"},
+		{"a file dimension decides", Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "views", "platform": "android"}},
+			"always views-only more-common ungrouped android-views"},
+		{"a condition on a per-file key is left to each file", Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "views"}, PerFile: map[string]bool{"platform": true}},
+			"always views-only more-common ungrouped android-views"},
+		{"the other conditions still hold", Context{Profile: "app", Dimensions: map[string]string{"ui-toolkit": "compose"}, PerFile: map[string]bool{"platform": true}},
+			"always compose-only more-common ungrouped"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -11,28 +11,46 @@
   "criteria": {
     "source": "legacy",
     "profile": "library",
+    "profileReason": "kind in .github/mr-review.json",
     "packs": [
       "android"
     ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "views",
+        "reason": "android default"
+      }
+    },
     "files": [
-      "cr/core-lib-3/criteria/.github/mr-review.json"
-    ]
+      ".github/mr-review.json"
+    ],
+    "ignored": []
   },
   "rules": [
     {
       "id": "uses-removed-api",
       "severity": "BLOCKER",
-      "title": "Removes API that a related change still uses"
+      "title": "Removes API that a related change still uses",
+      "source": "core",
+      "needsJudgement": true
     }
   ],
+  "checklist": {
+    "sections": [
+      {
+        "rules": [
+          "uses-removed-api"
+        ]
+      }
+    ],
+    "repository": []
+  },
   "files": [
     {
       "path": "src/main/java/com/example/core/session/SessionManager.kt",
       "status": "modified",
       "language": "kotlin",
-      "patch": "cr/core-lib-3/patches/SessionManager.kt.diff",
-      "head": "cr/core-lib-3/head/SessionManager.kt",
-      "base": "cr/core-lib-3/base/SessionManager.kt"
+      "placement": "inline"
     }
   ],
   "signals": [
@@ -55,6 +73,19 @@
       ]
     }
   ],
+  "notVerified": [],
   "relatedChanges": [],
+  "cascade": {
+    "ancestors": []
+  },
+  "parts": {
+    "total": 1,
+    "changeRequestSignals": [],
+    "files": [
+      [
+        "src/main/java/com/example/core/session/SessionManager.kt"
+      ]
+    ]
+  },
   "judgementPath": "cr/core-lib-3/judgement.json"
 }

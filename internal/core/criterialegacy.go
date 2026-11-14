@@ -67,7 +67,7 @@ func (r *reader) skill(c *RepoCriteria, rr *ruleReader, dir string) error {
 		return err
 	}
 	if !found {
-		c.Notes = append(c.Notes, fmt.Sprintf("%s`%s` (%s) — it has no SKILL.md", IgnoredPrefix, path.Base(dir), dir))
+		c.ignore(IgnoredItem{Item: fmt.Sprintf("`%s` (%s)", path.Base(dir), dir), Reason: "it has no SKILL.md"})
 		return nil
 	}
 	c.Files = append(c.Files, skill)
@@ -171,7 +171,7 @@ func (c *RepoCriteria) applyLegacyConfig(data []byte, project Key) error {
 			if !ok {
 				reason = "not a setting of " + legacyConfig
 			}
-			c.Notes = append(c.Notes, fmt.Sprintf("%s`%s` (%s) — %s", IgnoredPrefix, name, legacyConfig, reason))
+			c.ignore(IgnoredItem{Item: fmt.Sprintf("`%s` (%s)", name, legacyConfig), Reason: reason})
 		}
 	}
 	return f.err(legacyConfig)

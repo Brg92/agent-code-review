@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/Brg92/agent-code-review/internal/rules"
 )
@@ -83,5 +84,38 @@ func TestLoadRealPacks(t *testing.T) {
 	}
 	if _, err := Load(root); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestLoadFS checks that packs are read through a file system, not from
+// the disk: a pack held only in memory loads like one in a directory.
+func TestLoadFS(t *testing.T) {
+	mem := fstest.MapFS{}
+	src := filepath.Join(testPacks, "web")
+	err := filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return err
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		rel, _ := filepath.Rel(src, path)
+		mem["web/"+filepath.ToSlash(rel)] = &fstest.MapFile{Data: data}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	set, err := LoadFS(Location{Dir: "memory", FS: mem})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(set.Packs) != 1 || set.Packs[0].ID != "web" || set.Packs[0].Dir != filepath.Join("memory", "web") {
+		t.Fatalf("packs %+v, want web in memory/web", set.Packs)
+	}
+	delete(mem, "web/rules.json")
+	if _, err := LoadFS(Location{Dir: "memory", FS: mem}); err == nil || !strings.Contains(err.Error(), "rules") {
+		t.Errorf("error = %v, want the missing rules file", err)
 	}
 }

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+  "headSha": "e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
+  "findings": [],
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s1",
+      "decision": "confirm"
+    },
+    {
+      "id": "s2",
+      "decision": "dismiss",
+      "reason": "expiresAt() only forwards to SessionManager.expiresAt(), which documents it."
+    },
+    {
+      "id": "s3",
+      "decision": "dismiss",
+      "reason": "HomeState is a plain screen state whose properties name what they hold."
+    }
+  ]
+}

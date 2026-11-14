@@ -63,6 +63,13 @@ func joinLines(lines []string) string {
 // and for a path that is not a changed file, which comes last, they keep
 // the order of the lists.
 func NumberSignals(files []ChangedFile, lists ...[]rules.Signal) []Signal {
+	out, _ := numberSignals(files, lists...)
+	return out
+}
+
+// numberSignals numbers the signals as NumberSignals does, and also gives
+// the index of the list each one comes from.
+func numberSignals(files []ChangedFile, lists ...[]rules.Signal) ([]Signal, []int) {
 	fileAt := map[string]int{}
 	for i, f := range files {
 		if _, ok := fileAt[f.Diff.Path]; !ok {
@@ -75,9 +82,15 @@ func NumberSignals(files []ChangedFile, lists ...[]rules.Signal) []Signal {
 		}
 		return len(files)
 	}
-	var all []rules.Signal
-	for _, l := range lists {
-		all = append(all, l...)
+	type listed struct {
+		rules.Signal
+		list int
+	}
+	var all []listed
+	for i, l := range lists {
+		for _, s := range l {
+			all = append(all, listed{s, i})
+		}
 	}
 	sort.SliceStable(all, func(i, j int) bool {
 		a, b := all[i], all[j]
@@ -91,8 +104,9 @@ func NumberSignals(files []ChangedFile, lists ...[]rules.Signal) []Signal {
 		}
 		return a.Column < b.Column
 	})
-	out := make([]Signal, 0, len(all))
+	out, from := make([]Signal, 0, len(all)), make([]int, 0, len(all))
 	for i, s := range all {
+		from = append(from, s.list)
 		sig := Signal{
 			ID: "s" + strconv.Itoa(i+1), Rule: s.RuleID, Severity: Severity(s.Severity), Path: s.Path,
 			Line: s.Line, Column: s.Column, Origin: Origin(s.Origin), NeedsJudgement: s.NeedsJudgement,
@@ -105,5 +119,5 @@ func NumberSignals(files []ChangedFile, lists ...[]rules.Signal) []Signal {
 		}
 		out = append(out, sig)
 	}
-	return out
+	return out, from
 }

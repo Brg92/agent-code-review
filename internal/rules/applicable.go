@@ -5,13 +5,20 @@ package rules
 type Context struct {
 	Profile    string
 	Dimensions map[string]string
+	// PerFile holds the keys, such as the file dimensions, whose
+	// conditions are left to each file: here they hold.
+	PerFile map[string]bool
 }
 
 // AppliesIn reports whether the conditions of the rule hold in the
 // context. A rule without conditions always applies; a condition on a
-// profile or a dimension the context lacks does not hold.
+// profile or a dimension the context lacks does not hold, unless the key
+// is one of PerFile.
 func (r *Rule) AppliesIn(c Context) bool {
 	for key, values := range r.When {
+		if c.PerFile[key] {
+			continue
+		}
 		have, ok := c.Dimensions[key]
 		if key == ProfileKey {
 			have, ok = c.Profile, c.Profile != ""

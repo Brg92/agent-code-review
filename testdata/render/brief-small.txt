@@ -1,0 +1,70 @@
+Work package github:github.com/acr-plugin-sandbox/sample-app#12 — part 1 of 1
+Title: Load the screens
+Head: cccccccccccccccccccccccccccccccccccccccc · base main at dddddddd
+URL: https://github.com/acr-plugin-sandbox/sample-app/pull/12
+Description:
+  Loads every screen at start.
+  Keeps the old loader for now.
+Profile: app (set in .agent-code-review/config.json)
+Dimension: ui-toolkit compose (androidx.compose in app/build.gradle.kts)
+Packs: mobile
+Criteria: overlay on main: .agent-code-review/config.json, .agent-code-review/criteria.md
+Cascade: below github:github.com/acr-plugin-sandbox/core-lib#4 "Split the loader"
+Related: github:github.com/acr-plugin-sandbox/core-lib#4 "Split the loader" (acr-plugin-sandbox_core-lib-4-eeeeeeee/workpackage.json)
+
+Checklist
+  Logic
+    logic-defect [BLOCKER, needs judgement] A defect in the logic of the change
+  (no group)
+    variant-asymmetry [MAJOR, needs judgement] A change in one variant without its counterpart
+    dependency-mr-undeclared [MAJOR] Relies on an undeclared change of a shared library
+    uses-removed-api [BLOCKER, needs judgement] Removes API that a related change still uses
+    missing-required-argument [BLOCKER, needs judgement] Adds a required parameter that a related change does not pass
+    contract-misuse [MAJOR] Uses a changed API against its new contract
+  Threads
+    mobile-blocking [BLOCKER] Blocking call on the main thread
+  Errors
+    mobile-assert [MAJOR, needs judgement] Not-null assertion
+  Style
+    mobile-lines [MINOR, max 120] Line over 120 characters
+
+Repository rules
+  screen-names [MINOR] Screens end in Screen.
+
+Repository criteria ignored
+  `Bad Id` (.agent-code-review/criteria.md:9) — the id is not kebab-case
+  `mobile-assert` in disabledRules (.agent-code-review/config.json) — pack and core rules always apply
+
+Not verified
+  app/src/main/res/drawable/logo.png: unsupported-language (no pack covers .png files)
+
+Signals: [DECIDE] needs a decision: confirm it with a severity, or dismiss it with a reason.
+  [<SEVERITY>] becomes a finding at that severity unless dismissed with a reason; a confirmation keeps the severity.
+  existing: the line is already on the target branch, so its finding is pre-existing; only a pre-existing signal
+  can be confirmed as a crash, and a crash is a BLOCKER.
+  Decide a signal; do not repeat it as a finding.
+
+Change-request signals
+  s2 [DECIDE] uses-removed-api at app/src/main/java/com/example/screens/HomeScreen.kt:3:5 LEFT, mr · uses github:github.com/acr-plugin-sandbox/core-lib@main src/main/java/com/example/core/Loader.kt:8
+
+Files in this part: 2 of 2
+
+== app/src/main/java/com/example/screens/HomeScreen.kt (modified, kotlin)
+diff:
+@@ -3,1 +3,1 @@ class Screen {
+-    val old3 = 0
++    val value3 = 3
+code at head (whole file):
+1 | package com.example.screens
+2 |     val value2 = 2
+3 |     val value3 = 3
+4 |     val value4 = 4
+5 |     val value5 = 5
+6 |     val value6 = 6
+signals:
+  s1 [DECIDE] mobile-assert at 2:9, existing
+  s3 [BLOCKER] mobile-blocking at 3:18, mr
+
+== app/src/main/res/drawable/logo.png (added, findings in the summary: unsupported-language)
+
+Judgement: write acr-plugin-sandbox_sample-app-12-cccccccc/judgement.json as defined by schemas/judgement.schema.json.
