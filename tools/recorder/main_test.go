@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -275,5 +276,18 @@ func TestRunExtendKeepsExistingRecordings(t *testing.T) {
 		if strings.Contains(s, "/pulls/") {
 			t.Errorf("-extend read %s again", s)
 		}
+	}
+}
+
+func TestScenarioS7(t *testing.T) {
+	s := scenarios["S7"]
+	want := []ghrecord.Target{pr("sample-app", 8), pr("kmp-shared", 3)}
+	if !reflect.DeepEqual(s.targets, want) {
+		t.Errorf("S7 targets %v, want %v", s.targets, want)
+	}
+	// kmp-shared S7 adds an expect without an iOS actual: the detector
+	// searches the target branch for the declaration's name.
+	if want := []search{{Repo: "kmp-shared", Term: "deviceModel", Rule: "kmp-expect-without-actual"}}; !reflect.DeepEqual(s.searches, want) {
+		t.Errorf("S7 searches %v, want %v", s.searches, want)
 	}
 }

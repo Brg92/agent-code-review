@@ -83,6 +83,13 @@ var scenarios = map[string]scenario{
 	"S4": {targets: []ghrecord.Target{pr("feature-lib", 1)}},
 	"S5": {targets: []ghrecord.Target{pr("sample-app", 3), pr("sample-app", 4)}},
 	"S6": {targets: []ghrecord.Target{pr("sample-app", 5), pr("sample-app", 6), pr("core-lib", 2), pr("kmp-shared", 1)}},
+	// CR-level detectors: missing tests and variant asymmetry in sample-app,
+	// whose base branch holds a test written first; source-set asymmetry and
+	// an expect without an iOS actual in kmp-shared.
+	"S7": {targets: []ghrecord.Target{pr("sample-app", 8), pr("kmp-shared", 3)}, searches: []search{
+		// kmp-shared S7 adds expect fun deviceModel() with an androidMain actual only.
+		{Repo: "kmp-shared", Term: "deviceModel", Rule: "kmp-expect-without-actual"},
+	}},
 	"queue": {requests: []ghrecord.Request{{
 		Path:  "/search/issues",
 		Query: map[string]string{"q": "is:pr is:open review-requested:@me org:" + org, "per_page": "100"},
