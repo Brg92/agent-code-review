@@ -78,3 +78,19 @@ func TestFollowUps(t *testing.T) {
 		t.Errorf("FollowUps =\n%+v\nwant\n%+v", got, want)
 	}
 }
+
+func TestTreeRequest(t *testing.T) {
+	got := TreeRequest(target, "headsha")
+	want := Request{Path: "/repos/o/core/git/trees/headsha", Query: map[string]string{"recursive": "1"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("TreeRequest = %+v, want %+v", got, want)
+	}
+}
+
+func TestSearchRequest(t *testing.T) {
+	got := SearchRequest("o", "core", "legacyToken")
+	want := Request{Path: "/search/code", Query: map[string]string{"q": "legacyToken repo:o/core", "per_page": "100"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("SearchRequest = %+v, want %+v", got, want)
+	}
+}

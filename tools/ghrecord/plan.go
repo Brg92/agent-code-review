@@ -105,3 +105,18 @@ func FollowUps(t Target, pr PullRequest, files []PullRequestFile) []Request {
 	}
 	return reqs
 }
+
+// TreeRequest returns the request for the recursive Git tree of a commit.
+// GitHub sets the response's truncated flag when the tree is too large.
+func TreeRequest(t Target, sha string) Request {
+	return Request{Path: t.repoPath() + "/git/trees/" + sha, Query: map[string]string{"recursive": "1"}}
+}
+
+// SearchPath is the path of the code search endpoint.
+const SearchPath = "/search/code"
+
+// SearchRequest returns the code search of a term in one repository. Code
+// search only indexes the default branch.
+func SearchRequest(owner, repo, term string) Request {
+	return Request{Path: SearchPath, Query: map[string]string{"q": term + " repo:" + owner + "/" + repo, "per_page": "100"}}
+}
