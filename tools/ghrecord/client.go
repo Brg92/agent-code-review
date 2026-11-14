@@ -159,6 +159,9 @@ func (c *Client) Record(t Target) error {
 		files = append(files, batch...)
 	}
 
+	if err := c.recordTree(t, pr.Head.SHA); err != nil {
+		return err
+	}
 	for _, req := range FollowUps(t, pr, files) {
 		status, _, err := c.Get(req)
 		if err != nil {
@@ -167,6 +170,19 @@ func (c *Client) Record(t Target) error {
 		if status != http.StatusOK && status != http.StatusNotFound {
 			return fmt.Errorf("%s: %s: status %d", t, req.Path, status)
 		}
+	}
+	return nil
+}
+
+// recordTree records the recursive tree at the head commit, with its
+// truncated flag as GitHub returns it. There is no tree at the base.
+func (c *Client) recordTree(t Target, sha string) error {
+	status, _, err := c.Get(TreeRequest(t, sha))
+	if err != nil {
+		return err
+	}
+	if status != http.StatusOK {
+		return fmt.Errorf("%s: tree at %s: status %d", t, sha, status)
 	}
 	return nil
 }

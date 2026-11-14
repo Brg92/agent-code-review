@@ -40,6 +40,7 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 		"/repos/o/r/issues/1/comments?per_page=100":                   `[{"user":{"login":"RealReviewer","id":7},"body":"ok"}]`,
 		"/repos/o/r/commits/h1/check-runs?per_page=100":               `{"total_count":0,"check_runs":[]}`,
 		"/repos/o/r/commits/h1/status":                                `{"state":"pending","statuses":[]}`,
+		"/repos/o/r/git/trees/h1?recursive=1":                         `{"sha":"h1","tree":[{"path":"A.kt","type":"blob"}],"truncated":true}`,
 		"/repos/o/r/contents/.agent-code-review/config.json?ref=main": `{"type":"file","content":"e30="}`,
 	}}
 	api.server = httptest.NewServer(http.HandlerFunc(api.serve))
@@ -148,6 +149,39 @@ func TestRecordPullRequest(t *testing.T) {
 				t.Errorf("unexpected request %s", s)
 			}
 		}
+	}
+}
+
+func TestRecordTreeAtHead(t *testing.T) {
+	api := newFakeAPI(t)
+	c := newTestClient(t, api)
+	if err := c.Record(Target{Owner: "o", Repo: "r", Number: 1}); err != nil {
+		t.Fatal(err)
+	}
+	tree, ok := readRecordings(t, c.Dir)["/repos/o/r/git/trees/h1?"+fmt.Sprint(map[string]string{"recursive": "1"})]
+	if !ok || tree.Status != 200 {
+		t.Fatalf("tree at head not recorded: %v", ok)
+	}
+	var body struct {
+		Truncated bool
+		Tree      []struct{ Path string }
+	}
+	if err := json.Unmarshal(tree.Body, &body); err != nil || !body.Truncated || len(body.Tree) != 1 {
+		t.Errorf("tree body %s: the truncated flag is not kept as returned (%v)", tree.Body, err)
+	}
+	for _, s := range api.seen {
+		if strings.Contains(s, "/git/trees/b1") {
+			t.Errorf("tree at base requested: %s", s)
+		}
+	}
+}
+
+func TestRecordFailsWithoutTree(t *testing.T) {
+	api := newFakeAPI(t)
+	delete(api.routes, "/repos/o/r/git/trees/h1?recursive=1")
+	c := newTestClient(t, api)
+	if err := c.Record(Target{Owner: "o", Repo: "r", Number: 1}); err == nil || !strings.Contains(err.Error(), "tree") {
+		t.Errorf("Record without a tree: %v", err)
 	}
 }
 
