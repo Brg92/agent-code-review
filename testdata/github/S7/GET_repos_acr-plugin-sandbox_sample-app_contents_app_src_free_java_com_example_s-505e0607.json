@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/app/src/free/java/com/example/sample/FeatureFlags.kt",
+  "query": {
+    "ref": "a6201f917e0d875e41bb7483140c0d4264427740"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"d385aa9fb4f6359bdaeaa1254ff6241d757d2a93\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/d385aa9fb4f6359bdaeaa1254ff6241d757d2a93",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/a6201f917e0d875e41bb7483140c0d4264427740/app/src/free/java/com/example/sample/FeatureFlags.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/free/java/com/example/sample/FeatureFlags.kt?ref=a6201f917e0d875e41bb7483140c0d4264427740"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zYW1wbGUKCm9iamVjdCBGZWF0dXJlRmxh\nZ3MgewogICAgY29uc3QgdmFsIFNIT1dfVVBHUkFERV9CQU5ORVIgPSB0cnVl\nCgogICAgLyoqIFNob3dzIHRoZSBwcm9tbyBjYXJkIG9uIHRoZSBob21lIHNj\ncmVlbi4gKi8KICAgIGNvbnN0IHZhbCBTSE9XX1BST01PX0NBUkQgPSB0cnVl\nCn0K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/a6201f917e0d875e41bb7483140c0d4264427740/app/src/free/java/com/example/sample/FeatureFlags.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/d385aa9fb4f6359bdaeaa1254ff6241d757d2a93",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a6201f917e0d875e41bb7483140c0d4264427740/app/src/free/java/com/example/sample/FeatureFlags.kt",
+    "name": "FeatureFlags.kt",
+    "path": "app/src/free/java/com/example/sample/FeatureFlags.kt",
+    "sha": "d385aa9fb4f6359bdaeaa1254ff6241d757d2a93",
+    "size": 183,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/free/java/com/example/sample/FeatureFlags.kt?ref=a6201f917e0d875e41bb7483140c0d4264427740"
+  }
+}

@@ -4,7 +4,7 @@
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "\"6e0333f9fac037b12232f0fcfa8171281f089144e593f11bea55c14c3f246154\""
+    "ETag": "\"8725bbc3cc0705d1e99d60c6b2b5fc0aecc9ab02c6bb3764fa1770cf41ed2654\""
   },
   "body": {
     "_links": {
@@ -30,11 +30,11 @@
         "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/8"
       },
       "statuses": {
-        "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/a270fb4eb35363871554670cdfa1547b854a628f"
+        "href": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/a6201f917e0d875e41bb7483140c0d4264427740"
       }
     },
     "active_lock_reason": null,
-    "additions": 16,
+    "additions": 22,
     "assignee": null,
     "assignees": [],
     "author_association": "COLLABORATOR",
@@ -124,7 +124,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls{/number}",
-        "pushed_at": "2026-11-14T15:38:41Z",
+        "pushed_at": "2026-11-14T15:44:30Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/releases{/id}",
         "size": 10,
         "ssh_url": "git@github.com:acr-plugin-sandbox/sample-app.git",
@@ -173,7 +173,7 @@
     "closed_at": null,
     "comments": 0,
     "comments_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/issues/8/comments",
-    "commits": 1,
+    "commits": 2,
     "commits_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/8/commits",
     "created_at": "2026-11-14T15:38:50Z",
     "deletions": 0,
@@ -264,7 +264,7 @@
         "private": false,
         "pull_request_creation_policy": "all",
         "pulls_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls{/number}",
-        "pushed_at": "2026-11-14T15:38:41Z",
+        "pushed_at": "2026-11-14T15:44:30Z",
         "releases_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/releases{/id}",
         "size": 10,
         "ssh_url": "git@github.com:acr-plugin-sandbox/sample-app.git",
@@ -285,7 +285,7 @@
         "watchers_count": 0,
         "web_commit_signoff_required": false
       },
-      "sha": "a270fb4eb35363871554670cdfa1547b854a628f",
+      "sha": "a6201f917e0d875e41bb7483140c0d4264427740",
       "user": {
         "avatar_url": "https://avatars.githubusercontent.com/u/351167066?v=4",
         "events_url": "https://api.github.com/users/acr-plugin-sandbox/events{/privacy}",
@@ -314,7 +314,7 @@
     "labels": [],
     "locked": false,
     "maintainer_can_modify": false,
-    "merge_commit_sha": "202d434bdd26d7fa7741d4382f6540da465bf184",
+    "merge_commit_sha": "59e9a3c2901523dd6fc22259a463a3ba8fc16f21",
     "mergeable": true,
     "mergeable_state": "clean",
     "merged": false,
@@ -353,9 +353,9 @@
     "review_comments": 0,
     "review_comments_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/8/comments",
     "state": "open",
-    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/a270fb4eb35363871554670cdfa1547b854a628f",
+    "statuses_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/statuses/a6201f917e0d875e41bb7483140c0d4264427740",
     "title": "Add the avatar mapper and the promo card flag",
-    "updated_at": "2026-11-14T15:38:51Z",
+    "updated_at": "2026-11-14T15:44:31Z",
     "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/8",
     "user": {
       "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",

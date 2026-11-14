@@ -1,12 +1,12 @@
 {
   "method": "GET",
-  "path": "/repos/acr-plugin-sandbox/sample-app/commits/a270fb4eb35363871554670cdfa1547b854a628f/check-runs",
+  "path": "/repos/acr-plugin-sandbox/sample-app/commits/a6201f917e0d875e41bb7483140c0d4264427740/check-runs",
   "query": {
     "per_page": "100"
   },
   "status": 200,
   "headers": {
-    "ETag": "W/\"7a627f99fbc14febbb09b8fd33798841f7833d0968f22f7a2108a1643bb3b9a5\""
+    "ETag": "W/\"f6e5c7d87aee958b7c8b93b1027c88f202b66567b4912a87c2b142a9875a61e5\""
   },
   "body": {
     "check_runs": [
@@ -102,20 +102,20 @@
           "updated_at": "2026-06-18T16:17:48Z"
         },
         "check_suite": {
-          "id": 118083657317
+          "id": 118084975825
         },
-        "completed_at": "2026-11-14T15:39:02Z",
+        "completed_at": "2026-11-14T15:44:47Z",
         "conclusion": "success",
-        "details_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/43611297969/job/132496713668",
-        "external_id": "b8277e49-eca3-5620-aaab-c1ba205df383",
-        "head_sha": "a270fb4eb35363871554670cdfa1547b854a628f",
-        "html_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/43611297969/job/132496713668",
-        "id": 132496713668,
+        "details_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/43611798737/job/132498243542",
+        "external_id": "32848e06-7635-5a29-9e88-7e7b98cdea71",
+        "head_sha": "a6201f917e0d875e41bb7483140c0d4264427740",
+        "html_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/43611798737/job/132498243542",
+        "id": 132498243542,
         "name": "test",
-        "node_id": "CR_kwDOVgMpdM8AAAAe2WtnxA",
+        "node_id": "CR_kwDOVgMpdM8AAAAe2YK_1g",
         "output": {
           "annotations_count": 1,
-          "annotations_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/132496713668/annotations",
+          "annotations_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/132498243542/annotations",
           "summary": null,
           "text": null,
           "title": null
@@ -138,16 +138,16 @@
                 "name": "sample-app",
                 "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
               },
-              "sha": "a270fb4eb35363871554670cdfa1547b854a628f"
+              "sha": "a6201f917e0d875e41bb7483140c0d4264427740"
             },
             "id": 5313067008,
             "number": 8,
             "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/8"
           }
         ],
-        "started_at": "2026-11-14T15:38:57Z",
+        "started_at": "2026-11-14T15:44:38Z",
         "status": "completed",
-        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/132496713668"
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/132498243542"
       },
       {
         "app": {
@@ -241,20 +241,20 @@
           "updated_at": "2026-06-18T16:17:48Z"
         },
         "check_suite": {
-          "id": 118083657317
+          "id": 118084975825
         },
-        "completed_at": "2026-11-14T15:39:01Z",
+        "completed_at": "2026-11-14T15:44:42Z",
         "conclusion": "success",
-        "details_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/43611297969/job/132496713446",
-        "external_id": "18e40c77-5915-5cc2-924e-2ad7d3e446cb",
-        "head_sha": "a270fb4eb35363871554670cdfa1547b854a628f",
-        "html_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/43611297969/job/132496713446",
-        "id": 132496713446,
+        "details_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/43611798737/job/132498243312",
+        "external_id": "81bc9788-2077-5ff2-a6ce-86a82b37443a",
+        "head_sha": "a6201f917e0d875e41bb7483140c0d4264427740",
+        "html_url": "https://github.com/acr-plugin-sandbox/sample-app/actions/runs/43611798737/job/132498243312",
+        "id": 132498243312,
         "name": "lint",
-        "node_id": "CR_kwDOVgMpdM8AAAAe2Wtm5g",
+        "node_id": "CR_kwDOVgMpdM8AAAAe2YK-8A",
         "output": {
           "annotations_count": 1,
-          "annotations_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/132496713446/annotations",
+          "annotations_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/132498243312/annotations",
           "summary": null,
           "text": null,
           "title": null
@@ -277,16 +277,16 @@
                 "name": "sample-app",
                 "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
               },
-              "sha": "a270fb4eb35363871554670cdfa1547b854a628f"
+              "sha": "a6201f917e0d875e41bb7483140c0d4264427740"
             },
             "id": 5313067008,
             "number": 8,
             "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/pulls/8"
           }
         ],
-        "started_at": "2026-11-14T15:38:57Z",
+        "started_at": "2026-11-14T15:44:37Z",
         "status": "completed",
-        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/132496713446"
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/check-runs/132498243312"
       }
     ],
     "total_count": 2

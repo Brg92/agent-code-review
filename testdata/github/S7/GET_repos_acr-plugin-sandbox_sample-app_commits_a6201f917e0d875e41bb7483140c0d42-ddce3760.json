@@ -1,13 +1,13 @@
 {
   "method": "GET",
-  "path": "/repos/acr-plugin-sandbox/sample-app/commits/a270fb4eb35363871554670cdfa1547b854a628f/status",
+  "path": "/repos/acr-plugin-sandbox/sample-app/commits/a6201f917e0d875e41bb7483140c0d4264427740/status",
   "query": {},
   "status": 200,
   "headers": {
-    "ETag": "W/\"7ea4ea8d2526072c51a1070775527baa78a8bfd215a12dbf7942a678ba7e8090\""
+    "ETag": "W/\"6b0be5fe0b005cd1013fdd888f3c5477df97baa9af1c4d7842088293a40ce8bf\""
   },
   "body": {
-    "commit_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a270fb4eb35363871554670cdfa1547b854a628f",
+    "commit_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a6201f917e0d875e41bb7483140c0d4264427740",
     "repository": {
       "archive_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/{archive_format}{/ref}",
       "assignees_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/assignees{/user}",
@@ -76,10 +76,10 @@
       "trees_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees{/sha}",
       "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app"
     },
-    "sha": "a270fb4eb35363871554670cdfa1547b854a628f",
+    "sha": "a6201f917e0d875e41bb7483140c0d4264427740",
     "state": "pending",
     "statuses": [],
     "total_count": 0,
-    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a270fb4eb35363871554670cdfa1547b854a628f/status"
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a6201f917e0d875e41bb7483140c0d4264427740/status"
   }
 }
