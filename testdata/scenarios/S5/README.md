@@ -11,7 +11,7 @@ Two pull requests in `acr-plugin-sandbox/sample-app`, both targeting `main`. Cri
 
 The change adds trailing whitespace in `app/src/main/java/com/example/sample/ui/HomeScreen.kt`. It also adds an `instrumented` job to `.github/workflows/checks.yml` that runs `sleep 2700`.
 
-Expected check runs on the head commit, when recorded within 45 minutes of the push:
+Expected check runs on the head commit, when recorded within 45 minutes of the last re-run of the `instrumented` job (the recording was made after re-running it in both workflow runs):
 
 | Check | Status | Conclusion |
 | --- | --- | --- |
@@ -26,6 +26,10 @@ Expected:
 - The review still runs.
 - No findings in the code. The whitespace is caught by CI, not by review.
 - Verdict **OK**: the CI state is reported but does not change the verdict.
+
+## Change-request signals
+
+None for either pull request. Their recorded trees (`testdata/github/S5/`) are read, and the changed files (`HomeScreen.kt`, `README.md`) give no signal.
 
 ## S5 B: no checks on the head
 

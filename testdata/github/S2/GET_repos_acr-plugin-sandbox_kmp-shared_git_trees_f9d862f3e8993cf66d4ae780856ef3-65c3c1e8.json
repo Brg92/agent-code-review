@@ -1,0 +1,312 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/git/trees/f9d862f3e8993cf66d4ae780856ef358b7e91d32",
+  "query": {
+    "recursive": "1"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"8770954297045336efb732453def1f2505aa3600a50bfcec6dffd833ee5afbd4\""
+  },
+  "body": {
+    "sha": "f9d862f3e8993cf66d4ae780856ef358b7e91d32",
+    "tree": [
+      {
+        "mode": "040000",
+        "path": ".github",
+        "sha": "971b93729d9d1ce4c02048851ebc987b9323353c",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/971b93729d9d1ce4c02048851ebc987b9323353c"
+      },
+      {
+        "mode": "040000",
+        "path": ".github/workflows",
+        "sha": "e39022f14adf8762d446fb505558cd0370ee4c3f",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/e39022f14adf8762d446fb505558cd0370ee4c3f"
+      },
+      {
+        "mode": "100644",
+        "path": ".github/workflows/checks.yml",
+        "sha": "7af7e0f3ed8995d3de8eba6696b88afed1fc87a6",
+        "size": 857,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/7af7e0f3ed8995d3de8eba6696b88afed1fc87a6"
+      },
+      {
+        "mode": "100644",
+        "path": ".gitignore",
+        "sha": "b43b3f4ebf7f01e7185445657505d6a4200df482",
+        "size": 74,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/b43b3f4ebf7f01e7185445657505d6a4200df482"
+      },
+      {
+        "mode": "100644",
+        "path": "README.md",
+        "sha": "0cc5524b10478c72fa3a1738f05c32bbef684a23",
+        "size": 435,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/0cc5524b10478c72fa3a1738f05c32bbef684a23"
+      },
+      {
+        "mode": "100644",
+        "path": "build.gradle.kts",
+        "sha": "0e11445a615ac8d2f29ef37ace7f22684882d19b",
+        "size": 143,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/0e11445a615ac8d2f29ef37ace7f22684882d19b"
+      },
+      {
+        "mode": "040000",
+        "path": "iosApp",
+        "sha": "74ce5198cc13d814dd0e93efb806e23d57d920e6",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/74ce5198cc13d814dd0e93efb806e23d57d920e6"
+      },
+      {
+        "mode": "040000",
+        "path": "iosApp/iosApp",
+        "sha": "29e51f056ff8ee0bb46e161c9cd6105572e89b6e",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/29e51f056ff8ee0bb46e161c9cd6105572e89b6e"
+      },
+      {
+        "mode": "100644",
+        "path": "iosApp/iosApp/ContentView.swift",
+        "sha": "b549039bf57241bffc5ac15f0f3280aafaec35a6",
+        "size": 176,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/b549039bf57241bffc5ac15f0f3280aafaec35a6"
+      },
+      {
+        "mode": "100644",
+        "path": "iosApp/iosApp/iOSApp.swift",
+        "sha": "927e0b97b8d54a855c3937d1020ed8ef8564aee5",
+        "size": 136,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/927e0b97b8d54a855c3937d1020ed8ef8564aee5"
+      },
+      {
+        "mode": "100644",
+        "path": "settings.gradle.kts",
+        "sha": "09bfe3ff0114cd9910de3b1da84d9a5cf610e099",
+        "size": 266,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/09bfe3ff0114cd9910de3b1da84d9a5cf610e099"
+      },
+      {
+        "mode": "040000",
+        "path": "shared",
+        "sha": "c78b6f7295e274d72d34bbb1e55a2a219fd0dc72",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/c78b6f7295e274d72d34bbb1e55a2a219fd0dc72"
+      },
+      {
+        "mode": "100644",
+        "path": "shared/build.gradle.kts",
+        "sha": "3396871a28465494ae1c440a259f79628a9590fd",
+        "size": 494,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/3396871a28465494ae1c440a259f79628a9590fd"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src",
+        "sha": "b19489451f32353a7ed4b27c5010ad473b5563c2",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/b19489451f32353a7ed4b27c5010ad473b5563c2"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/androidMain",
+        "sha": "9d2b999ccda7dd3d64f7b644a162a98420a5f09d",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/9d2b999ccda7dd3d64f7b644a162a98420a5f09d"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/androidMain/kotlin",
+        "sha": "bddf58a35a7df2b57c77250ae4457b6278554f27",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/bddf58a35a7df2b57c77250ae4457b6278554f27"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/androidMain/kotlin/com",
+        "sha": "2af287ee2e2edc14f5c7c5ae7bcc1e1d732ffa92",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/2af287ee2e2edc14f5c7c5ae7bcc1e1d732ffa92"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/androidMain/kotlin/com/example",
+        "sha": "ef917a22dda2fff457cceb3b93c783cd42332a2d",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/ef917a22dda2fff457cceb3b93c783cd42332a2d"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/androidMain/kotlin/com/example/shared",
+        "sha": "0336ad1f06945c32c114d98300cd39f6a0e434cf",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/0336ad1f06945c32c114d98300cd39f6a0e434cf"
+      },
+      {
+        "mode": "100644",
+        "path": "shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt",
+        "sha": "b40f17724e18fadc01cfd32500a1de493a5cbf2c",
+        "size": 191,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/b40f17724e18fadc01cfd32500a1de493a5cbf2c"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonMain",
+        "sha": "05887244ebb8682a47bc15ecba543929f17e2e26",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/05887244ebb8682a47bc15ecba543929f17e2e26"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonMain/kotlin",
+        "sha": "4eb0a18bcccb3b0737a7c5b2e51ed0b7288089f5",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/4eb0a18bcccb3b0737a7c5b2e51ed0b7288089f5"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonMain/kotlin/com",
+        "sha": "005686492708c7d3c3fed1f0b8d06ab44c43b8e2",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/005686492708c7d3c3fed1f0b8d06ab44c43b8e2"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonMain/kotlin/com/example",
+        "sha": "13688e9a905d09746b6827743a50a4d12702fc66",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/13688e9a905d09746b6827743a50a4d12702fc66"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonMain/kotlin/com/example/shared",
+        "sha": "c5bea43c001759f27a73286a1fa4180906d34dda",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/c5bea43c001759f27a73286a1fa4180906d34dda"
+      },
+      {
+        "mode": "100644",
+        "path": "shared/src/commonMain/kotlin/com/example/shared/Greeting.kt",
+        "sha": "0a0f0dfa5c5ae9e618f0d63f27e6824b1d7438b1",
+        "size": 104,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/0a0f0dfa5c5ae9e618f0d63f27e6824b1d7438b1"
+      },
+      {
+        "mode": "100644",
+        "path": "shared/src/commonMain/kotlin/com/example/shared/Platform.kt",
+        "sha": "50628c41dbc66c0fcf3d7fd5de7c0feaf5279020",
+        "size": 100,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/50628c41dbc66c0fcf3d7fd5de7c0feaf5279020"
+      },
+      {
+        "mode": "100644",
+        "path": "shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
+        "sha": "0125c4f98087526b9089004a430bbdb9aa82c717",
+        "size": 178,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/0125c4f98087526b9089004a430bbdb9aa82c717"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonTest",
+        "sha": "4e794d02ffae5fb3fd08dad06e363d3b2a57819d",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/4e794d02ffae5fb3fd08dad06e363d3b2a57819d"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonTest/kotlin",
+        "sha": "cdac05c2cb651878c9311528db1ab918796c3d50",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/cdac05c2cb651878c9311528db1ab918796c3d50"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonTest/kotlin/com",
+        "sha": "fdefe2a3ac7c7590ecb427f60c6873f4686b1de0",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/fdefe2a3ac7c7590ecb427f60c6873f4686b1de0"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonTest/kotlin/com/example",
+        "sha": "11be05cd8c303faef3e86794a817e9575c4b8018",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/11be05cd8c303faef3e86794a817e9575c4b8018"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/commonTest/kotlin/com/example/shared",
+        "sha": "9807bd2152b286d3dd776f7a2edae52ac07c0c9c",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/9807bd2152b286d3dd776f7a2edae52ac07c0c9c"
+      },
+      {
+        "mode": "100644",
+        "path": "shared/src/commonTest/kotlin/com/example/shared/GreetingTest.kt",
+        "sha": "1a40bf10ab1deb094c24359ee21009c9b3ddd0e3",
+        "size": 219,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/1a40bf10ab1deb094c24359ee21009c9b3ddd0e3"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/iosMain",
+        "sha": "30114495e37fcc337d44446fd2aae979aba19199",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/30114495e37fcc337d44446fd2aae979aba19199"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/iosMain/kotlin",
+        "sha": "b8ae67a28bc3ba42b46fef93fe486b85f7888a82",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/b8ae67a28bc3ba42b46fef93fe486b85f7888a82"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/iosMain/kotlin/com",
+        "sha": "7f16a9416ee028c5b0b76690707d7eb310df60f5",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/7f16a9416ee028c5b0b76690707d7eb310df60f5"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/iosMain/kotlin/com/example",
+        "sha": "4c925e3dbf8b5d4fd842ee5b41c4965dc2c552b8",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/4c925e3dbf8b5d4fd842ee5b41c4965dc2c552b8"
+      },
+      {
+        "mode": "040000",
+        "path": "shared/src/iosMain/kotlin/com/example/shared",
+        "sha": "a5fcf47b4cf3afb0543be3f62f07ba74701274ab",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/a5fcf47b4cf3afb0543be3f62f07ba74701274ab"
+      },
+      {
+        "mode": "100644",
+        "path": "shared/src/iosMain/kotlin/com/example/shared/Platform.ios.kt",
+        "sha": "3b1ac46dac520d01b11055404a793ccabdabb23d",
+        "size": 353,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/3b1ac46dac520d01b11055404a793ccabdabb23d"
+      }
+    ],
+    "truncated": false,
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/f9d862f3e8993cf66d4ae780856ef358b7e91d32"
+  }
+}

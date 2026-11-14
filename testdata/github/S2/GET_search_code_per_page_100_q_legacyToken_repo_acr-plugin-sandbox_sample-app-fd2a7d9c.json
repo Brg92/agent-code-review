@@ -1,0 +1,15 @@
+{
+  "method": "GET",
+  "path": "/search/code",
+  "query": {
+    "per_page": "100",
+    "q": "legacyToken repo:acr-plugin-sandbox/sample-app"
+  },
+  "status": 200,
+  "headers": {},
+  "body": {
+    "incomplete_results": true,
+    "items": [],
+    "total_count": 0
+  }
+}

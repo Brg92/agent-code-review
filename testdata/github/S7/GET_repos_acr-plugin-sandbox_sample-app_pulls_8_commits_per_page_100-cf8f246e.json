@@ -1,0 +1,97 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/pulls/8/commits",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"a92c02546c2531577c31bc7558193729bcaa1c5786c8ab8b4280e677ce512898\""
+  },
+  "body": [
+    {
+      "author": null,
+      "comments_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a270fb4eb35363871554670cdfa1547b854a628f/comments",
+      "commit": {
+        "author": {
+          "date": "2026-11-02T09:02:00Z",
+          "email": "author@acr-sandbox.invalid",
+          "name": "ACR Sandbox Author"
+        },
+        "comment_count": 0,
+        "committer": {
+          "date": "2026-11-02T09:02:00Z",
+          "email": "author@acr-sandbox.invalid",
+          "name": "ACR Sandbox Author"
+        },
+        "message": "Add the avatar mapper, the greeting helper and the promo card flag",
+        "tree": {
+          "sha": "a77f4f2eee01e1acb2c26abecf2ca1f7c520af71",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/a77f4f2eee01e1acb2c26abecf2ca1f7c520af71"
+        },
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/commits/a270fb4eb35363871554670cdfa1547b854a628f",
+        "verification": {
+          "payload": null,
+          "reason": "unsigned",
+          "signature": null,
+          "verified": false,
+          "verified_at": null
+        }
+      },
+      "committer": null,
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/commit/a270fb4eb35363871554670cdfa1547b854a628f",
+      "node_id": "C_kwDOVgMpdNoAKGEyNzBmYjRlYjM1MzYzODcxNTU0NjcwY2RmYTE1NDdiODU0YTYyOGY",
+      "parents": [
+        {
+          "html_url": "https://github.com/acr-plugin-sandbox/sample-app/commit/bd9a291324f4e6008e5f12716f4747e39ecb7594",
+          "sha": "bd9a291324f4e6008e5f12716f4747e39ecb7594",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/bd9a291324f4e6008e5f12716f4747e39ecb7594"
+        }
+      ],
+      "sha": "a270fb4eb35363871554670cdfa1547b854a628f",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a270fb4eb35363871554670cdfa1547b854a628f"
+    },
+    {
+      "author": null,
+      "comments_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a6201f917e0d875e41bb7483140c0d4264427740/comments",
+      "commit": {
+        "author": {
+          "date": "2026-11-02T09:02:30Z",
+          "email": "author@acr-sandbox.invalid",
+          "name": "ACR Sandbox Author"
+        },
+        "comment_count": 0,
+        "committer": {
+          "date": "2026-11-02T09:02:30Z",
+          "email": "author@acr-sandbox.invalid",
+          "name": "ACR Sandbox Author"
+        },
+        "message": "Document the new declarations",
+        "tree": {
+          "sha": "7a835f7fb40a9f616efc91fb8701a698e82d1594",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/7a835f7fb40a9f616efc91fb8701a698e82d1594"
+        },
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/commits/a6201f917e0d875e41bb7483140c0d4264427740",
+        "verification": {
+          "payload": null,
+          "reason": "unsigned",
+          "signature": null,
+          "verified": false,
+          "verified_at": null
+        }
+      },
+      "committer": null,
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/commit/a6201f917e0d875e41bb7483140c0d4264427740",
+      "node_id": "C_kwDOVgMpdNoAKGE2MjAxZjkxN2UwZDg3NWU0MWJiNzQ4MzE0MGMwZDQyNjQ0Mjc3NDA",
+      "parents": [
+        {
+          "html_url": "https://github.com/acr-plugin-sandbox/sample-app/commit/a270fb4eb35363871554670cdfa1547b854a628f",
+          "sha": "a270fb4eb35363871554670cdfa1547b854a628f",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a270fb4eb35363871554670cdfa1547b854a628f"
+        }
+      ],
+      "sha": "a6201f917e0d875e41bb7483140c0d4264427740",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/commits/a6201f917e0d875e41bb7483140c0d4264427740"
+    }
+  ]
+}

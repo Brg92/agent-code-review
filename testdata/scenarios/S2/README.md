@@ -41,8 +41,30 @@ sample-app S2 uses `SessionManager.expiresAt()`. That method is added by core-li
 
 S1 is reviewed at depth 1 through its `#N` entry, so its findings (see `../S1/README.md`) are part of the cascade too. S4 at depth 3 adds no findings (see `../S4/README.md`).
 
+## Change-request signals
+
+The change-request rules run on the recorded trees of the head commits (`testdata/github/S2/`, S4 for feature-lib).
+
+| Change request | Rule | File | Result |
+| --- | --- | --- | --- |
+| `sample-app#7` | `missing-tests` | `data/SessionRepository.kt` | automatic MAJOR, not dismissed |
+| `sample-app#7` | `missing-tests` | `ui/HomeViewModel.kt` | automatic MAJOR, not dismissed |
+| `core-lib#3` | `missing-tests` | `SessionManager.kt` | automatic MAJOR, not dismissed |
+| `core-lib#3` | `uses-removed-api` | `SessionManager.kt` | not verified: `search-unavailable` |
+
+sample-app S2 modifies `SessionRepository` and `HomeViewModel`, which have no tests in the tree (as in S1), and core-lib S2 modifies `SessionManager`, which has none either. kmp-shared S2 and S4 give no signal.
+
+### The search of `legacyToken`
+
+The `uses-removed-api` candidate needs a code search of sample-app's `main` for `legacyToken`. GitHub's code search does not serve the sandbox repositories: the recorded search (`GET /search/code`, `legacyToken repo:acr-plugin-sandbox/sample-app`) returned `total_count` 0, no items and `incomplete_results` true, as it did for every sandbox search. An empty incomplete result proves nothing, so with the recording the detector reports `SessionManager.kt` as not verified and raises no candidate. The finding above is what the rule gives when the search works: `TestScenarioS2RemovedAPI` shows it by searching the recorded contents of sample-app `main`.
+
 ## Expected verdict
+
+With a working code search:
 
 - **Cascade:** BLOCKED, because of core-lib S2 and S1.
 - **core-lib S2 and S1:** BLOCKED.
-- **sample-app S2, kmp-shared S2 and S4:** OK, no findings.
+- **sample-app S2:** OK, with the two MAJOR `missing-tests` findings.
+- **kmp-shared S2 and S4:** OK, no findings.
+
+With the recorded search, core-lib S2 is OK: a MAJOR `missing-tests` finding, and `SessionManager.kt` not verified for `uses-removed-api`.

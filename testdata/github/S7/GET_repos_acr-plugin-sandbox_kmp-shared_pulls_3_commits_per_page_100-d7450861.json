@@ -1,0 +1,55 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/pulls/3/commits",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"41c29b34c837699d1b68cd97bfe161268a60ace1df04e89ac1ad1a42779ebcb2\""
+  },
+  "body": [
+    {
+      "author": null,
+      "comments_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/commits/5f93f40a34e7883d007db575ed40f9d5660996e6/comments",
+      "commit": {
+        "author": {
+          "date": "2026-11-02T09:03:00Z",
+          "email": "author@acr-sandbox.invalid",
+          "name": "ACR Sandbox Author"
+        },
+        "comment_count": 0,
+        "committer": {
+          "date": "2026-11-02T09:03:00Z",
+          "email": "author@acr-sandbox.invalid",
+          "name": "ACR Sandbox Author"
+        },
+        "message": "Report the device model on Android",
+        "tree": {
+          "sha": "3606718cf3d1280dc227dd217adef4c62d9f3cf5",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/trees/3606718cf3d1280dc227dd217adef4c62d9f3cf5"
+        },
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/commits/5f93f40a34e7883d007db575ed40f9d5660996e6",
+        "verification": {
+          "payload": null,
+          "reason": "unsigned",
+          "signature": null,
+          "verified": false,
+          "verified_at": null
+        }
+      },
+      "committer": null,
+      "html_url": "https://github.com/acr-plugin-sandbox/kmp-shared/commit/5f93f40a34e7883d007db575ed40f9d5660996e6",
+      "node_id": "C_kwDOVgMqkNoAKDVmOTNmNDBhMzRlNzg4M2QwMDdkYjU3NWVkNDBmOWQ1NjYwOTk2ZTY",
+      "parents": [
+        {
+          "html_url": "https://github.com/acr-plugin-sandbox/kmp-shared/commit/f00f8b2d30bf64d8619db447a93fd9781267bbd4",
+          "sha": "f00f8b2d30bf64d8619db447a93fd9781267bbd4",
+          "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/commits/f00f8b2d30bf64d8619db447a93fd9781267bbd4"
+        }
+      ],
+      "sha": "5f93f40a34e7883d007db575ed40f9d5660996e6",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/commits/5f93f40a34e7883d007db575ed40f9d5660996e6"
+    }
+  ]
+}

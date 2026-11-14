@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/AvatarMapper.kt",
+  "query": {
+    "ref": "a6201f917e0d875e41bb7483140c0d4264427740"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"1187d2ba6f44cbaa1494e0ddf55785f5a44ff5bf\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/1187d2ba6f44cbaa1494e0ddf55785f5a44ff5bf",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/a6201f917e0d875e41bb7483140c0d4264427740/app/src/main/java/com/example/sample/data/AvatarMapper.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/AvatarMapper.kt?ref=a6201f917e0d875e41bb7483140c0d4264427740"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zYW1wbGUuZGF0YQoKLyoqIE1hcHMgYSBk\naXNwbGF5IG5hbWUgdG8gdGhlIGluaXRpYWxzIHNob3duIGluIHRoZSBhdmF0\nYXIuICovCmNsYXNzIEF2YXRhck1hcHBlciB7CiAgICAvKiogUmV0dXJucyB0\naGUgaW5pdGlhbHMgb2YgdGhlIGZpcnN0IHR3byB3b3JkcyBvZiBbZGlzcGxh\neU5hbWVdLiAqLwogICAgZnVuIGluaXRpYWxzT2YoZGlzcGxheU5hbWU6IFN0\ncmluZyk6IFN0cmluZyA9CiAgICAgICAgZGlzcGxheU5hbWUKICAgICAgICAg\nICAgLnNwbGl0KCIgIikKICAgICAgICAgICAgLmZpbHRlciB7IGl0LmlzTm90\nQmxhbmsoKSB9CiAgICAgICAgICAgIC50YWtlKDIpCiAgICAgICAgICAgIC5q\nb2luVG9TdHJpbmcoIiIpIHsgaXQuZmlyc3QoKS51cHBlcmNhc2UoKSB9Cn0K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/a6201f917e0d875e41bb7483140c0d4264427740/app/src/main/java/com/example/sample/data/AvatarMapper.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/1187d2ba6f44cbaa1494e0ddf55785f5a44ff5bf",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a6201f917e0d875e41bb7483140c0d4264427740/app/src/main/java/com/example/sample/data/AvatarMapper.kt",
+    "name": "AvatarMapper.kt",
+    "path": "app/src/main/java/com/example/sample/data/AvatarMapper.kt",
+    "sha": "1187d2ba6f44cbaa1494e0ddf55785f5a44ff5bf",
+    "size": 405,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/AvatarMapper.kt?ref=a6201f917e0d875e41bb7483140c0d4264427740"
+  }
+}

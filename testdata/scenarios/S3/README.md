@@ -37,6 +37,16 @@ Expected multi-line suggestion, replacing the five lines of `isExpired`'s body:
 
 The binary file and the 100% rename produce no findings. The deleted file produces no findings either, since it is internal and deprecated.
 
+## Change-request signals
+
+The change-request rules run on the recorded tree of the head commit (`testdata/github/S3/`).
+
+| Change request | Rule | File | Result |
+| --- | --- | --- | --- |
+| `core-lib#1` | `missing-tests` | `SessionManager.kt` | automatic MAJOR, not dismissed |
+
+`SessionManager.kt` is modified and the tree holds no `SessionManagerTest`. The renamed, removed and added files end with no suffix of the rule.
+
 ## Expected verdict
 
-**OK**: one MAJOR and one MINOR, but no BLOCKER and no existing crash, so nothing blocks.
+**OK**: two MAJOR and one MINOR, but no BLOCKER and no existing crash, so nothing blocks.

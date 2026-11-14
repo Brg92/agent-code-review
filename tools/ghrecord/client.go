@@ -20,6 +20,9 @@ type Client struct {
 	HTTP      *http.Client
 	Sanitizer *Sanitizer
 	Dir       string
+	// SearchThrottle spaces the code search requests; nil sends them
+	// without waiting.
+	SearchThrottle *Throttle
 }
 
 // maxBody bounds the size of a response body.
@@ -76,6 +79,9 @@ func (c *Client) fetch(u *url.URL, basePath string) (int, []byte, string, error)
 			return 0, nil, "", fmt.Errorf("%s: query parameter %q has %d values", path, k, len(v))
 		}
 		query[k] = v[0]
+	}
+	if path == SearchPath {
+		c.SearchThrottle.Wait()
 	}
 	httpReq, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
@@ -159,6 +165,9 @@ func (c *Client) Record(t Target) error {
 		files = append(files, batch...)
 	}
 
+	if err := c.recordTree(t, pr.Head.SHA); err != nil {
+		return err
+	}
 	for _, req := range FollowUps(t, pr, files) {
 		status, _, err := c.Get(req)
 		if err != nil {
@@ -169,4 +178,99 @@ func (c *Client) Record(t Target) error {
 		}
 	}
 	return nil
+}
+
+// recordTree records the recursive tree at the head commit, with its
+// truncated flag as GitHub returns it. There is no tree at the base.
+func (c *Client) recordTree(t Target, sha string) error {
+	status, _, err := c.Get(TreeRequest(t, sha))
+	if err != nil {
+		return err
+	}
+	if status != http.StatusOK {
+		return fmt.Errorf("%s: tree at %s: status %d", t, sha, status)
+	}
+	return nil
+}
+
+// SearchResult is what a recorded code search found.
+type SearchResult struct {
+	Total int
+	// Incomplete is the incomplete_results flag as GitHub returned it.
+	Incomplete bool
+	// Paths are the files returned, in order and without repeats.
+	Paths []string
+}
+
+// RecordSearch records the code search of term in owner/repo and then the
+// contents of every file it returns at ref, because a code search returns
+// files and fragments, not line numbers. Code search only indexes the
+// default branch, so ref is that branch. An empty or incomplete result is
+// recorded as returned and reported in the result.
+func (c *Client) RecordSearch(owner, repo, term, ref string) (SearchResult, error) {
+	req := SearchRequest(owner, repo, term)
+	status, pages, err := c.Get(req)
+	if err != nil {
+		return SearchResult{}, err
+	}
+	if status != http.StatusOK {
+		return SearchResult{}, fmt.Errorf("search %q in %s/%s: status %d", term, owner, repo, status)
+	}
+	var res SearchResult
+	seen := map[string]bool{}
+	for _, page := range pages {
+		var body struct {
+			Total      int  `json:"total_count"`
+			Incomplete bool `json:"incomplete_results"`
+			Items      []struct {
+				Path string `json:"path"`
+			} `json:"items"`
+		}
+		if err := json.Unmarshal(page, &body); err != nil {
+			return SearchResult{}, fmt.Errorf("search %q in %s/%s: %w", term, owner, repo, err)
+		}
+		res.Total, res.Incomplete = body.Total, res.Incomplete || body.Incomplete
+		for _, it := range body.Items {
+			if !seen[it.Path] {
+				seen[it.Path] = true
+				res.Paths = append(res.Paths, it.Path)
+			}
+		}
+	}
+	t := Target{Owner: owner, Repo: repo}
+	for _, p := range res.Paths {
+		status, _, err := c.Get(contents(t, p, ref))
+		if err != nil {
+			return SearchResult{}, err
+		}
+		if status != http.StatusOK {
+			return SearchResult{}, fmt.Errorf("contents of %s at %s: status %d", p, ref, status)
+		}
+	}
+	return res, nil
+}
+
+// RecordTreeOfRecorded records only the tree of a pull request that an
+// earlier run already recorded, at the head commit of that recording. It
+// reads the pull request from Dir and sends no other request, so every
+// existing recording stays as it is. A number recorded as not being a
+// pull request has no tree.
+func (c *Client) RecordTreeOfRecorded(t Target) error {
+	req := PullRequestRequest(t)
+	data, err := os.ReadFile(filepath.Join(c.Dir, FileName(http.MethodGet, req.Path, req.Query)))
+	if err != nil {
+		return fmt.Errorf("%s: the pull request is not recorded: %w", t, err)
+	}
+	var rec Recording
+	if err := json.Unmarshal(data, &rec); err != nil {
+		return fmt.Errorf("%s: %w", t, err)
+	}
+	if rec.Status != http.StatusOK {
+		return nil
+	}
+	var pr PullRequest
+	if err := json.Unmarshal(rec.Body, &pr); err != nil || pr.Head.SHA == "" {
+		return fmt.Errorf("%s: the recorded pull request has no head commit", t)
+	}
+	return c.recordTree(t, pr.Head.SHA)
 }

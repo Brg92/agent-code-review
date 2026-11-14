@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/GreetingHelper.kt",
+  "query": {
+    "ref": "a6201f917e0d875e41bb7483140c0d4264427740"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"acba7598a4822ab486bdaa12dd850a84856653c7\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/acba7598a4822ab486bdaa12dd850a84856653c7",
+      "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/a6201f917e0d875e41bb7483140c0d4264427740/app/src/main/java/com/example/sample/data/GreetingHelper.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/GreetingHelper.kt?ref=a6201f917e0d875e41bb7483140c0d4264427740"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zYW1wbGUuZGF0YQoKLyoqIEJ1aWxkcyB0\naGUgZ3JlZXRpbmcgc2hvd24gb24gdGhlIGhvbWUgc2NyZWVuLiAqLwpjbGFz\ncyBHcmVldGluZ0hlbHBlciB7CiAgICAvKiogR3JlZXRzIFtuYW1lXSwgb3Ig\ndGhlIGFub255bW91cyB1c2VyIHdoZW4gaXQgaXMgbnVsbC4gKi8KICAgIGZ1\nbiBncmVldChuYW1lOiBTdHJpbmc/KTogU3RyaW5nID0gaWYgKG5hbWUgPT0g\nbnVsbCkgIkhlbGxvIiBlbHNlICJIZWxsbywgJG5hbWUiCn0K\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/a6201f917e0d875e41bb7483140c0d4264427740/app/src/main/java/com/example/sample/data/GreetingHelper.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/acba7598a4822ab486bdaa12dd850a84856653c7",
+    "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a6201f917e0d875e41bb7483140c0d4264427740/app/src/main/java/com/example/sample/data/GreetingHelper.kt",
+    "name": "GreetingHelper.kt",
+    "path": "app/src/main/java/com/example/sample/data/GreetingHelper.kt",
+    "sha": "acba7598a4822ab486bdaa12dd850a84856653c7",
+    "size": 261,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app/src/main/java/com/example/sample/data/GreetingHelper.kt?ref=a6201f917e0d875e41bb7483140c0d4264427740"
+  }
+}

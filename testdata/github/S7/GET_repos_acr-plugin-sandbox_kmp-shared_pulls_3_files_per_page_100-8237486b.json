@@ -1,0 +1,49 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/pulls/3/files",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"567717ffa7cb4c469cab5641d2d515996c9116139ca95bf06f2536ea7cd5660c\""
+  },
+  "body": [
+    {
+      "additions": 5,
+      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/5f93f40a34e7883d007db575ed40f9d5660996e6/shared%2Fsrc%2FandroidMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FDeviceInfo.android.kt",
+      "changes": 5,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared%2Fsrc%2FandroidMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FDeviceInfo.android.kt?ref=5f93f40a34e7883d007db575ed40f9d5660996e6",
+      "deletions": 0,
+      "filename": "shared/src/androidMain/kotlin/com/example/shared/DeviceInfo.android.kt",
+      "patch": "@@ -0,0 +1,5 @@\n+package com.example.shared\n+\n+import android.os.Build\n+\n+actual fun deviceModel(): String = Build.MODEL",
+      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/5f93f40a34e7883d007db575ed40f9d5660996e6/shared%2Fsrc%2FandroidMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FDeviceInfo.android.kt",
+      "sha": "6bd02476761851b6bd02b915abe9ad8491170650",
+      "status": "added"
+    },
+    {
+      "additions": 1,
+      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/5f93f40a34e7883d007db575ed40f9d5660996e6/shared%2Fsrc%2FandroidMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FPlatform.android.kt",
+      "changes": 2,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared%2Fsrc%2FandroidMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FPlatform.android.kt?ref=5f93f40a34e7883d007db575ed40f9d5660996e6",
+      "deletions": 1,
+      "filename": "shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt",
+      "patch": "@@ -2,6 +2,6 @@ package com.example.shared\n \n import android.os.Build\n \n-actual fun platformName(): String = \"Android ${Build.VERSION.SDK_INT}\"\n+actual fun platformName(): String = \"Android ${Build.VERSION.SDK_INT} (${Build.MANUFACTURER})\"\n \n actual fun currentTimeMillis(): Long = System.currentTimeMillis()",
+      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/5f93f40a34e7883d007db575ed40f9d5660996e6/shared%2Fsrc%2FandroidMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FPlatform.android.kt",
+      "sha": "782867c6cdb96389d8d737fc50d088d8edbd1251",
+      "status": "modified"
+    },
+    {
+      "additions": 3,
+      "blob_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/5f93f40a34e7883d007db575ed40f9d5660996e6/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FDeviceInfo.kt",
+      "changes": 3,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FDeviceInfo.kt?ref=5f93f40a34e7883d007db575ed40f9d5660996e6",
+      "deletions": 0,
+      "filename": "shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt",
+      "patch": "@@ -0,0 +1,3 @@\n+package com.example.shared\n+\n+expect fun deviceModel(): String",
+      "raw_url": "https://github.com/acr-plugin-sandbox/kmp-shared/raw/5f93f40a34e7883d007db575ed40f9d5660996e6/shared%2Fsrc%2FcommonMain%2Fkotlin%2Fcom%2Fexample%2Fshared%2FDeviceInfo.kt",
+      "sha": "cf538e5faec05feabfd3309890fb70d090c0892b",
+      "status": "added"
+    }
+  ]
+}

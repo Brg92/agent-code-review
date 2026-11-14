@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/androidMain/kotlin/com/example/shared/DeviceInfo.android.kt",
+  "query": {
+    "ref": "5f93f40a34e7883d007db575ed40f9d5660996e6"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"6bd02476761851b6bd02b915abe9ad8491170650\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/6bd02476761851b6bd02b915abe9ad8491170650",
+      "html": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/5f93f40a34e7883d007db575ed40f9d5660996e6/shared/src/androidMain/kotlin/com/example/shared/DeviceInfo.android.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/androidMain/kotlin/com/example/shared/DeviceInfo.android.kt?ref=5f93f40a34e7883d007db575ed40f9d5660996e6"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zaGFyZWQKCmltcG9ydCBhbmRyb2lkLm9z\nLkJ1aWxkCgphY3R1YWwgZnVuIGRldmljZU1vZGVsKCk6IFN0cmluZyA9IEJ1\naWxkLk1PREVMCg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/kmp-shared/5f93f40a34e7883d007db575ed40f9d5660996e6/shared/src/androidMain/kotlin/com/example/shared/DeviceInfo.android.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/6bd02476761851b6bd02b915abe9ad8491170650",
+    "html_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/5f93f40a34e7883d007db575ed40f9d5660996e6/shared/src/androidMain/kotlin/com/example/shared/DeviceInfo.android.kt",
+    "name": "DeviceInfo.android.kt",
+    "path": "shared/src/androidMain/kotlin/com/example/shared/DeviceInfo.android.kt",
+    "sha": "6bd02476761851b6bd02b915abe9ad8491170650",
+    "size": 100,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/androidMain/kotlin/com/example/shared/DeviceInfo.android.kt?ref=5f93f40a34e7883d007db575ed40f9d5660996e6"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#3",
+  "headSha": "5f93f40a34e7883d007db575ed40f9d5660996e6",
+  "findings": [],
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s1",
+      "decision": "dismiss",
+      "reason": "platformName() is a display string that is meant to differ per platform: the Android name now carries the manufacturer, and the iOS name has no such field."
+    },
+    {
+      "id": "s2",
+      "decision": "confirm",
+      "severity": "BLOCKER"
+    }
+  ]
+}

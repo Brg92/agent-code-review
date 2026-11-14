@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt",
+  "query": {
+    "ref": "5f93f40a34e7883d007db575ed40f9d5660996e6"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"cf538e5faec05feabfd3309890fb70d090c0892b\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/cf538e5faec05feabfd3309890fb70d090c0892b",
+      "html": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/5f93f40a34e7883d007db575ed40f9d5660996e6/shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt?ref=5f93f40a34e7883d007db575ed40f9d5660996e6"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zaGFyZWQKCmV4cGVjdCBmdW4gZGV2aWNl\nTW9kZWwoKTogU3RyaW5nCg==\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/kmp-shared/5f93f40a34e7883d007db575ed40f9d5660996e6/shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/cf538e5faec05feabfd3309890fb70d090c0892b",
+    "html_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/5f93f40a34e7883d007db575ed40f9d5660996e6/shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt",
+    "name": "DeviceInfo.kt",
+    "path": "shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt",
+    "sha": "cf538e5faec05feabfd3309890fb70d090c0892b",
+    "size": 61,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt?ref=5f93f40a34e7883d007db575ed40f9d5660996e6"
+  }
+}

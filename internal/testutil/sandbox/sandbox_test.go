@@ -29,8 +29,8 @@ func TestPullFiles(t *testing.T) {
 
 func TestAllPullFiles(t *testing.T) {
 	lists := AllPullFiles(t)
-	if len(lists) != 13 {
-		t.Errorf("%d recorded file lists, want 13", len(lists))
+	if len(lists) != 15 {
+		t.Errorf("%d recorded file lists, want 15", len(lists))
 	}
 	for _, l := range lists {
 		if l.Scenario == "" || l.Repo == "" || l.Number < 1 || len(l.Files) == 0 {
@@ -71,5 +71,61 @@ func TestContents(t *testing.T) {
 	}
 	if other := Contents(t, "S6", "core-lib", ".github/mr-review.json", "develop"); other.Recorded {
 		t.Errorf("a ref that was not recorded: %+v", other)
+	}
+}
+
+func TestPullRequestBaseRef(t *testing.T) {
+	if got := PullRequest(t, "S1", "sample-app", 2).BaseRef; got != "main" {
+		t.Errorf("S1 base ref %q, want main", got)
+	}
+	// The S7 pull request of sample-app targets a base branch that holds
+	// a test written first.
+	if got := PullRequest(t, "S7", "sample-app", 8).BaseRef; got != "chore/tests-s7-existing-test-base" {
+		t.Errorf("S7 base ref %q", got)
+	}
+}
+
+func TestTreeOf(t *testing.T) {
+	head := PullRequest(t, "S7", "sample-app", 8).HeadSHA
+	tree := TreeOf(t, "S7", "sample-app", head)
+	if !tree.Recorded || tree.Truncated {
+		t.Fatalf("tree %+v", tree)
+	}
+	has := map[string]bool{}
+	for _, p := range tree.Paths {
+		has[p] = true
+	}
+	// Files only: no directory entries, and a test the pull request does
+	// not touch.
+	for _, want := range []string{"app/src/test/java/com/example/sample/data/GreetingHelperTest.kt", "app/src/main/java/com/example/sample/data/AvatarMapper.kt"} {
+		if !has[want] {
+			t.Errorf("no %s in the tree", want)
+		}
+	}
+	if has["app/src/test"] {
+		t.Error("a directory entry is listed")
+	}
+	if TreeOf(t, "S7", "sample-app", "0000").Recorded {
+		t.Error("a tree that was not recorded was found")
+	}
+}
+
+func TestSearchOf(t *testing.T) {
+	s := SearchOf(t, "S2", "sample-app", "legacyToken")
+	if !s.Recorded || !s.Incomplete || s.Total != 0 || len(s.Paths) != 0 {
+		t.Errorf("legacyToken search %+v: GitHub's index does not serve the sandbox, so it returned no items and incomplete_results", s)
+	}
+	if SearchOf(t, "S2", "sample-app", "unknownTerm").Recorded {
+		t.Error("a search that was not recorded was found")
+	}
+}
+
+func TestParseSearch(t *testing.T) {
+	s, err := parseSearch([]byte(`{"total_count":2,"incomplete_results":false,"items":[{"path":"a/A.kt"},{"path":"b/B.kt"}]}`))
+	if err != nil || s.Total != 2 || s.Incomplete || len(s.Paths) != 2 || s.Paths[1] != "b/B.kt" {
+		t.Errorf("parseSearch = %+v, %v", s, err)
+	}
+	if _, err := parseSearch([]byte(`[]`)); err == nil {
+		t.Error("parseSearch accepted a list")
 	}
 }

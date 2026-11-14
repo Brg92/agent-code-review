@@ -35,6 +35,17 @@ These already exist on `main` and are unchanged by the pull request.
 
 Pre-existing defects are reported apart from new findings. They change the verdict only when they are a crash, and a crash is always a BLOCKER. A finding keeps the severity of its rule in the catalog, unless the rule needs judgement: `global-scope` is a BLOCKER both in `prefetch()` and in `warmUp()`. The pre-existing one does not block, because it is not a crash. `no-double-bang` needs judgement; the crash makes it a BLOCKER.
 
+## Change-request signals
+
+The change-request rules run on the recorded tree of the head commit (`testdata/github/S1/`). Paths are under `app/src/main/java/com/example/sample/`.
+
+| Change request | Rule | File | Result |
+| --- | --- | --- | --- |
+| `sample-app#2` | `missing-tests` | `data/SessionRepository.kt` | automatic MAJOR, not dismissed |
+| `sample-app#2` | `missing-tests` | `ui/HomeViewModel.kt` | automatic MAJOR, not dismissed |
+
+Both classes end with a suffix of the rule (`Repository`, `ViewModel`) and the change request modifies them, but the tree holds no `SessionRepositoryTest` or `HomeViewModelTest`: `app/src/test` only has `HomeStateTest.kt`. An automatic signal is a finding unless the judgement dismisses it, and the hand-written judgement does not, so these are two MAJOR findings on top of the table above. They do not change the verdict.
+
 ## Expected verdict
 
 **BLOCKED**, because of the three BLOCKERs. The pre-existing crash in `ProfileStore.kt` would block it on its own as well.

@@ -1,0 +1,12 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/issues/8/comments",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"4b973f4eec879859392aca0595967218cf109845aa4fd13674e009306d436f28\""
+  },
+  "body": []
+}

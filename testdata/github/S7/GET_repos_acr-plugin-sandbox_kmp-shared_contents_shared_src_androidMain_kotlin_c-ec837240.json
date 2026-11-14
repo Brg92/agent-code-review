@@ -1,0 +1,29 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt",
+  "query": {
+    "ref": "f00f8b2d30bf64d8619db447a93fd9781267bbd4"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"b40f17724e18fadc01cfd32500a1de493a5cbf2c\""
+  },
+  "body": {
+    "_links": {
+      "git": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/b40f17724e18fadc01cfd32500a1de493a5cbf2c",
+      "html": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/f00f8b2d30bf64d8619db447a93fd9781267bbd4/shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt",
+      "self": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt?ref=f00f8b2d30bf64d8619db447a93fd9781267bbd4"
+    },
+    "content": "cGFja2FnZSBjb20uZXhhbXBsZS5zaGFyZWQKCmltcG9ydCBhbmRyb2lkLm9z\nLkJ1aWxkCgphY3R1YWwgZnVuIHBsYXRmb3JtTmFtZSgpOiBTdHJpbmcgPSAi\nQW5kcm9pZCAke0J1aWxkLlZFUlNJT04uU0RLX0lOVH0iCgphY3R1YWwgZnVu\nIGN1cnJlbnRUaW1lTWlsbGlzKCk6IExvbmcgPSBTeXN0ZW0uY3VycmVudFRp\nbWVNaWxsaXMoKQo=\n",
+    "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/kmp-shared/f00f8b2d30bf64d8619db447a93fd9781267bbd4/shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt",
+    "encoding": "base64",
+    "git_url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/git/blobs/b40f17724e18fadc01cfd32500a1de493a5cbf2c",
+    "html_url": "https://github.com/acr-plugin-sandbox/kmp-shared/blob/f00f8b2d30bf64d8619db447a93fd9781267bbd4/shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt",
+    "name": "Platform.android.kt",
+    "path": "shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt",
+    "sha": "b40f17724e18fadc01cfd32500a1de493a5cbf2c",
+    "size": 191,
+    "type": "file",
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/kmp-shared/contents/shared/src/androidMain/kotlin/com/example/shared/Platform.android.kt?ref=f00f8b2d30bf64d8619db447a93fd9781267bbd4"
+  }
+}

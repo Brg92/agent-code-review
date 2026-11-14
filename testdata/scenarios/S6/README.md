@@ -41,7 +41,7 @@ Expected: the review stops before judging, with a criteria validation error: exi
 - `.github/skills/core-lib-code-review/SKILL.md`;
 - `.github/mr-review.json`, with profile `library`, a `publicApi` glob and `consumers`.
 
-Expected: the legacy files are loaded and used as the criteria, the profile is `library`, and the summary says legacy criteria are in use. The change adds `SessionManager.isSignedIn()`, so there are no findings and the verdict is OK.
+Expected: the legacy files are loaded and used as the criteria, the profile is `library`, and the summary says legacy criteria are in use. The change adds `SessionManager.isSignedIn()`. The only finding is the automatic MAJOR `missing-tests` of `SessionManager.kt` (see the table at the end), so the verdict is OK.
 
 ## D: no criteria and Swift files
 
@@ -54,3 +54,13 @@ Expected:
 - **`iosApp/iosApp/ContentView.swift`:** listed as **Not verified**, because no pack covers Swift.
 - **Findings:** none.
 - **Verdict:** OK.
+
+## Change-request signals
+
+The change-request rules run on the recorded trees of the head commits (`testdata/github/S6/`). B is not reviewed: its criteria are invalid.
+
+| Change request | Rule | File | Result |
+| --- | --- | --- | --- |
+| `core-lib#2` | `missing-tests` | `SessionManager.kt` | automatic MAJOR, not dismissed |
+
+A (`ProfileStore` has no suffix of the rule) and D (`Greeting`) give no signal.
