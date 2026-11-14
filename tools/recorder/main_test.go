@@ -17,7 +17,7 @@ func env(vars map[string]string) func(string) string {
 	return func(k string) string { return vars[k] }
 }
 
-var validEnv = map[string]string{"ACR_GITHUB_TOKEN": fakeToken, "ACR_SANDBOX_LOGINS": "RealReviewer,real-author"}
+var validEnv = map[string]string{"ACR_RECORDER_TOKEN": fakeToken, "ACR_SANDBOX_LOGINS": "RealReviewer,real-author"}
 
 func TestRunUsageErrors(t *testing.T) {
 	tests := []struct {
@@ -29,10 +29,10 @@ func TestRunUsageErrors(t *testing.T) {
 		{"no scenario", nil, validEnv, "usage:"},
 		{"unknown scenario", []string{"S99"}, validEnv, `unknown scenario "S99"`},
 		{"unknown flag", []string{"-x", "S1"}, validEnv, "usage:"},
-		{"no token", []string{"S1"}, map[string]string{"ACR_SANDBOX_LOGINS": "a,b"}, "ACR_GITHUB_TOKEN is not set"},
-		{"no logins", []string{"S1"}, map[string]string{"ACR_GITHUB_TOKEN": fakeToken}, "ACR_SANDBOX_LOGINS"},
-		{"one login", []string{"S1"}, map[string]string{"ACR_GITHUB_TOKEN": fakeToken, "ACR_SANDBOX_LOGINS": "a"}, "ACR_SANDBOX_LOGINS"},
-		{"empty login", []string{"S1"}, map[string]string{"ACR_GITHUB_TOKEN": fakeToken, "ACR_SANDBOX_LOGINS": "a, "}, "ACR_SANDBOX_LOGINS"},
+		{"no token", []string{"S1"}, map[string]string{"ACR_SANDBOX_LOGINS": "a,b"}, "ACR_RECORDER_TOKEN is not set"},
+		{"no logins", []string{"S1"}, map[string]string{"ACR_RECORDER_TOKEN": fakeToken}, "ACR_SANDBOX_LOGINS"},
+		{"one login", []string{"S1"}, map[string]string{"ACR_RECORDER_TOKEN": fakeToken, "ACR_SANDBOX_LOGINS": "a"}, "ACR_SANDBOX_LOGINS"},
+		{"empty login", []string{"S1"}, map[string]string{"ACR_RECORDER_TOKEN": fakeToken, "ACR_SANDBOX_LOGINS": "a, "}, "ACR_SANDBOX_LOGINS"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

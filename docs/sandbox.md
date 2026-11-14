@@ -41,7 +41,7 @@ The repositories are built locally in `../acr-plugin-sandbox/` next to this chec
 
 Use fine-grained personal access tokens, limited to the organization and to the sandbox repositories they need, with a short expiration (30 days or less).
 
-### Reviewer: recorder token (`ACR_GITHUB_TOKEN`)
+### Reviewer: recorder token (`ACR_RECORDER_TOKEN`)
 
 Read-only. Settings:
 
@@ -72,14 +72,14 @@ Only needed when the author account does not use `gh auth login`. Settings:
 
 Later phases that write review comments need their own reviewer token with Pull requests and Issues set to read and write. Never reuse the recorder token for that.
 
-Tokens never go on disk, in logs or in `testdata/`. The recorder reads `ACR_GITHUB_TOKEN` from the environment, and the sanitizer removes logins, ids, emails and avatar URLs from the recorded data.
+Tokens never go on disk, in logs or in `testdata/`. The recorder reads `ACR_RECORDER_TOKEN` from the environment, and the sanitizer removes logins, ids, emails and avatar URLs from the recorded data.
 
 ## Recording
 
 Run the recorder from the repository root:
 
 ```bash
-ACR_GITHUB_TOKEN=<token> ACR_SANDBOX_LOGINS=<reviewer>,<author> go run ./tools/recorder all
+ACR_RECORDER_TOKEN=<token> ACR_SANDBOX_LOGINS=<reviewer>,<author> go run ./tools/recorder all
 ```
 
 Pass scenario names instead of `all` to record only some of them: `S1` to `S6`, or `queue` for the review-requested search. Each scenario is recorded into `testdata/github/<scenario>/`, and the recordings of the previous run are removed first.

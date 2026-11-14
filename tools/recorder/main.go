@@ -3,7 +3,7 @@
 //
 // Usage:
 //
-//	ACR_GITHUB_TOKEN=... ACR_SANDBOX_LOGINS=<reviewer>,<author> \
+//	ACR_RECORDER_TOKEN=... ACR_SANDBOX_LOGINS=<reviewer>,<author> \
 //	    go run ./tools/recorder [-out dir] [-api url] <scenario>... | all
 //
 // The token is read only from the environment and is never printed or
@@ -84,9 +84,9 @@ func run(args []string, getenv func(string) string, stdout, stderr io.Writer) in
 	if err != nil {
 		return usage(err.Error())
 	}
-	token := getenv("ACR_GITHUB_TOKEN")
+	token := getenv("ACR_RECORDER_TOKEN")
 	if token == "" {
-		return usage("ACR_GITHUB_TOKEN is not set")
+		return usage("ACR_RECORDER_TOKEN is not set")
 	}
 	sanitizer, err := newSanitizer(getenv("ACR_SANDBOX_LOGINS"))
 	if err != nil {

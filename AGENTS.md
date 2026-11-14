@@ -44,7 +44,7 @@ docs/                    project docs for humans
 4. **English** for code, identifiers, comments, docs, branch names and commit messages.
 5. **SemVer**: untagged builds print `0.0.0-dev`; the real version is injected at build time via `-ldflags`. Never hardcode a release version in code, manifests or docs.
 6. **No company code, names, hosts or PR content anywhere**: the repository is public. Fixtures and sandbox code are synthetic and original.
-7. **Secrets**: tokens only from the environment (`ACR_GITHUB_TOKEN` for dev tools) or the user's existing `git`/`gh` authentication. Never print, log or write a token to disk.
+7. **Secrets**: tokens only from the environment (`ACR_RECORDER_TOKEN` for the sandbox recorder) or the user's existing `git`/`gh` authentication. Never print, log or write a token to disk.
 8. **Before every commit**: `gofmt -l .` must be empty, `go vet ./...` and `go test ./...` must pass.
 9. **No placeholders**: never create empty packages, `doc.go` stubs, empty `main` functions, `.gitkeep` files or per-directory `README.md` files to "reserve" structure. A directory is created together with its first real file (with TDD: its first test). The layout is documented once, in section 2. Package documentation is a package comment in the main file of the package; use `doc.go` only for multi-file packages with long documentation. Documentation for humans lives in the root `README.md` and in `docs/`.
 10. **No AI attribution** anywhere: no `Co-Authored-By` trailers, no "generated with" lines or similar in commits, PR titles or descriptions, comments, notes or docs. This does not cover the host names and paths the product itself needs.
