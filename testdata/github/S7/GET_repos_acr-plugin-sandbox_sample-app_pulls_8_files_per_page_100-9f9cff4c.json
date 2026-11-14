@@ -1,0 +1,49 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/pulls/8/files",
+  "query": {
+    "per_page": "100"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"104f21e948704f000334f1cf19f85d7dfeb183e488929837b8b883a111e89393\""
+  },
+  "body": [
+    {
+      "additions": 1,
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a270fb4eb35363871554670cdfa1547b854a628f/app%2Fsrc%2Ffree%2Fjava%2Fcom%2Fexample%2Fsample%2FFeatureFlags.kt",
+      "changes": 1,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Ffree%2Fjava%2Fcom%2Fexample%2Fsample%2FFeatureFlags.kt?ref=a270fb4eb35363871554670cdfa1547b854a628f",
+      "deletions": 0,
+      "filename": "app/src/free/java/com/example/sample/FeatureFlags.kt",
+      "patch": "@@ -2,4 +2,5 @@ package com.example.sample\n \n object FeatureFlags {\n     const val SHOW_UPGRADE_BANNER = true\n+    const val SHOW_PROMO_CARD = true\n }",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/a270fb4eb35363871554670cdfa1547b854a628f/app%2Fsrc%2Ffree%2Fjava%2Fcom%2Fexample%2Fsample%2FFeatureFlags.kt",
+      "sha": "966bf703ae1f13ecdf36a7b9e04ac828c71d1dcd",
+      "status": "modified"
+    },
+    {
+      "additions": 10,
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a270fb4eb35363871554670cdfa1547b854a628f/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FAvatarMapper.kt",
+      "changes": 10,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FAvatarMapper.kt?ref=a270fb4eb35363871554670cdfa1547b854a628f",
+      "deletions": 0,
+      "filename": "app/src/main/java/com/example/sample/data/AvatarMapper.kt",
+      "patch": "@@ -0,0 +1,10 @@\n+package com.example.sample.data\n+\n+class AvatarMapper {\n+    fun initialsOf(displayName: String): String =\n+        displayName\n+            .split(\" \")\n+            .filter { it.isNotBlank() }\n+            .take(2)\n+            .joinToString(\"\") { it.first().uppercase() }\n+}",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/a270fb4eb35363871554670cdfa1547b854a628f/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FAvatarMapper.kt",
+      "sha": "753a6ca46f5efcb42253a409b55b0de9901215b0",
+      "status": "added"
+    },
+    {
+      "additions": 5,
+      "blob_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/a270fb4eb35363871554670cdfa1547b854a628f/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FGreetingHelper.kt",
+      "changes": 5,
+      "contents_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FGreetingHelper.kt?ref=a270fb4eb35363871554670cdfa1547b854a628f",
+      "deletions": 0,
+      "filename": "app/src/main/java/com/example/sample/data/GreetingHelper.kt",
+      "patch": "@@ -0,0 +1,5 @@\n+package com.example.sample.data\n+\n+class GreetingHelper {\n+    fun greet(name: String?): String = if (name == null) \"Hello\" else \"Hello, $name\"\n+}",
+      "raw_url": "https://github.com/acr-plugin-sandbox/sample-app/raw/a270fb4eb35363871554670cdfa1547b854a628f/app%2Fsrc%2Fmain%2Fjava%2Fcom%2Fexample%2Fsample%2Fdata%2FGreetingHelper.kt",
+      "sha": "f13ee21dc4bdc82afc8c0a302995f5f809a9d151",
+      "status": "added"
+    }
+  ]
+}
