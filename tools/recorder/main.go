@@ -4,7 +4,12 @@
 // Usage:
 //
 //	ACR_RECORDER_TOKEN=... ACR_SANDBOX_LOGINS=<reviewer>,<author> \
-//	    go run ./tools/recorder [-out dir] [-api url] <scenario>... | all
+//	    go run ./tools/recorder [-out dir] [-api url] [-extend] <scenario>... | all
+//
+// Each scenario records the pull requests it lists with their repository
+// trees at head, and the code searches it lists with the files they
+// return. With -extend, only the trees and searches are recorded, into the
+// existing recordings, which are left as they are.
 //
 // The token is read only from the environment and is never printed or
 // written. Every recording is sanitized: the two sandbox logins become
@@ -31,7 +36,30 @@ const org = "acr-plugin-sandbox"
 type scenario struct {
 	targets  []ghrecord.Target
 	requests []ghrecord.Request
+	// searches are the code searches a review of the scenario makes. They
+	// are listed by hand, not computed: each one names the rule whose
+	// detector needs it.
+	searches []search
 }
+
+// search is a code search of one term in a sandbox repository, at its
+// default branch, the only one GitHub code search indexes.
+type search struct {
+	Repo, Term string
+	// Rule is the rule that needs the search.
+	Rule string
+}
+
+// defaultBranch is the default branch of every sandbox repository, the
+// ref at which the files a search returns are read.
+const defaultBranch = "main"
+
+// searchInterval spaces code searches. GitHub limits the code search
+// endpoint to 10 requests per minute for authenticated requests (the
+// code_search resource of GET /rate_limit; documented in the "Rate limit"
+// and "Search code" sections of https://docs.github.com/en/rest/search/search),
+// which is one request every 6 seconds; one more second is a margin.
+const searchInterval = 7 * time.Second
 
 func pr(repo string, number int) ghrecord.Target {
 	return ghrecord.Target{Owner: org, Repo: repo, Number: number}
@@ -43,7 +71,10 @@ var scenarios = map[string]scenario{
 	"S1": {targets: []ghrecord.Target{pr("sample-app", 2)}},
 	// The cascade within a limit of 2: the root, its entries at depth 1
 	// (including the tracking issue and a missing number) and depth 2.
-	"S2": {targets: []ghrecord.Target{
+	"S2": {searches: []search{
+		// core-lib S2 removes legacyToken(), which sample-app still calls on main.
+		{Repo: "sample-app", Term: "legacyToken", Rule: "uses-removed-api"},
+	}, targets: []ghrecord.Target{
 		pr("sample-app", 7),
 		pr("core-lib", 3), pr("sample-app", 2), pr("sample-app", 1), pr("core-lib", 9999),
 		pr("kmp-shared", 2),
@@ -70,11 +101,13 @@ func run(args []string, getenv func(string) string, stdout, stderr io.Writer) in
 	fs.SetOutput(io.Discard)
 	out := fs.String("out", filepath.Join("testdata", "github"), "output directory")
 	api := fs.String("api", "https://api.github.com", "REST API base URL")
+	extend := fs.Bool("extend", false, "record only the trees and searches, keeping the existing recordings")
+	interval := fs.Duration("search-interval", searchInterval, "minimum time between code searches")
 	usage := func(msg string) int {
 		if msg != "" {
 			fmt.Fprintln(stderr, "recorder:", msg)
 		}
-		fmt.Fprintln(stderr, "usage: recorder [-out dir] [-api url] <scenario>... | all")
+		fmt.Fprintln(stderr, "usage: recorder [-out dir] [-api url] [-extend] <scenario>... | all")
 		return 2
 	}
 	if err := fs.Parse(args); err != nil {
@@ -94,14 +127,25 @@ func run(args []string, getenv func(string) string, stdout, stderr io.Writer) in
 	}
 
 	httpClient := &http.Client{Timeout: 60 * time.Second}
+	// One throttle for the whole run, so that searches of different
+	// scenarios are spaced too.
+	throttle := &ghrecord.Throttle{Interval: *interval}
 	for _, name := range names {
 		dir := filepath.Join(*out, name)
-		if err := resetDir(dir); err != nil {
-			fmt.Fprintln(stderr, "recorder:", err)
-			return 1
+		if !*extend {
+			if err := resetDir(dir); err != nil {
+				fmt.Fprintln(stderr, "recorder:", err)
+				return 1
+			}
 		}
-		c := &ghrecord.Client{BaseURL: *api, Token: token, HTTP: httpClient, Sanitizer: sanitizer, Dir: dir}
-		if err := record(c, scenarios[name]); err != nil {
+		c := &ghrecord.Client{BaseURL: *api, Token: token, HTTP: httpClient, Sanitizer: sanitizer, Dir: dir, SearchThrottle: throttle}
+		var err error
+		if *extend {
+			err = recordExtension(c, name, scenarios[name], stderr)
+		} else {
+			err = record(c, name, scenarios[name], stderr)
+		}
+		if err != nil {
 			fmt.Fprintf(stderr, "recorder: %s: %v\n", name, err)
 			return 1
 		}
@@ -169,7 +213,7 @@ func resetDir(dir string) error {
 	return nil
 }
 
-func record(c *ghrecord.Client, s scenario) error {
+func record(c *ghrecord.Client, name string, s scenario, stderr io.Writer) error {
 	for _, t := range s.targets {
 		if err := c.Record(t); err != nil {
 			return err
@@ -182,6 +226,33 @@ func record(c *ghrecord.Client, s scenario) error {
 		}
 		if status != http.StatusOK {
 			return fmt.Errorf("%s: status %d", req.Path, status)
+		}
+	}
+	return recordSearches(c, name, s, stderr)
+}
+
+// recordExtension records what an earlier run of the scenario did not:
+// the trees of its recorded pull requests and its code searches.
+func recordExtension(c *ghrecord.Client, name string, s scenario, stderr io.Writer) error {
+	for _, t := range s.targets {
+		if err := c.RecordTreeOfRecorded(t); err != nil {
+			return err
+		}
+	}
+	return recordSearches(c, name, s, stderr)
+}
+
+// recordSearches records the code searches of a scenario one after the
+// other, never in parallel, and warns about a search GitHub could not
+// complete: its empty result is recorded as returned.
+func recordSearches(c *ghrecord.Client, name string, s scenario, stderr io.Writer) error {
+	for _, q := range s.searches {
+		res, err := c.RecordSearch(org, q.Repo, q.Term, defaultBranch)
+		if err != nil {
+			return err
+		}
+		if res.Incomplete {
+			fmt.Fprintf(stderr, "recorder: warning: %s: search %q in %s returned incomplete results (%d found)\n", name, q.Term, q.Repo, len(res.Paths))
 		}
 	}
 	return nil
