@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#8",
+  "headSha": "a6201f917e0d875e41bb7483140c0d4264427740",
+  "findings": [],
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s1",
+      "decision": "confirm",
+      "severity": "MAJOR"
+    }
+  ]
+}
