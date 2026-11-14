@@ -1,0 +1,343 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/git/trees/4dc88fffde4723ffdc84b221102f511e8f21dd4f",
+  "query": {
+    "recursive": "1"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "W/\"55eaee97acba5d211e5577e2922a82af677ec94696d51ec66ec552c1920171f1\""
+  },
+  "body": {
+    "sha": "4dc88fffde4723ffdc84b221102f511e8f21dd4f",
+    "tree": [
+      {
+        "mode": "040000",
+        "path": ".agent-code-review",
+        "sha": "06562db783f432bd0f8249c4244a6311f6ae3206",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/06562db783f432bd0f8249c4244a6311f6ae3206"
+      },
+      {
+        "mode": "100644",
+        "path": ".agent-code-review/config.json",
+        "sha": "69bd9f0665823459d567abfd18683db611eed1ac",
+        "size": 94,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/69bd9f0665823459d567abfd18683db611eed1ac"
+      },
+      {
+        "mode": "100644",
+        "path": ".agent-code-review/criteria.md",
+        "sha": "c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+        "size": 339,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/c4cef72d88238f6ede3e2c0510ab8b3162482ffa"
+      },
+      {
+        "mode": "040000",
+        "path": ".github",
+        "sha": "f09068092b5a4d3ebd98ded5e6248c0ed27fab91",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/f09068092b5a4d3ebd98ded5e6248c0ed27fab91"
+      },
+      {
+        "mode": "040000",
+        "path": ".github/workflows",
+        "sha": "8204fac423e65446898ff4d53b12bda959c5bdb1",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/8204fac423e65446898ff4d53b12bda959c5bdb1"
+      },
+      {
+        "mode": "100644",
+        "path": ".github/workflows/checks.yml",
+        "sha": "ba0a5a131eefdfc2a286bea685c4e9c843796503",
+        "size": 992,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/ba0a5a131eefdfc2a286bea685c4e9c843796503"
+      },
+      {
+        "mode": "100644",
+        "path": ".gitignore",
+        "sha": "a4a956b702ff86fed521216a70495f04553acb50",
+        "size": 46,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/a4a956b702ff86fed521216a70495f04553acb50"
+      },
+      {
+        "mode": "100644",
+        "path": "README.md",
+        "sha": "004ade367f2f78f8c78cbaec8ce59b9dce02bd36",
+        "size": 405,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/004ade367f2f78f8c78cbaec8ce59b9dce02bd36"
+      },
+      {
+        "mode": "040000",
+        "path": "app",
+        "sha": "682edee604c2600495e6b8728f130e683652f510",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/682edee604c2600495e6b8728f130e683652f510"
+      },
+      {
+        "mode": "100644",
+        "path": "app/build.gradle.kts",
+        "sha": "347f6d1c1c861139ec271522b292267634da6e1d",
+        "size": 1032,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/347f6d1c1c861139ec271522b292267634da6e1d"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src",
+        "sha": "2251ab009939e38eaeca5ee53761772ed5d0e653",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/2251ab009939e38eaeca5ee53761772ed5d0e653"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/free",
+        "sha": "954c6f0a328b2d50534f1444202648fdb0fa4e8f",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/954c6f0a328b2d50534f1444202648fdb0fa4e8f"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/free/java",
+        "sha": "4237d3b010af13a4407e3d6253d70252c1916ef4",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/4237d3b010af13a4407e3d6253d70252c1916ef4"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/free/java/com",
+        "sha": "1d92466b966cda3b7a4e1c9c8a604aeb8bfacb65",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/1d92466b966cda3b7a4e1c9c8a604aeb8bfacb65"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/free/java/com/example",
+        "sha": "10697aab2e30e6c1b160a622d56005a79a3e1e3d",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/10697aab2e30e6c1b160a622d56005a79a3e1e3d"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/free/java/com/example/sample",
+        "sha": "12e57869b3b345ab7eeef556bc00db8c9084d6a2",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/12e57869b3b345ab7eeef556bc00db8c9084d6a2"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/free/java/com/example/sample/FeatureFlags.kt",
+        "sha": "2e63bb7ecd7f4f18fdd7adc5f0f8fc16021aa4f5",
+        "size": 93,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/2e63bb7ecd7f4f18fdd7adc5f0f8fc16021aa4f5"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/main",
+        "sha": "fdfbb0f81b5e0f08c733876336afe8c2e0da0f81",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/fdfbb0f81b5e0f08c733876336afe8c2e0da0f81"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/main/AndroidManifest.xml",
+        "sha": "32438c8015972da8ae4f16185bb0499c27245bcf",
+        "size": 500,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/32438c8015972da8ae4f16185bb0499c27245bcf"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/main/java",
+        "sha": "4cef9d2c257a626c130584bcfe8fca73649c0f85",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/4cef9d2c257a626c130584bcfe8fca73649c0f85"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/main/java/com",
+        "sha": "ccec7eb0005f1804aa88c6bbd7fd6f4aa952bba8",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/ccec7eb0005f1804aa88c6bbd7fd6f4aa952bba8"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/main/java/com/example",
+        "sha": "089776cda924530db7472eb617fe3186b51a6f44",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/089776cda924530db7472eb617fe3186b51a6f44"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/main/java/com/example/sample",
+        "sha": "b0ce07f34bf0bf24f2d59a77983f6b8a5482e342",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/b0ce07f34bf0bf24f2d59a77983f6b8a5482e342"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+        "sha": "3d3d49801294afba619d00804f150fe6467d73d5",
+        "size": 368,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/3d3d49801294afba619d00804f150fe6467d73d5"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/main/java/com/example/sample/data",
+        "sha": "099bc35b323838f5dab0b3bd86443199ef737ad0",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/099bc35b323838f5dab0b3bd86443199ef737ad0"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+        "sha": "117d3331849679b6271ecd553127b07f4e06eefc",
+        "size": 373,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/117d3331849679b6271ecd553127b07f4e06eefc"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+        "sha": "8cf6690503cddeb6573920e7403dad5864fab975",
+        "size": 586,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/8cf6690503cddeb6573920e7403dad5864fab975"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/main/java/com/example/sample/ui",
+        "sha": "4a450008ce51715cb12522a03477b1fe14a37498",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/4a450008ce51715cb12522a03477b1fe14a37498"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/main/java/com/example/sample/ui/HomeScreen.kt",
+        "sha": "d8f857d36c862080d4ee15f7616906641538c993",
+        "size": 887,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/d8f857d36c862080d4ee15f7616906641538c993"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
+        "sha": "05798187b724aba1be26871a8b37cc58bc0a3274",
+        "size": 873,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/05798187b724aba1be26871a8b37cc58bc0a3274"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/paid",
+        "sha": "9c544537382b153c966020ae767981b0b61504cf",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/9c544537382b153c966020ae767981b0b61504cf"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/paid/java",
+        "sha": "84ff0aa66268d3112382a9a412da1c9e54180347",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/84ff0aa66268d3112382a9a412da1c9e54180347"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/paid/java/com",
+        "sha": "3fc6ae02dabfeea4a793a35b36b99d391f089914",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/3fc6ae02dabfeea4a793a35b36b99d391f089914"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/paid/java/com/example",
+        "sha": "15e9ff85506f94ee8d33532128c538bf484fdaad",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/15e9ff85506f94ee8d33532128c538bf484fdaad"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/paid/java/com/example/sample",
+        "sha": "37d75d57512fa1005e0b25fdcd7b53809633dc2d",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/37d75d57512fa1005e0b25fdcd7b53809633dc2d"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/paid/java/com/example/sample/FeatureFlags.kt",
+        "sha": "0f1d4a5c0595de188ab82b7629aba8218bbca44a",
+        "size": 94,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/0f1d4a5c0595de188ab82b7629aba8218bbca44a"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/test",
+        "sha": "60f930687e20ad46b592b0f5aa24aaaff2bd4ede",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/60f930687e20ad46b592b0f5aa24aaaff2bd4ede"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/test/java",
+        "sha": "9a67ff8652544050e34d167bfc7a3353af95b293",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/9a67ff8652544050e34d167bfc7a3353af95b293"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/test/java/com",
+        "sha": "05b622c1478702f72867ab6939cc1b493a12b412",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/05b622c1478702f72867ab6939cc1b493a12b412"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/test/java/com/example",
+        "sha": "c2a464dbef87908c63eb12bdb198436984a3cd82",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/c2a464dbef87908c63eb12bdb198436984a3cd82"
+      },
+      {
+        "mode": "040000",
+        "path": "app/src/test/java/com/example/sample",
+        "sha": "d16630f24dc13dde1f20590033d60c2f1de9877b",
+        "type": "tree",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/d16630f24dc13dde1f20590033d60c2f1de9877b"
+      },
+      {
+        "mode": "100644",
+        "path": "app/src/test/java/com/example/sample/HomeStateTest.kt",
+        "sha": "71757e5017e109f4e583e01db8fb3bbf06a78728",
+        "size": 258,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/71757e5017e109f4e583e01db8fb3bbf06a78728"
+      },
+      {
+        "mode": "100644",
+        "path": "build.gradle.kts",
+        "sha": "cfd711d98887d14830e6bd884a7ef3e260e928ba",
+        "size": 215,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/cfd711d98887d14830e6bd884a7ef3e260e928ba"
+      },
+      {
+        "mode": "100644",
+        "path": "settings.gradle.kts",
+        "sha": "c6ceb712fd3276e25ceece0d5451ce9838992184",
+        "size": 263,
+        "type": "blob",
+        "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/c6ceb712fd3276e25ceece0d5451ce9838992184"
+      }
+    ],
+    "truncated": false,
+    "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/trees/4dc88fffde4723ffdc84b221102f511e8f21dd4f"
+  }
+}
