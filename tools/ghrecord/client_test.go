@@ -305,3 +305,33 @@ func TestSearchThrottleOnlyAppliesToSearch(t *testing.T) {
 		t.Errorf("the search throttle was used by %d other requests", calls)
 	}
 }
+
+func TestRecordTreeOfRecordedPullRequest(t *testing.T) {
+	api := newFakeAPI(t)
+	c := newTestClient(t, api)
+	// A previous run recorded the pull request, which must not be read
+	// again, and a number that is an issue.
+	pull := Recording{Method: "GET", Path: "/repos/o/r/pulls/1", Status: 200,
+		Body: json.RawMessage(`{"head":{"ref":"feat/x","sha":"h1"},"base":{"ref":"main","sha":"b1"}}`)}
+	missing := Recording{Method: "GET", Path: "/repos/o/r/pulls/9", Status: 404, Body: json.RawMessage(`{"message":"Not Found"}`)}
+	for _, r := range []Recording{pull, missing} {
+		data, err := r.Encode()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(c.Dir, FileName(r.Method, r.Path, r.Query)), data, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, n := range []int{1, 9} {
+		if err := c.RecordTreeOfRecorded(Target{Owner: "o", Repo: "r", Number: n}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if want := []string{"GET /repos/o/r/git/trees/h1?recursive=1"}; !reflect.DeepEqual(api.seen, want) {
+		t.Errorf("requests %v, want only %v", api.seen, want)
+	}
+	if err := c.RecordTreeOfRecorded(Target{Owner: "o", Repo: "r", Number: 77}); err == nil {
+		t.Error("a pull request that was never recorded has no head to read the tree at")
+	}
+}

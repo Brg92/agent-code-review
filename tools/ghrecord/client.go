@@ -249,3 +249,28 @@ func (c *Client) RecordSearch(owner, repo, term, ref string) (SearchResult, erro
 	}
 	return res, nil
 }
+
+// RecordTreeOfRecorded records only the tree of a pull request that an
+// earlier run already recorded, at the head commit of that recording. It
+// reads the pull request from Dir and sends no other request, so every
+// existing recording stays as it is. A number recorded as not being a
+// pull request has no tree.
+func (c *Client) RecordTreeOfRecorded(t Target) error {
+	req := PullRequestRequest(t)
+	data, err := os.ReadFile(filepath.Join(c.Dir, FileName(http.MethodGet, req.Path, req.Query)))
+	if err != nil {
+		return fmt.Errorf("%s: the pull request is not recorded: %w", t, err)
+	}
+	var rec Recording
+	if err := json.Unmarshal(data, &rec); err != nil {
+		return fmt.Errorf("%s: %w", t, err)
+	}
+	if rec.Status != http.StatusOK {
+		return nil
+	}
+	var pr PullRequest
+	if err := json.Unmarshal(rec.Body, &pr); err != nil || pr.Head.SHA == "" {
+		return fmt.Errorf("%s: the recorded pull request has no head commit", t)
+	}
+	return c.recordTree(t, pr.Head.SHA)
+}
