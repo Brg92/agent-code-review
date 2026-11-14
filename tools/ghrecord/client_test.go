@@ -7,9 +7,11 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 const testToken = "test-token-value"
@@ -40,6 +42,10 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 		"/repos/o/r/issues/1/comments?per_page=100":                   `[{"user":{"login":"RealReviewer","id":7},"body":"ok"}]`,
 		"/repos/o/r/commits/h1/check-runs?per_page=100":               `{"total_count":0,"check_runs":[]}`,
 		"/repos/o/r/commits/h1/status":                                `{"state":"pending","statuses":[]}`,
+		"/search/code?per_page=100&q=legacyToken+repo%3Ao%2Fr":        `{"total_count":2,"incomplete_results":false,"items":[{"path":"src/A.kt","repository":{"full_name":"o/r"}},{"path":"src/B.kt","repository":{"full_name":"o/r"}}]}`,
+		"/search/code?per_page=100&q=gone+repo%3Ao%2Fr":               `{"total_count":0,"incomplete_results":true,"items":[]}`,
+		"/repos/o/r/contents/src/A.kt?ref=main":                       `{"type":"file","content":"YQ=="}`,
+		"/repos/o/r/contents/src/B.kt?ref=main":                       `{"type":"file","content":"Yg=="}`,
 		"/repos/o/r/git/trees/h1?recursive=1":                         `{"sha":"h1","tree":[{"path":"A.kt","type":"blob"}],"truncated":true}`,
 		"/repos/o/r/contents/.agent-code-review/config.json?ref=main": `{"type":"file","content":"e30="}`,
 	}}
@@ -234,5 +240,68 @@ func TestGetRejectsNonJSONBody(t *testing.T) {
 	c := &Client{BaseURL: api.URL, Token: testToken, HTTP: api.Client(), Sanitizer: testSanitizer(t), Dir: t.TempDir()}
 	if _, _, err := c.Get(Request{Path: "/x"}); err == nil {
 		t.Error("Get accepted a body that is not JSON")
+	}
+}
+
+func TestRecordSearch(t *testing.T) {
+	api := newFakeAPI(t)
+	c := newTestClient(t, api)
+	var waits int
+	c.SearchThrottle = &Throttle{Interval: time.Second, Sleep: func(time.Duration) { waits++ }}
+	res, err := c.RecordSearch("o", "r", "legacyToken", "main")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Total != 2 || res.Incomplete || !reflect.DeepEqual(res.Paths, []string{"src/A.kt", "src/B.kt"}) {
+		t.Errorf("result %+v", res)
+	}
+	recs := readRecordings(t, c.Dir)
+	if len(recs) != 3 {
+		t.Errorf("%d recordings, want the search and the two files: %v", len(recs), api.seen)
+	}
+	for _, p := range []string{"src/A.kt", "src/B.kt"} {
+		if _, ok := recs["/repos/o/r/contents/"+p+"?"+fmt.Sprint(map[string]string{"ref": "main"})]; !ok {
+			t.Errorf("contents of %s at main not recorded", p)
+		}
+	}
+	// The throttle is asked once per search request and never for a file.
+	if _, err := c.RecordSearch("o", "r", "gone", "main"); err != nil {
+		t.Fatal(err)
+	}
+	if c.SearchThrottle.last.IsZero() {
+		t.Error("the search throttle was not used")
+	}
+}
+
+func TestRecordSearchReportsIncompleteResults(t *testing.T) {
+	api := newFakeAPI(t)
+	c := newTestClient(t, api)
+	res, err := c.RecordSearch("o", "r", "gone", "main")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Incomplete || res.Total != 0 || len(res.Paths) != 0 {
+		t.Errorf("result %+v, want an incomplete empty result recorded as returned", res)
+	}
+}
+
+func TestRecordSearchFailsOnStatus(t *testing.T) {
+	api := newFakeAPI(t)
+	c := newTestClient(t, api)
+	if _, err := c.RecordSearch("o", "r", "unknown", "main"); err == nil {
+		t.Error("RecordSearch accepted a 404")
+	}
+}
+
+func TestSearchThrottleOnlyAppliesToSearch(t *testing.T) {
+	api := newFakeAPI(t)
+	c := newTestClient(t, api)
+	calls := 0
+	c.SearchThrottle = &Throttle{Interval: time.Hour, Sleep: func(time.Duration) { calls++ }}
+	if err := c.Record(Target{Owner: "o", Repo: "r", Number: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if calls != 0 || !c.SearchThrottle.last.IsZero() {
+		t.Errorf("the search throttle was used by %d other requests", calls)
 	}
 }
