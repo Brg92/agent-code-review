@@ -18,9 +18,9 @@ Scenario pull requests are never merged, and their branches are never deleted.
 
 | Repository | Content | Scenarios |
 | --- | --- | --- |
-| `sample-app` | Android app with Compose and the `free`/`paid` flavors; consumes `core-lib` | S1, S2, S5, S6 |
+| `sample-app` | Android app with Compose and the `free`/`paid` flavors; consumes `core-lib` | S1, S2, S5, S6, S7 |
 | `core-lib` | Android library with Views and `maven-publish`; public API `SessionManager` | S2, S3, S6 |
-| `kmp-shared` | Kotlin Multiplatform library (`commonMain`, `androidMain`, `iosMain`, `expect`/`actual`) and a SwiftUI app in `iosApp/` | S2, S6 |
+| `kmp-shared` | Kotlin Multiplatform library (`commonMain`, `androidMain`, `iosMain`, `expect`/`actual`) and a SwiftUI app in `iosApp/` | S2, S6, S7 |
 | `feature-lib` | Android library for edge cases | S2, S4 |
 | `token-probe` | Private repository with a single `probe` job on `main`, used only to check the recorder token permissions; never recorded | none |
 
@@ -33,15 +33,19 @@ Each scenario repository has a `checks` workflow made of fast shell steps:
 
 S5 adds a long-running job on its own branch.
 
+S7 has a base branch of its own in `sample-app`, `chore/tests-s7-existing-test-base`, which only adds a test written first. Like every scenario branch, it is never merged or deleted.
+
 In a newly published repository GitHub may never start the workflow, even though Actions is enabled and the workflow is listed as active. Closing and reopening a pull request starts it without changing any commit. Before recording, check that every head that should have checks has a completed run.
 
-The repositories are built locally in `../acr-plugin-sandbox/` next to this checkout. `../acr-plugin-sandbox/PR_PLAN.md` describes how to publish them and in which order to open the pull requests. The scenarios themselves are described in `testdata/scenarios/S1` to `S6`.
+The repositories are built locally in `../acr-plugin-sandbox/` next to this checkout. `../acr-plugin-sandbox/PR_PLAN.md` describes how to publish them and in which order to open the pull requests. The scenarios themselves are described in `testdata/scenarios/S1` to `S7`.
 
 ## Tokens
 
 Use fine-grained personal access tokens, limited to the organization and to the sandbox repositories they need, with a short expiration (30 days or less).
 
 ### Reviewer: recorder token (`ACR_RECORDER_TOKEN`)
+
+The recorder reads only this variable. `ACR_GITHUB_TOKEN` belongs to the product, as the CI token, and the recorder does not fall back to it.
 
 Read-only. Settings:
 
@@ -82,7 +86,15 @@ Run the recorder from the repository root:
 ACR_RECORDER_TOKEN=<token> ACR_SANDBOX_LOGINS=<reviewer>,<author> go run ./tools/recorder all
 ```
 
-Pass scenario names instead of `all` to record only some of them: `S1` to `S6`, or `queue` for the review-requested search. Each scenario is recorded into `testdata/github/<scenario>/`, and the recordings of the previous run are removed first.
+Pass scenario names instead of `all` to record only some of them: `S1` to `S7`, or `queue` for the review-requested search. Each scenario is recorded into `testdata/github/<scenario>/`, and the recordings of the previous run are removed first.
+
+With `-extend`, the recorder only adds what an earlier run did not record, the repository trees and the code searches, and leaves every existing recording as it is. It reads the head commit of each pull request from its recording and sends no other request for it:
+
+```bash
+ACR_RECORDER_TOKEN=<token> ACR_SANDBOX_LOGINS=<reviewer>,<author> go run ./tools/recorder -extend S1 S2
+```
+
+Recording a scenario again also rewrites volatile fields of the repository and of the pull requests (ETags, `pushed_at`, the open issue count), so when one pull request has to change, check the diff and restore the files that only drifted.
 
 What the recorder does:
 
@@ -91,14 +103,31 @@ What the recorder does:
   - the pull request, its files, commits, reviews and comments;
   - the check runs and the combined status of the head commit;
   - the criteria files on the target branch;
-  - the contents of every changed file that has a patch.
+  - the contents of every changed file that has a patch;
+  - the recursive Git tree of the repository at the head commit, with its `truncated` flag as returned. There is no tree at the base;
+  - the code searches listed for the scenario (below).
   A number that is not a pull request is also looked up as an issue, which tells an issue from a missing number. Missing files are recorded with their `404`.
 - **One file per response page:** method, path, query, status, the `Link` and `ETag` headers only, and the body.
 - **Sanitized:** the two sandbox logins become `sandbox-reviewer` and `sandbox-author`, with ids 1001 and 1002. Their avatar URLs and node ids are replaced. Email addresses outside `example.com` and the reserved `.invalid` domain, and token-like strings, are redacted. Any other user account becomes `sandbox-user-<n>`.
 
+### Code search
+
+The searches of a scenario are listed by hand in `tools/recorder/main.go`, each with the rule whose detector needs it: the recorder does not compute them. For each term it records the response of `GET /search/code` for `<term> repo:<org>/<repo>`, and then the contents, at `main`, of every file the search returns, because code search returns files and fragments, not line numbers. Code search only indexes the default branch.
+
+GitHub limits code search to 10 requests per minute for authenticated requests (the `code_search` resource of `GET /rate_limit`, and the "Rate limit" and "Search code" sections of <https://docs.github.com/en/rest/search/search>). The recorder sends the searches one after the other, 7 seconds apart: 6 seconds is the limit and one more is a margin. `-search-interval` changes it; the tests set it to 0.
+
+The recorded searches:
+
+| Scenario | Repository | Term | Rule |
+| --- | --- | --- | --- |
+| S2 | `sample-app` | `legacyToken` | `uses-removed-api` |
+| S7 | `kmp-shared` | `deviceModel` | `kmp-expect-without-actual` |
+
+**GitHub's index does not serve the sandbox repositories.** Every search of them, including a search of a file that is certainly there, returned `total_count` 0, no items and `incomplete_results` true, while the same call for a large public repository returned results. The recorder records the response as returned and warns on stderr, and the recordings hold no file. A detector must read an incomplete result as "search unavailable", never as "no use" (the scenario READMEs of S2 and S7 say what each detector then reports). Record the searches again when the index serves the repositories.
+
 Check before you record:
 
-- **S5 A:** the `instrumented` job only stays `in_progress` for 45 minutes after it starts. Re-run it right before you record S5.
+- **S5 A:** the `instrumented` job only stays `in_progress` for 45 minutes after it starts. Re-run it, in both workflow runs of the head, right before you record S5 (`gh run rerun <run> --job <job>`).
 - **S4:** the files API must return no `patch` for `IconCatalog.kt`.
 
 Commit the recorded data on its own, in a `test(recorder): ...` commit, after `go test ./...` passes with `ACR_SANDBOX_LOGINS` set.
