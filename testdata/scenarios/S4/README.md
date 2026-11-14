@@ -20,6 +20,10 @@
 - **Size threshold:** GitHub's limit for omitting `patch` is not documented. When recording, confirm that the files API returns no `patch` for `IconCatalog.kt`. If it does return one, make the file larger in the sandbox and record again.
 - **Noise glob:** the proposed glob is `gradle/verification-metadata.xml`, and it belongs in the `android` pack. Until the pack exists, the tests pass it in the configuration.
 
+## Change-request signals
+
+None. The recorded tree (`testdata/github/S4/`) is read, and neither changed source ends with a suffix of `missing-tests`.
+
 ## Expected verdict
 
 **OK**, with no findings. The plugin itself never approves; this only means nothing blocks.
