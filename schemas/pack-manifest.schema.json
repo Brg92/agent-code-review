@@ -24,7 +24,7 @@
       "const": 1
     },
     "id": {
-      "description": "Pack identifier; it must match the directory name.",
+      "description": "Pack identifier; it must match the directory name. The ids core and repository are reserved and cannot be used.",
       "$ref": "#/$defs/packId"
     },
     "name": {
@@ -473,7 +473,7 @@
       "pattern": "^[^\\sA-Za-z0-9_]+$"
     },
     "packId": {
-      "description": "Stack pack identifier, for example android or kotlin-multiplatform.",
+      "description": "Stack pack identifier, for example android or kotlin-multiplatform. The ids core and repository are reserved for the core and repository rules and cannot name a pack.",
       "type": "string",
       "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
     },

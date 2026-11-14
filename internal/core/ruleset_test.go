@@ -267,3 +267,14 @@ func TestRulesetForFile(t *testing.T) {
 		}
 	}
 }
+
+// TestRuleSourcesAreReservedPackIDs keeps the sources of the core and
+// repository rules out of reach of a pack: a pack with either id would make
+// the source of a rule ambiguous.
+func TestRuleSourcesAreReservedPackIDs(t *testing.T) {
+	for _, source := range []string{core.CoreSource, core.RepositorySource, rules.CorePack} {
+		if !packs.Reserved(source) {
+			t.Errorf("%q is the source of rules but not a reserved pack id", source)
+		}
+	}
+}
