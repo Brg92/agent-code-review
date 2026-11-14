@@ -2,6 +2,7 @@ package packs
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -361,5 +362,40 @@ func TestLoadPackSymbols(t *testing.T) {
 	})
 	if _, err := LoadPack(dir); err == nil || !strings.Contains(err.Error(), "kotlin") || !strings.Contains(err.Error(), "declarations") {
 		t.Errorf("broken symbols: error %v", err)
+	}
+}
+
+// TestLoadPackRejectsReservedIDs checks that a pack cannot take the id of
+// the core or repository rules, the sources of those rules in the work
+// package, and that other ids, even a cased one, are not mistaken for them.
+func TestLoadPackRejectsReservedIDs(t *testing.T) {
+	load := func(id string) error {
+		dir := copyPack(t, "mobile", id, func(m map[string]any) { m["id"] = id })
+		writeFile(t, filepath.Join(dir, "rules.json"), `{"schema":1,"pack":"`+id+`","rules":[]}`)
+		_, err := LoadPack(dir)
+		return err
+	}
+	for _, id := range []string{"core", "repository"} {
+		var reserved *ReservedIDError
+		if err := load(id); !errors.As(err, &reserved) || reserved.ID != id {
+			t.Errorf("id %q: error = %v, want a *ReservedIDError for it", id, err)
+		}
+		if !Reserved(id) {
+			t.Errorf("Reserved(%q) = false", id)
+		}
+	}
+	for _, id := range []string{"Core", "REPOSITORY"} {
+		var reserved *ReservedIDError
+		if err := load(id); err == nil || errors.As(err, &reserved) {
+			t.Errorf("id %q: error = %v, want a refusal of the id that is not a reserved one", id, err)
+		}
+	}
+	for _, id := range []string{"mobile", "core-lib", "repository2"} {
+		if err := load(id); err != nil {
+			t.Errorf("id %q: %v", id, err)
+		}
+		if Reserved(id) {
+			t.Errorf("Reserved(%q) = true", id)
+		}
 	}
 }

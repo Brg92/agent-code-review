@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 
 	"github.com/Brg92/agent-code-review/internal/lexer"
 	"github.com/Brg92/agent-code-review/internal/rules"
@@ -92,6 +93,25 @@ type Language struct {
 	// Symbols tells how the declarations of the language are found; nil
 	// when the pack compares no symbols of it.
 	Symbols *symbols.Spec
+}
+
+// reservedIDs are the ids no pack may take: the sources of the core and
+// repository rules in the effective ruleset and the work package, which a
+// pack of the same id would make ambiguous.
+var reservedIDs = []string{rules.CorePack, "repository"}
+
+// Reserved reports whether id is reserved for the core or repository rules.
+func Reserved(id string) bool {
+	return slices.Contains(reservedIDs, id)
+}
+
+// ReservedIDError reports a pack whose id is reserved.
+type ReservedIDError struct {
+	ID string
+}
+
+func (e *ReservedIDError) Error() string {
+	return fmt.Sprintf("id %q is reserved for the %s rules, not for a pack", e.ID, e.ID)
 }
 
 var (
@@ -193,6 +213,9 @@ func readPack(files fs.FS, dir string) (*Pack, error) {
 	p := &Pack{ID: *raw.ID, Name: *raw.Name, Description: *raw.Description, Dir: dir, files: files, GeneratedMarkers: *raw.GeneratedMarkers}
 	if !packID.MatchString(p.ID) {
 		return nil, fmt.Errorf("id %q is not a lowercase pack id", p.ID)
+	}
+	if Reserved(p.ID) {
+		return nil, &ReservedIDError{ID: p.ID}
 	}
 	if base := filepath.Base(dir); base != p.ID {
 		return nil, fmt.Errorf("id %q is not the directory name %q", p.ID, base)
