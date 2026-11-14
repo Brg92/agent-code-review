@@ -1,10 +1,11 @@
-package cascade
+package cascade_test
 
 import (
 	"errors"
 	"strings"
 	"testing"
 
+	"github.com/Brg92/agent-code-review/internal/cascade"
 	"github.com/Brg92/agent-code-review/internal/forges/github"
 	"github.com/Brg92/agent-code-review/internal/refs"
 )
@@ -24,7 +25,7 @@ func TestTickChangesExactlyOneByte(t *testing.T) {
 			if e.Box != refs.Open {
 				continue
 			}
-			got, err := Tick(desc, e)
+			got, err := cascade.Tick(desc, e)
 			if err != nil {
 				t.Fatalf("Tick(line %d): %v", e.Line, err)
 			}
@@ -46,7 +47,7 @@ func TestTickChangesExactlyOneByte(t *testing.T) {
 func TestTickLeavesEveryOtherByte(t *testing.T) {
 	desc := "## Related PRs\r\n\r\n- [ ] #2\r\n- [ ] #3\r\n\r\nUnicode: éè \U0001F600\r\n"
 	e := entries(t, desc)[1]
-	got, err := Tick(desc, e)
+	got, err := cascade.Tick(desc, e)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,23 +64,23 @@ func TestTickRefuses(t *testing.T) {
 		name   string
 		desc   string
 		entry  refs.RelatedEntry
-		reason TickReason
+		reason cascade.TickReason
 	}{
-		{"entry already ticked", desc, done, AlreadyTicked},
-		{"description ticked since", strings.Replace(desc, "- [ ] #2", "- [x] #2", 1), open, AlreadyTicked},
-		{"entry without a checkbox", desc, none, NoCheckbox},
-		{"line moved down", "Added line\n" + desc, open, Moved},
-		{"line moved up", desc[len("## Related Changes\n"):], open, Moved},
-		{"checkbox text changed", strings.Replace(desc, "[ ]", "[?]", 1), open, Moved},
-		{"offset past the end", desc[:open.BoxOffset], open, Moved},
-		{"empty description", "", open, Moved},
-		{"negative offset", desc, refs.RelatedEntry{Box: refs.Open, BoxOffset: -1}, Moved},
-		{"offset at the start", desc, refs.RelatedEntry{Box: refs.Open, BoxOffset: 0}, Moved},
+		{"entry already ticked", desc, done, cascade.AlreadyTicked},
+		{"description ticked since", strings.Replace(desc, "- [ ] #2", "- [x] #2", 1), open, cascade.AlreadyTicked},
+		{"entry without a checkbox", desc, none, cascade.NoCheckbox},
+		{"line moved down", "Added line\n" + desc, open, cascade.Moved},
+		{"line moved up", desc[len("## Related Changes\n"):], open, cascade.Moved},
+		{"checkbox text changed", strings.Replace(desc, "[ ]", "[?]", 1), open, cascade.Moved},
+		{"offset past the end", desc[:open.BoxOffset], open, cascade.Moved},
+		{"empty description", "", open, cascade.Moved},
+		{"negative offset", desc, refs.RelatedEntry{Box: refs.Open, BoxOffset: -1}, cascade.Moved},
+		{"offset at the start", desc, refs.RelatedEntry{Box: refs.Open, BoxOffset: 0}, cascade.Moved},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Tick(tt.desc, tt.entry)
-			var te *TickError
+			got, err := cascade.Tick(tt.desc, tt.entry)
+			var te *cascade.TickError
 			if !errors.As(err, &te) || te.Reason != tt.reason {
 				t.Fatalf("Tick() = %q, %v; want a *TickError with reason %v", got, err, tt.reason)
 			}
@@ -92,9 +93,9 @@ func TestTickRefuses(t *testing.T) {
 }
 
 func TestTickReasonStrings(t *testing.T) {
-	for r, want := range map[TickReason]string{AlreadyTicked: "already ticked", NoCheckbox: "no checkbox", Moved: "moved"} {
-		if !strings.Contains((&TickError{Reason: r, Line: 3}).Error(), want) {
-			t.Errorf("reason %d: %q does not mention %q", r, (&TickError{Reason: r, Line: 3}).Error(), want)
+	for r, want := range map[cascade.TickReason]string{cascade.AlreadyTicked: "already ticked", cascade.NoCheckbox: "no checkbox", cascade.Moved: "moved"} {
+		if !strings.Contains((&cascade.TickError{Reason: r, Line: 3}).Error(), want) {
+			t.Errorf("reason %d: %q does not mention %q", r, (&cascade.TickError{Reason: r, Line: 3}).Error(), want)
 		}
 	}
 }
@@ -114,7 +115,7 @@ func FuzzTick(f *testing.F) {
 	}
 	f.Fuzz(func(t *testing.T, desc string, offset int) {
 		check := func(e refs.RelatedEntry) {
-			got, err := Tick(desc, e)
+			got, err := cascade.Tick(desc, e)
 			if err != nil {
 				if got != "" {
 					t.Fatalf("result %q with error %v", got, err)

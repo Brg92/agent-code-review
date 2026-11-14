@@ -1,4 +1,4 @@
-package cascade
+package cascade_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Brg92/agent-code-review/internal/cascade"
 	"github.com/Brg92/agent-code-review/internal/core"
 	"github.com/Brg92/agent-code-review/internal/forges/github"
 	"github.com/Brg92/agent-code-review/internal/forges/gitlab"
@@ -14,7 +15,7 @@ import (
 	"github.com/Brg92/agent-code-review/internal/testutil/scenario"
 )
 
-func causeList(causes []Cause) []string {
+func causeList(causes []cascade.Cause) []string {
 	var out []string
 	for _, c := range causes {
 		s := c.Reason + " " + short(c.CR)
@@ -28,14 +29,14 @@ func causeList(causes []Cause) []string {
 
 // synthetic is a cascade of a root and one reviewed entry, plus extra
 // entries and unparsed lines.
-func synthetic(t *testing.T, extra []core.Entry, unparsed ...Line) Result {
+func synthetic(t *testing.T, extra []core.Entry, unparsed ...cascade.Line) cascade.Result {
 	t.Helper()
 	root, dep := k(t, sandbox+"app#1"), k(t, sandbox+"lib#1")
 	entries := append([]core.Entry{
 		{CR: root, Status: core.Finalized},
 		{CR: dep, Depth: 1, Parent: &root, Status: core.Finalized},
 	}, extra...)
-	return Result{Entries: entries, Order: []core.Key{dep, root}, Unparsed: unparsed}
+	return cascade.Result{Entries: entries, Order: []core.Key{dep, root}, Unparsed: unparsed}
 }
 
 func skipped(t *testing.T, cr string, reason core.SkipReason) core.Entry {
@@ -50,38 +51,44 @@ func TestCascadeVerdict(t *testing.T) {
 	}
 	tests := []struct {
 		name     string
-		res      func(t *testing.T) Result
+		res      func(t *testing.T) cascade.Result
 		verdicts func(t *testing.T) map[core.Key]core.Verdict
 		want     core.Verdict
 		causes   []string
 	}{
-		{"all OK", func(t *testing.T) Result { return synthetic(t, nil) }, ok, core.OK, nil},
-		{"over the depth limit", func(t *testing.T) Result {
+		{"all OK", func(t *testing.T) cascade.Result { return synthetic(t, nil) }, ok, core.OK, nil},
+		{"over the depth limit", func(t *testing.T) cascade.Result {
 			return synthetic(t, []core.Entry{skipped(t, "deep#1", core.OverDepthLimit)})
 		}, ok,
 			core.Incomplete, []string{"over-depth-limit deep#1"}},
-		{"over the count limit", func(t *testing.T) Result {
+		{"over the count limit", func(t *testing.T) cascade.Result {
 			return synthetic(t, []core.Entry{skipped(t, "many#1", core.OverCountLimit)})
 		}, ok,
 			core.Incomplete, []string{"over-count-limit many#1"}},
-		{"another platform", func(t *testing.T) Result { return synthetic(t, []core.Entry{skipped(t, "lab#1", core.OtherPlatform)}) }, ok,
+		{"another platform", func(t *testing.T) cascade.Result {
+			return synthetic(t, []core.Entry{skipped(t, "lab#1", core.OtherPlatform)})
+		}, ok,
 			core.Incomplete, []string{"other-platform lab#1"}},
-		{"not found", func(t *testing.T) Result { return synthetic(t, []core.Entry{skipped(t, "gone#1", core.NotFound)}) }, ok,
+		{"not found", func(t *testing.T) cascade.Result {
+			return synthetic(t, []core.Entry{skipped(t, "gone#1", core.NotFound)})
+		}, ok,
 			core.Incomplete, []string{"not-found gone#1"}},
-		{"unparsed related line", func(t *testing.T) Result {
-			return synthetic(t, nil, Line{CR: k(t, sandbox+"app#1"), Line: 4, Text: "- [ ] the lib change"})
+		{"unparsed related line", func(t *testing.T) cascade.Result {
+			return synthetic(t, nil, cascade.Line{CR: k(t, sandbox+"app#1"), Line: 4, Text: "- [ ] the lib change"})
 		}, ok, core.Incomplete, []string{"unparsed app#1 line 4"}},
-		{"skips that leave nothing unreviewed", func(t *testing.T) Result {
+		{"skips that leave nothing unreviewed", func(t *testing.T) cascade.Result {
 			return synthetic(t, []core.Entry{
 				skipped(t, "done#1", core.AlreadyDone), skipped(t, "app#1", core.Cycle),
 				skipped(t, "app#1", core.SelfReference), skipped(t, "issue#1", core.NotAChangeRequest),
 			})
 		}, ok, core.OK, nil},
-		{"blocked wins over incomplete", func(t *testing.T) Result { return synthetic(t, []core.Entry{skipped(t, "gone#1", core.NotFound)}) },
+		{"blocked wins over incomplete", func(t *testing.T) cascade.Result {
+			return synthetic(t, []core.Entry{skipped(t, "gone#1", core.NotFound)})
+		},
 			func(t *testing.T) map[core.Key]core.Verdict {
 				return map[core.Key]core.Verdict{k(t, sandbox+"app#1"): core.OK, k(t, sandbox+"lib#1"): core.Blocked}
 			}, core.Blocked, []string{"blocked lib#1", "not-found gone#1"}},
-		{"blocked root", func(t *testing.T) Result { return synthetic(t, nil) },
+		{"blocked root", func(t *testing.T) cascade.Result { return synthetic(t, nil) },
 			func(t *testing.T) map[core.Key]core.Verdict {
 				return map[core.Key]core.Verdict{k(t, sandbox+"app#1"): core.Blocked, k(t, sandbox+"lib#1"): core.OK}
 			}, core.Blocked, []string{"blocked app#1"}},
@@ -119,7 +126,7 @@ func TestCascadeVerdictNeedsEveryReviewedVerdict(t *testing.T) {
 // with its scenario judgement: core-lib S2 and S1 are BLOCKED, so the
 // cascade is BLOCKED, and it still reports what made it incomplete.
 func TestCascadeVerdictS2(t *testing.T) {
-	res, err := Resolve(context.Background(), loadRecorded(t, "S2", "S4"), refs.Compose(github.Registry{}, gitlab.Registry{}), k(t, sandbox+"sample-app#7"), core.DefaultLimits())
+	res, err := cascade.Resolve(context.Background(), loadRecorded(t, "S2", "S4"), refs.Compose(github.Registry{}, gitlab.Registry{}), k(t, sandbox+"sample-app#7"), core.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
