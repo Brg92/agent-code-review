@@ -1,0 +1,15 @@
+{
+  "method": "GET",
+  "path": "/search/code",
+  "query": {
+    "per_page": "100",
+    "q": "deviceModel repo:acr-plugin-sandbox/kmp-shared"
+  },
+  "status": 200,
+  "headers": {},
+  "body": {
+    "incomplete_results": true,
+    "items": [],
+    "total_count": 0
+  }
+}
