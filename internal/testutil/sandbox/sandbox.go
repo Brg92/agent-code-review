@@ -120,6 +120,8 @@ func AllPullFiles(t testing.TB) []FileList {
 // Pull is what the tests read of a recorded pull request.
 type Pull struct {
 	HeadSHA, BaseSHA string
+	// BaseRef is the target branch.
+	BaseRef string
 	// Author is the login of the author.
 	Author string
 }
@@ -134,14 +136,14 @@ func PullRequest(t testing.TB, scenario, repo string, number int) Pull {
 			continue
 		}
 		var body struct {
-			Head struct{ SHA string }   `json:"head"`
-			Base struct{ SHA string }   `json:"base"`
-			User struct{ Login string } `json:"user"`
+			Head struct{ SHA string }      `json:"head"`
+			Base struct{ SHA, Ref string } `json:"base"`
+			User struct{ Login string }    `json:"user"`
 		}
 		if err := json.Unmarshal(r.Body, &body); err != nil {
 			t.Fatalf("%s: %v", f, err)
 		}
-		return Pull{HeadSHA: body.Head.SHA, BaseSHA: body.Base.SHA, Author: body.User.Login}
+		return Pull{HeadSHA: body.Head.SHA, BaseSHA: body.Base.SHA, BaseRef: body.Base.Ref, Author: body.User.Login}
 	}
 	t.Fatalf("no recorded pull request %s#%d in %s", repo, number, scenario)
 	return Pull{}
@@ -237,4 +239,91 @@ func stripNewlines(s string) string {
 		}
 	}
 	return string(out)
+}
+
+// Tree is the recorded recursive tree of a repository at a commit.
+type Tree struct {
+	// Recorded is false when no tree was recorded for the commit.
+	Recorded bool
+	// Truncated is the flag as GitHub returned it: the tree is partial.
+	Truncated bool
+	// Paths are the files (not the directories) of the tree.
+	Paths []string
+}
+
+// TreeOf returns the recorded tree of repo at the commit sha in a scenario.
+func TreeOf(t testing.TB, scenario, repo, sha string) Tree {
+	t.Helper()
+	want := "/repos/" + Owner + "/" + repo + "/git/trees/" + sha
+	for f, r := range recordings(t, filepath.Join(scenario, "GET_repos_*_git_trees_*.json")) {
+		if r.Path != want {
+			continue
+		}
+		var body struct {
+			Truncated bool `json:"truncated"`
+			Tree      []struct {
+				Path string `json:"path"`
+				Type string `json:"type"`
+			} `json:"tree"`
+		}
+		if err := json.Unmarshal(r.Body, &body); err != nil {
+			t.Fatalf("%s: %v", f, err)
+		}
+		out := Tree{Recorded: true, Truncated: body.Truncated}
+		for _, e := range body.Tree {
+			if e.Type == "blob" {
+				out.Paths = append(out.Paths, e.Path)
+			}
+		}
+		return out
+	}
+	return Tree{}
+}
+
+// Search is a recorded code search of a term in a repository.
+type Search struct {
+	// Recorded is false when the search was not recorded.
+	Recorded bool
+	Total    int
+	// Incomplete is the incomplete_results flag as GitHub returned it: the
+	// search did not finish, and an empty result proves nothing.
+	Incomplete bool
+	// Paths are the files returned, with no line numbers.
+	Paths []string
+}
+
+func parseSearch(body []byte) (Search, error) {
+	var v struct {
+		Total      int  `json:"total_count"`
+		Incomplete bool `json:"incomplete_results"`
+		Items      []struct {
+			Path string `json:"path"`
+		} `json:"items"`
+	}
+	if err := json.Unmarshal(body, &v); err != nil {
+		return Search{}, err
+	}
+	out := Search{Recorded: true, Total: v.Total, Incomplete: v.Incomplete}
+	for _, it := range v.Items {
+		out.Paths = append(out.Paths, it.Path)
+	}
+	return out, nil
+}
+
+// SearchOf returns the recorded code search of term in repo in a
+// scenario.
+func SearchOf(t testing.TB, scenario, repo, term string) Search {
+	t.Helper()
+	want := term + " repo:" + Owner + "/" + repo
+	for f, r := range recordings(t, filepath.Join(scenario, "GET_search_code_*.json")) {
+		if r.Path != "/search/code" || r.Query["q"] != want {
+			continue
+		}
+		s, err := parseSearch(r.Body)
+		if err != nil {
+			t.Fatalf("%s: %v", f, err)
+		}
+		return s
+	}
+	return Search{}
 }
