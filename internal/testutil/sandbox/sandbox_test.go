@@ -51,6 +51,9 @@ func TestContent(t *testing.T) {
 
 func TestPullRequest(t *testing.T) {
 	p := PullRequest(t, "S1", "sample-app", 2)
+	if p.Title != "Prefetch the session on startup" || p.Body != "Refreshes the session before the first frame and prefetches the signed-in user." {
+		t.Errorf("PullRequest title and body = %q, %q", p.Title, p.Body)
+	}
 	if p.HeadSHA != "76ae5f13ca1575b65fe1567c471e8a7b51a00af4" || p.BaseSHA != "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f" || p.Author != "sandbox-author" {
 		t.Errorf("PullRequest = %+v", p)
 	}
