@@ -96,7 +96,7 @@ func readFailure(e env, err error) int {
 
 func authLogin(e env, host string) int {
 	if e.term.isMsysPty(e.stdin) {
-		return fail(e, exitUsage, "%s: %s", host, msysTerminalHint)
+		return fail(e, exitUnexpected, "%s: %s", host, msysTerminalHint)
 	}
 	ctx := context.Background()
 	r := e.resolver()

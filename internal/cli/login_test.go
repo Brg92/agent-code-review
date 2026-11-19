@@ -186,8 +186,8 @@ func TestAuthLoginRefusesMsysTerminal(t *testing.T) {
 	stdin := strings.NewReader(testToken + "\n")
 	term := &fakeTerm{msys: true}
 	r := runWith(t, env{git: git, term: term, stdin: stdin}, "auth", "login")
-	if r.code != exitUsage || r.stdout != "" {
-		t.Errorf("got %+v, want code %d and no output", r, exitUsage)
+	if r.code != exitUnexpected || r.stdout != "" {
+		t.Errorf("got %+v, want code %d and no output", r, exitUnexpected)
 	}
 	for _, part := range []string{"Git Bash", "PowerShell or cmd", "password manager", "pipe the token"} {
 		if !strings.Contains(r.stderr, part) {
