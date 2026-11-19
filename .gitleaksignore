@@ -1,0 +1,2 @@
+# Test value of a test that checks that auth errors never quote what git printed (synthetic, not a credential).
+348668d3349046a28e04284c79b4023b8d45a3f5:internal/auth/hardening_test.go:generic-api-key:53

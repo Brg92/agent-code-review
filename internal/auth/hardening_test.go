@@ -50,12 +50,12 @@ func TestFillTellsNoCredentialFromHelperFailure(t *testing.T) {
 }
 
 func TestHelperErrorNeverQuotesGitOutput(t *testing.T) {
-	const secret = "echoed-secret-0123"
+	const echoed = "echoed-by-the-helper"
 	git := &fakeGit{answers: map[string]answer{
-		"credential fill": {stdout: "password=" + secret + "\n", stderr: "error: helper got password=" + secret + "\n", err: &ExitError{Code: 1}},
+		"credential fill": {stdout: "password=" + echoed + "\n", stderr: "error: helper got password=" + echoed + "\n", err: &ExitError{Code: 1}},
 	}}
 	_, err := (Resolver{Getenv: env(nil), Git: git}).Resolve(context.Background(), "github.com")
-	if err == nil || strings.Contains(err.Error(), secret) {
+	if err == nil || strings.Contains(err.Error(), echoed) {
 		t.Errorf("Resolve error %v quotes what git printed", err)
 	}
 }
