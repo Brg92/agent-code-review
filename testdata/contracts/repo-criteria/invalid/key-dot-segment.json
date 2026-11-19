@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "project": "github:github.com/acr-plugin-sandbox/./core-lib",
+  "ref": "main",
+  "source": "legacy",
+  "profile": "library",
+  "packs": [
+    "android"
+  ],
+  "variants": [],
+  "dimensions": {},
+  "disabledRules": [],
+  "ruleOptions": {},
+  "rules": [],
+  "noise": [
+    "gradle/verification-metadata.xml"
+  ],
+  "publicApi": [
+    "src/main/java/com/example/core/session/**"
+  ],
+  "consumers": [
+    "github:github.com/acr-plugin-sandbox/sample-app"
+  ],
+  "sharedLibraries": [],
+  "cascade": {},
+  "files": [
+    ".github/skills/core-lib-code-review/SKILL.md",
+    ".github/mr-review.json"
+  ],
+  "notes": [
+    "Legacy criteria are in use: .github/skills and .github/mr-review.json."
+  ]
+}
