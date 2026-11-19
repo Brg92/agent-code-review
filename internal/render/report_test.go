@@ -328,3 +328,22 @@ func TestReportMarksDismissedBlockerDefaults(t *testing.T) {
 		t.Errorf("the tag changes more than the dismissed entries:\n%s", plain)
 	}
 }
+
+// TestDismissedBlockerGoldens keeps the layout of the report, the summary
+// and the final message when BLOCKER-default signals were dismissed.
+func TestDismissedBlockerGoldens(t *testing.T) {
+	d := testDocument(t)
+	d.SignalsDismissed = []core.Dismissal{
+		{Rule: "uses-removed-api", Path: "app/B.kt", Line: 5, DefaultSeverity: core.Blocker, Reason: "The caller is removed too."},
+		{Rule: "empty-catch", Path: "app/B.kt", Line: 9, DefaultSeverity: core.Minor, Reason: "The catch logs."},
+	}
+	golden(t, "dismissed-blocker-report", Report("1.2.3", d))
+
+	res, reviewed := testCascade(t, false)
+	reviewed[1].Doc.SignalsDismissed = d.SignalsDismissed
+	final, err := Final(res, reviewed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	golden(t, "dismissed-blocker-final", final)
+}

@@ -1,0 +1,41 @@
+agent-code-review v1.2.3 — acr-plugin-sandbox/sample-app#2 "Prefetch the session"
+Packs: android (profile app: set in config · ui-toolkit compose: found compose)
+Criteria: overlay .agent-code-review/ @main
+Scope: 5 changed files · head 76ae5f13
+
+BLOCKER (1) — inline notes on publish
+  [BLOCKER] app/A.kt:13 (relocated to 10) — Blocks the main thread  [run-blocking-prod]
+            why: The UI freezes.
+            fix: Launch it.   (suggestion)
+
+MAJOR (1) — one issue on publish
+  [MAJOR]   app/B.kt:20 — Launches in GlobalScope  [global-scope]
+            why: It leaks. · It is never cancelled.
+            fix: Use a scope.
+
+MINOR (0) — one issue on publish
+
+INFO (1) — report only
+  [INFO]    app/A.kt:3 — Could be shorter  [style.redundant-if]
+            why: It reads worse.
+            fix: Return the condition.
+
+Existing code in touched files (1) — not written in this change request
+  [BLOCKER] app/C.kt:8 — Asserts a stored name  [no-double-bang] [crash]
+            why: It crashes.
+            fix: Return a default.
+
+Questions for the author:
+  - app/A.kt:4 — Is the cache shared?
+  - Which consumers pick it up?
+Signals dismissed:
+  - [BLOCKER default] uses-removed-api app/B.kt:5 — The caller is removed too.
+  - empty-catch app/B.kt:9 — The catch logs.
+Not verified:
+  - app/D.kt — generated: The platform omitted the diff.
+  - How the cache is filled.
+no findings: app/E.kt
+Pipeline: passing on head (2 checks)
+Notes: The overlay changed.
+       Reviewed with care.
+Verdict: BLOCKED — 1 blocker in the change and 1 crashing defect in existing code to fix, then review again.
