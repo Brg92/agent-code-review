@@ -8,11 +8,19 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Brg92/agent-code-review/internal/testutil/credhelper"
 )
 
+// hangEnv makes the test binary, run in place of git, wait until it is killed.
+const hangEnv = "ACR_AUTH_TEST_HANG"
+
 func TestMain(m *testing.M) {
+	if os.Getenv(hangEnv) != "" {
+		time.Sleep(time.Minute)
+		os.Exit(0)
+	}
 	credhelper.Main()
 	os.Exit(m.Run())
 }
@@ -60,7 +68,7 @@ func TestRealGitRoundTrip(t *testing.T) {
 	if len(entries) != 1 || entries[0] != (credhelper.Entry{Host: "github.com", Username: Username, Password: testToken}) {
 		t.Errorf("stored entries = %+v", entries)
 	}
-	for k, want := range map[string]string{"GIT_TERMINAL_PROMPT": "0", "GIT_ASKPASS": "", "GCM_INTERACTIVE": "never"} {
+	for k, want := range map[string]string{"GIT_TERMINAL_PROMPT": "0", "GIT_ASKPASS": "", "GCM_INTERACTIVE": "never", "LC_ALL": "C"} {
 		if seen[k] != want {
 			t.Errorf("helper saw %s=%q, want %q", k, seen[k], want)
 		}
@@ -125,5 +133,19 @@ func TestGitRunnerMissingGit(t *testing.T) {
 	_, err := realResolver(t).Resolve(context.Background(), "github.com")
 	if err == nil || errors.Is(err, ErrNoToken) {
 		t.Errorf("Resolve without git = %v, want a git error", err)
+	}
+}
+
+func TestRealGitHelperFailureIsNotAMissingToken(t *testing.T) {
+	requireGit(t)
+	credhelper.Install(t, credhelper.Config{})
+	credhelper.FailWith(t, "keychain is locked")
+	_, err := realResolver(t).Resolve(context.Background(), "github.com")
+	var he *HelperError
+	if !errors.As(err, &he) || errors.Is(err, ErrNoToken) {
+		t.Fatalf("Resolve with a failing helper = %v, want a *HelperError", err)
+	}
+	if strings.Contains(err.Error(), "locked") {
+		t.Errorf("error %q quotes what the helper printed", err)
 	}
 }

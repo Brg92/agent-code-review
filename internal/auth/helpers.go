@@ -123,7 +123,7 @@ func (r Resolver) CheckHelpers(ctx context.Context, host string) (Check, error) 
 		return Check{}, nil // no matching key
 	}
 	if err != nil {
-		return Check{}, fmt.Errorf("auth: reading credential helpers: %w", err)
+		return Check{}, &HelperError{Op: "git config (reading the credential helpers)", Err: err}
 	}
 	var helpers []Helper
 	for _, entry := range strings.Split(out, "\x00") {

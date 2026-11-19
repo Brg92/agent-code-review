@@ -104,8 +104,12 @@ func (r Resolver) Resolve(ctx context.Context, host string) (Token, error) {
 		return Token{}, err
 	}
 	if name := EnvVar(host); name != "" {
-		if v := strings.TrimSpace(r.Getenv(name)); v != "" {
+		v, err := normalizeToken(r.Getenv(name))
+		switch {
+		case err == nil:
 			return Token{value: v, Source: SourceEnvironment, EnvVar: name}, nil
+		case !errors.Is(err, ErrNoToken):
+			return Token{}, fmt.Errorf("%s: %w", name, err)
 		}
 	}
 	return r.fill(ctx, host)
