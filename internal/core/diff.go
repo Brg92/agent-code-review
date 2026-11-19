@@ -31,12 +31,15 @@ const (
 	FileModified FileStatus = "modified"
 	FileRenamed  FileStatus = "renamed"
 	FileCopied   FileStatus = "copied"
+	// FileUnchanged is a file a platform lists although its content is the
+	// same on both sides.
+	FileUnchanged FileStatus = "unchanged"
 )
 
 // Valid reports whether s is a known file status.
 func (s FileStatus) Valid() bool {
 	switch s {
-	case FileAdded, FileRemoved, FileModified, FileRenamed, FileCopied:
+	case FileAdded, FileRemoved, FileModified, FileRenamed, FileCopied, FileUnchanged:
 		return true
 	}
 	return false
