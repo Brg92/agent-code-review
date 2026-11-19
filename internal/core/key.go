@@ -111,6 +111,13 @@ func ParseKey(s string) (Key, error) {
 	if !projectPattern.MatchString(project) {
 		return fail("project must be at least two path segments of letters, digits, '_', '.' or '-'")
 	}
+	// The pattern leaves out '%', '\' and empty segments; "." and ".." are
+	// the only names it lets through that a path resolves to something else.
+	for _, seg := range strings.Split(project, "/") {
+		if seg == "." || seg == ".." {
+			return fail("project must not contain a '.' or '..' segment")
+		}
+	}
 	return Key{Forge: f, Host: host, Project: project, Number: n}, nil
 }
 

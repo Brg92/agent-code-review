@@ -60,6 +60,12 @@ func TestParseKey(t *testing.T) {
 			Key{GitLab, "git.example.test:8443", "team/app", 7}, ""},
 		{"self-hosted github", "github:ghe.example.test/Org/Repo.Name#120",
 			Key{GitHub, "ghe.example.test", "Org/Repo.Name", 120}, ""},
+		{"leading dot name", "github:github.com/team/.github#2",
+			Key{GitHub, "github.com", "team/.github", 2}, ""},
+		{"dots inside a name", "github:github.com/team/a..b#2",
+			Key{GitHub, "github.com", "team/a..b", 2}, ""},
+		{"three dots", "github:github.com/team/...#2",
+			Key{GitHub, "github.com", "team/...", 2}, ""},
 		{"uppercase host", "github:GitHub.COM/acr-plugin-sandbox/core-lib#3",
 			Key{GitHub, "github.com", "acr-plugin-sandbox/core-lib", 3},
 			"github:github.com/acr-plugin-sandbox/core-lib#3"},
@@ -113,6 +119,24 @@ func TestParseKeyRejects(t *testing.T) {
 		{"letters in port", "github:github.com:ab/team/app#1"},
 		{"space in project", "github:github.com/team/my app#1"},
 		{"surrounding space", " github:github.com/team/app#1"},
+		{"dot segment", "github:github.com/team/./app#1"},
+		{"dot dot segment", "github:github.com/team/../app#1"},
+		{"leading dot dot", "github:github.com/../app#1"},
+		{"leading dot", "github:github.com/./app#1"},
+		{"trailing dot dot", "github:github.com/team/..#1"},
+		{"trailing dot", "github:github.com/team/.#1"},
+		{"dot dot escape", "github:github.com/../../user#1"},
+		{"nested dot dot", "gitlab:gitlab.com/group/sub/../app#1"},
+		{"percent-encoded dot dot", "github:github.com/team/%2e%2e#1"},
+		{"percent-encoded upper dot dot", "github:github.com/team/%2E%2E#1"},
+		{"half percent-encoded dot dot", "github:github.com/team/.%2e#1"},
+		{"percent-encoded slash", "github:github.com/team%2Fapp#1"},
+		{"percent in segment", "github:github.com/team/app%20x#1"},
+		{"backslash dot dot", "github:github.com/team/..\\app#1"},
+		{"backslash separator", "github:github.com/team\\app#1"},
+		{"backslash dot", "github:github.com/.\\app#1"},
+		{"newline", "github:github.com/team/app\n#1"},
+		{"nul", "github:github.com/team/app\x00#1"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -129,7 +153,9 @@ func TestParseKeyRejects(t *testing.T) {
 }
 
 // TestKeysMatchSchema checks that a string parses exactly when it matches
-// the crKey pattern of the state schema once its host is lowercased.
+// the crKey pattern of the state schema once its host is lowercased. The
+// schema cannot tell a "." or ".." segment from a name, so the inputs here
+// leave those out: ParseKey is stricter and is the guard against them.
 func TestKeysMatchSchema(t *testing.T) {
 	data, err := os.ReadFile(filepath.Join("..", "..", "schemas", "state.schema.json"))
 	if err != nil {
