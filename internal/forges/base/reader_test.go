@@ -71,12 +71,16 @@ type reader struct {
 	called bool
 }
 
-func (r *reader) Capabilities() Capabilities                                 { return r.caps }
-func (r *reader) Changes() cascade.Source                                    { return nil }
-func (r *reader) Files() core.Files                                          { return nil }
-func (r *reader) Search() rules.Search                                       { return nil }
-func (r *reader) Tree(context.Context, core.Key, string) rules.Tree          { return nil }
-func (r *reader) Notes(context.Context, core.Key) ([]core.ReviewNote, error) { return nil, nil }
+func (r *reader) ChangeRequest(context.Context, core.Key) (core.ChangeRequest, error) {
+	return core.ChangeRequest{}, nil
+}
+func (r *reader) ChangedFiles(context.Context, core.Key) ([]core.FileChange, error) { return nil, nil }
+func (r *reader) Capabilities() Capabilities                                        { return r.caps }
+func (r *reader) Changes() cascade.Source                                           { return nil }
+func (r *reader) Files() core.Files                                                 { return nil }
+func (r *reader) Search() rules.Search                                              { return nil }
+func (r *reader) Tree(context.Context, core.Key, string) rules.Tree                 { return nil }
+func (r *reader) Notes(context.Context, core.Key) ([]core.ReviewNote, error)        { return nil, nil }
 func (r *reader) CI(context.Context, core.Key, string) (core.CI, error) {
 	r.called = true
 	return r.ci, r.err

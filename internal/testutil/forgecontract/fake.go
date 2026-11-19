@@ -25,6 +25,11 @@ type Fake struct {
 	Caps base.Capabilities
 	// Items are the change requests and issues, by key.
 	Items map[core.Key]cascade.Item
+	// ChangeRequests are the metadata of the change requests, by key; an
+	// issue or an unknown key is not found.
+	ChangeRequests map[core.Key]core.ChangeRequest
+	// FileSets are the changed files of each change request, by key.
+	FileSets map[core.Key][]core.FileChange
 	// DefaultBranch is the default branch of each project, by project key.
 	DefaultBranch map[string]string
 	// Repos are the files of a project at a ref, by "<project key>@<ref>",
@@ -42,6 +47,29 @@ func (f *Fake) Capabilities() base.Capabilities { return f.Caps }
 
 // Changes implements base.Reader.
 func (f *Fake) Changes() cascade.Source { return changes{f} }
+
+// ChangeRequest implements base.Reader.
+func (f *Fake) ChangeRequest(_ context.Context, key core.Key) (core.ChangeRequest, error) {
+	if err := f.Fail[Call{OpChangeRequest, key.ProjectKey(), ""}]; err != nil {
+		return core.ChangeRequest{}, err
+	}
+	cr, ok := f.ChangeRequests[key]
+	if !ok {
+		return core.ChangeRequest{}, &base.Error{Kind: base.ErrNotFound, Op: "change request " + key.String()}
+	}
+	return cr, nil
+}
+
+// ChangedFiles implements base.Reader.
+func (f *Fake) ChangedFiles(_ context.Context, key core.Key) ([]core.FileChange, error) {
+	if err := f.Fail[Call{OpChangedFiles, key.ProjectKey(), ""}]; err != nil {
+		return nil, err
+	}
+	if _, ok := f.ChangeRequests[key]; !ok {
+		return nil, &base.Error{Kind: base.ErrNotFound, Op: "changed files " + key.String()}
+	}
+	return slices.Clone(f.FileSets[key]), nil
+}
 
 // Files implements base.Reader.
 func (f *Fake) Files() core.Files { return files{f} }

@@ -1,6 +1,7 @@
 package forgecontract
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -55,6 +56,17 @@ func (e emptyOtherRef) Search(project, ref, term string) ([]rules.Match, error) 
 		return nil, nil
 	}
 	return e.f.Search().Search(project, ref, term)
+}
+
+// emptyChangeRequest answers a change request that does not exist with
+// an empty one instead of an error.
+type emptyChangeRequest struct{ *Fake }
+
+func (e emptyChangeRequest) ChangeRequest(ctx context.Context, key core.Key) (core.ChangeRequest, error) {
+	if _, ok := e.Fake.ChangeRequests[key]; !ok {
+		return core.ChangeRequest{}, nil
+	}
+	return e.Fake.ChangeRequest(ctx, key)
 }
 
 func reported(errs []string, want string) bool {
@@ -120,6 +132,17 @@ func TestRunCatchesBrokenProviders(t *testing.T) {
 			f.NoteSets[fx.ChangeRequest] = f.NoteSets[fx.ChangeRequest][:2]
 			return f
 		}, "fingerprints in Notes"},
+		{"missing change request as an empty one", func(f *Fake, fx *Fixture) base.Reader {
+			return emptyChangeRequest{f}
+		}, "ChangeRequest(github:github.com/acme/app#9)"},
+		{"short list of changed files", func(f *Fake, fx *Fixture) base.Reader {
+			f.FileSets[fx.ChangeRequest] = f.FileSets[fx.ChangeRequest][1:]
+			return f
+		}, "ChangedFiles("},
+		{"failed changed files read as an empty list", func(f *Fake, fx *Fixture) base.Reader {
+			delete(f.Fail, Call{OpChangedFiles, "github:github.com/acme/locked", ""})
+			return f
+		}, "want forbidden"},
 		{"empty fixture", func(f *Fake, fx *Fixture) base.Reader {
 			fx.Matches = nil
 			return f

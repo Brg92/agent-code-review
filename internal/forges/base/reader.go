@@ -19,6 +19,14 @@ type Reader interface {
 	Capabilities() Capabilities
 	// Changes reads change requests for the cascade.
 	Changes() cascade.Source
+	// ChangeRequest reads the metadata of a change request. One that does
+	// not exist, or that the token cannot read, is ErrNotFound; the
+	// cascade reads through Changes, where that is an item, not an error.
+	ChangeRequest(ctx context.Context, key core.Key) (core.ChangeRequest, error)
+	// ChangedFiles lists every file a change request changes, with its
+	// patch or the reason the platform gave none. A list the platform
+	// cut short is ErrListTruncated, never the part it sent.
+	ChangedFiles(ctx context.Context, key core.Key) ([]core.FileChange, error)
 	// Files reads files and directories of a project at a ref; criteria
 	// are read through it from the target branch.
 	Files() core.Files
