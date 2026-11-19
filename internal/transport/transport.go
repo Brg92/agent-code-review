@@ -255,6 +255,7 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 	secrets := []string{token}
 	key := cacheKey(u.String(), accept, token)
 	cached, haveCached := c.cache.get(key)
+	shortTermRetries := 0
 	for attempt := 0; ; attempt++ {
 		resp, err := c.attempt(ctx, u, accept, token, cached.etag, secrets)
 		last := attempt >= c.maxRetries
@@ -277,6 +278,10 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 			d, hinted := c.hintedDelay(resp, true)
 			if !hinted {
 				d = c.backoff(attempt)
+			}
+			if c.policy.shortTerm(resp) {
+				shortTermRetries++
+				last = last || (c.policy.SecondaryRetries > 0 && shortTermRetries > c.policy.SecondaryRetries)
 			}
 			if last || d > c.maxWait {
 				return nil, &RateLimitError{StatusCode: resp.StatusCode, URL: redactURL(u.String()), RetryAt: c.retryAt(d, hinted)}
@@ -308,7 +313,7 @@ func (c *Client) retryAt(d time.Duration, hinted bool) time.Time {
 }
 
 func (c *Client) statusError(u *url.URL, resp *Response, secrets []string) error {
-	return &StatusError{StatusCode: resp.StatusCode, URL: redactURL(u.String()), Message: bodyMessage(resp.Body, secrets)}
+	return &StatusError{StatusCode: resp.StatusCode, URL: redactURL(u.String()), Message: bodyMessage(resp.Body, secrets), Header: resp.Header.Clone()}
 }
 
 // attempt sends one request and reads its body, whatever the status.
