@@ -31,7 +31,10 @@ var skipWords = map[core.SkipReason]string{
 // show and its summary row repeats.
 type counts struct {
 	blocker, major, minor, existing, crash int
-	verdict                                core.Verdict
+	// dismissedBlockers are the dismissed signals whose rule is BLOCKER by
+	// default; only the summary row shows them.
+	dismissedBlockers int
+	verdict           core.Verdict
 }
 
 func countsOf(d core.Document) counts {
@@ -52,8 +55,18 @@ func countsOf(d core.Document) counts {
 			c.crash++
 		}
 	}
+	c.dismissedBlockers = dismissedBlockers(d)
 	c.verdict = core.ChangeRequestVerdict(d.Findings, d.PreExisting)
 	return c
+}
+
+// dismissed is what a summary row adds when signals of BLOCKER-default
+// rules were dismissed.
+func (c counts) dismissed() string {
+	if c.dismissedBlockers == 0 {
+		return ""
+	}
+	return " · " + plural(c.dismissedBlockers, "BLOCKER-default signal", "BLOCKER-default signals") + " dismissed"
 }
 
 func (c counts) String() string {
@@ -94,10 +107,12 @@ func Cascade(res cascade.Result, reviewed []Reviewed) (string, error) {
 		width = max(width, len(name(k)))
 	}
 	number := len(fmt.Sprint(len(res.Order)))
+	dismissed := 0
 	for i, k := range res.Order {
 		c := countsOf(docs[i])
 		verdicts[k] = c.verdict
-		b.line(fmt.Sprintf("  %*d. %-*s   %-7s   %s", number, i+1, width, name(k), c.verdict, c))
+		dismissed += c.dismissedBlockers
+		b.line(fmt.Sprintf("  %*d. %-*s   %-7s   %s%s", number, i+1, width, name(k), c.verdict, c, c.dismissed()))
 	}
 
 	if len(skipped) > 0 {
@@ -125,6 +140,9 @@ func Cascade(res cascade.Result, reviewed []Reviewed) (string, error) {
 		b.line("Unparsed: " + strings.Join(lines, ", "))
 	}
 
+	if dismissed > 0 {
+		b.line(fmt.Sprintf("Dismissed BLOCKER-default signals: %d (marked in the reports)", dismissed))
+	}
 	overall, causes, err := res.Verdict(verdicts)
 	if err != nil {
 		return "", err

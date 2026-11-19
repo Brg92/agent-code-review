@@ -45,7 +45,7 @@ func testDocument(t *testing.T) core.Document {
 		},
 		NotVerified:      []core.UnverifiedFile{{Path: "app/D.kt", Reason: "generated", Detail: "The platform omitted the diff."}},
 		AgentNotVerified: []string{"How the cache is filled."},
-		SignalsDismissed: []core.Dismissal{{Rule: "empty-catch", Path: "app/B.kt", Line: 5, Reason: "The catch logs."}},
+		SignalsDismissed: []core.Dismissal{{Rule: "empty-catch", Path: "app/B.kt", Line: 5, DefaultSeverity: core.Minor, Reason: "The catch logs."}},
 		Questions:        []core.Question{{Path: "app/A.kt", Line: 4, Text: "Is the cache shared?"}, {Text: "Which consumers pick it up?"}},
 		Notes:            []string{"Reviewed with care."},
 		CI: core.CI{State: core.CIPassing, Checks: []core.Check{
@@ -290,5 +290,41 @@ Notes: The overlay changed.
 		if got := Report("1.2.3", full); !strings.Contains(got, "\nScope: ") {
 			t.Errorf("%s: want the full form, got\n%s", name, got)
 		}
+	}
+}
+
+// TestReportMarksDismissedBlockerDefaults checks that a signal the agent
+// dismissed is marked when its rule is BLOCKER by default, and only then.
+func TestReportMarksDismissedBlockerDefaults(t *testing.T) {
+	d := testDocument(t)
+	d.SignalsDismissed = []core.Dismissal{
+		{Rule: "uses-removed-api", Path: "app/B.kt", Line: 5, DefaultSeverity: core.Blocker, Reason: "The caller is removed too."},
+		{Rule: "empty-catch", Path: "app/B.kt", Line: 9, DefaultSeverity: core.Minor, Reason: "The catch logs."},
+		{Rule: "dead-code", Path: "app/C.kt", Line: 2, DefaultSeverity: core.Major, Reason: "Used by reflection."},
+		{Rule: "style.redundant-if", Path: "app/C.kt", Line: 4, DefaultSeverity: core.Info, Reason: "Kept for symmetry."},
+		{Rule: "no-double-bang", Path: "app/D.kt", Line: 1, DefaultSeverity: core.Blocker, Reason: "Checked on the line above."},
+	}
+	got := Report("1.2.3", d)
+	want := `Signals dismissed:
+  - [BLOCKER default] uses-removed-api app/B.kt:5 — The caller is removed too.
+  - empty-catch app/B.kt:9 — The catch logs.
+  - dead-code app/C.kt:2 — Used by reflection.
+  - style.redundant-if app/C.kt:4 — Kept for symmetry.
+  - [BLOCKER default] no-double-bang app/D.kt:1 — Checked on the line above.
+`
+	if !strings.Contains(got, want) {
+		t.Errorf("no %q in\n%s", want, got)
+	}
+	if n := strings.Count(got, "[BLOCKER default]"); n != 2 {
+		t.Errorf("%d marked signals, want 2", n)
+	}
+	// Nothing else of the layout moves: without the tags the report is the
+	// one of a document whose dismissed signals are all minor.
+	for i := range d.SignalsDismissed {
+		d.SignalsDismissed[i].DefaultSeverity = core.Minor
+	}
+	plain := Report("1.2.3", d)
+	if strings.Contains(plain, "BLOCKER default") || strings.Replace(got, "[BLOCKER default] ", "", -1) != plain {
+		t.Errorf("the tag changes more than the dismissed entries:\n%s", plain)
 	}
 }

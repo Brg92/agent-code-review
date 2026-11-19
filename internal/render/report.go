@@ -26,6 +26,23 @@ func severityRank(s core.Severity) int {
 	return len(severities)
 }
 
+// blockerDefaultTag marks a dismissed signal whose rule is BLOCKER by
+// default: dismissing it is the way a hostile change request gets a
+// blocker out of the report, so it is never left unnoticed.
+const blockerDefaultTag = "[BLOCKER default]"
+
+// dismissedBlockers counts the dismissed signals whose rule is BLOCKER by
+// default.
+func dismissedBlockers(d core.Document) int {
+	n := 0
+	for _, s := range d.SignalsDismissed {
+		if s.DefaultSeverity == core.Blocker {
+			n++
+		}
+	}
+	return n
+}
+
 // sectionTitles say what publishing does with the findings of a severity.
 var sectionTitles = map[core.Severity]string{
 	core.Blocker: "inline notes on publish",
@@ -234,7 +251,11 @@ func footer(b *builder, d core.Document) {
 	if len(d.SignalsDismissed) > 0 {
 		b.line("Signals dismissed:")
 		for _, s := range d.SignalsDismissed {
-			b.line(fmt.Sprintf("  - %s %s:%d — %s", s.Rule, s.Path, s.Line, oneLine(s.Reason)))
+			tag := ""
+			if s.DefaultSeverity == core.Blocker {
+				tag = blockerDefaultTag + " "
+			}
+			b.line(fmt.Sprintf("  - %s%s %s:%d — %s", tag, s.Rule, s.Path, s.Line, oneLine(s.Reason)))
 		}
 	}
 	notVerified(b, d)
