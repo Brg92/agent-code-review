@@ -38,10 +38,12 @@ type FileList struct {
 }
 
 type recording struct {
-	Path   string            `json:"path"`
-	Query  map[string]string `json:"query"`
-	Status int               `json:"status"`
-	Body   json.RawMessage   `json:"body"`
+	Method  string            `json:"method"`
+	Path    string            `json:"path"`
+	Query   map[string]string `json:"query"`
+	Status  int               `json:"status"`
+	Headers map[string]string `json:"headers"`
+	Body    json.RawMessage   `json:"body"`
 }
 
 // root is the repository root, found from this file so that tests of any
