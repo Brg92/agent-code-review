@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -96,5 +97,44 @@ func TestGetRejectsInvalidPath(t *testing.T) {
 		if _, err := c.Get(context.Background(), p, ""); err == nil {
 			t.Errorf("Get(%q) = nil error, want error", p)
 		}
+	}
+}
+
+func TestNewBaseURLScheme(t *testing.T) {
+	tests := []struct {
+		base    string
+		wantErr bool
+	}{
+		{"https://api.example.invalid", false},
+		{"https://127.0.0.1:8443/api", false},
+		{"HTTPS://api.example.invalid", false},
+		{"http://localhost", false},
+		{"http://localhost:8080/api/v3", false},
+		{"http://LOCALHOST:8080", false},
+		{"http://127.0.0.1:1234", false},
+		{"http://127.1.2.3", false},
+		{"http://[::1]:1234", false},
+		{"http://api.example.invalid", true},
+		{"http://api.example.invalid:80", true},
+		{"http://127.0.0.1.example.invalid", true},
+		{"http://localhost.example.invalid", true},
+		{"http://10.0.0.1", true},
+		{"http://128.0.0.1", true},
+		{"http://0.0.0.0", true},
+		{"http://[::]", true},
+		{"http://[::2]", true},
+		{"http://[::ffff:10.0.0.1]", true},
+		{"http://192.168.1.1:3000", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.base, func(t *testing.T) {
+			_, err := New(Config{BaseURL: tt.base})
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("New(%q) error = %v, want error %v", tt.base, err, tt.wantErr)
+			}
+			if tt.wantErr && !errors.Is(err, ErrInsecureScheme) {
+				t.Errorf("New(%q) error %v is not ErrInsecureScheme", tt.base, err)
+			}
+		})
 	}
 }
