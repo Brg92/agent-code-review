@@ -62,6 +62,17 @@ func NewReplay(t testing.TB, scenario string) *Replay {
 	return r
 }
 
+// NewSynthetic starts a Replay with no recordings, for the cases the sandbox
+// cannot produce. Every response comes from Add, and each test that uses it
+// is synthetic.
+func NewSynthetic(t testing.TB) *Replay {
+	t.Helper()
+	r := &Replay{t: t, routes: map[string]Route{}}
+	r.srv = httptest.NewServer(http.HandlerFunc(r.serve))
+	t.Cleanup(r.srv.Close)
+	return r
+}
+
 // URL is the base URL of the server, to give to the client in place of
 // the API host.
 func (r *Replay) URL() string { return r.srv.URL }

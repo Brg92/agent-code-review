@@ -110,3 +110,19 @@ func TestReplayAddedRoutes(t *testing.T) {
 }
 
 func sprintf(format string, args ...any) string { return fmt.Sprintf(format, args...) }
+
+func TestSyntheticReplayHasOnlyItsRoutes(t *testing.T) {
+	rec := &recTB{TB: t}
+	r := NewSynthetic(rec)
+	r.Add(Route{Path: "/repos/x/y", Query: map[string]string{"a": "1"}, Status: 403, Header: map[string]string{"X-Test": "yes"}, Body: `{"message":"no"}`})
+	resp, body := get(t, r.URL()+"/repos/x/y?a=1")
+	if resp.StatusCode != 403 || resp.Header.Get("X-Test") != "yes" || body != `{"message":"no"}` {
+		t.Errorf("synthetic route = %d %v %q", resp.StatusCode, resp.Header, body)
+	}
+	if resp, _ := get(t, r.URL()+"/repos/x/y"); resp.StatusCode != http.StatusNotImplemented {
+		t.Errorf("a query that was not added = %d, want 501", resp.StatusCode)
+	}
+	if len(rec.errs) != 1 {
+		t.Errorf("errors = %v, want one for the request without a route", rec.errs)
+	}
+}
