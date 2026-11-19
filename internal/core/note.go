@@ -37,7 +37,7 @@ type NoteFingerprint struct {
 
 const (
 	rulePart    = `[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*`
-	projectPart = `[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+`
+	projectPart = projectSegments
 	severityTag = `(?:blocker|major|minor)`
 )
 

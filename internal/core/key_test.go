@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -152,26 +154,59 @@ func TestParseKeyRejects(t *testing.T) {
 	}
 }
 
+// keyPatterns returns every change request key pattern (ending with the
+// number) and project key pattern (without it) of the schemas, by schema
+// file and path in the file.
+func keyPatterns(t *testing.T) (crKeys, projectKeys map[string]string) {
+	t.Helper()
+	files, err := filepath.Glob(filepath.Join("..", "..", "schemas", "*.schema.json"))
+	if err != nil || len(files) == 0 {
+		t.Fatalf("no schemas: %v", err)
+	}
+	crKeys, projectKeys = map[string]string{}, map[string]string{}
+	var walk func(file, at string, v any)
+	walk = func(file, at string, v any) {
+		switch v := v.(type) {
+		case map[string]any:
+			if p, ok := v["pattern"].(string); ok && strings.HasPrefix(p, "^(?:github|gitlab):") {
+				if strings.HasSuffix(p, "#[1-9][0-9]*$") {
+					crKeys[file+at] = p
+				} else {
+					projectKeys[file+at] = p
+				}
+			}
+			for k, c := range v {
+				walk(file, at+"/"+k, c)
+			}
+		case []any:
+			for i, c := range v {
+				walk(file, at+"/"+strconv.Itoa(i), c)
+			}
+		}
+	}
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var doc any
+		if err := json.Unmarshal(data, &doc); err != nil {
+			t.Fatal(err)
+		}
+		walk(filepath.Base(f), "", doc)
+	}
+	return crKeys, projectKeys
+}
+
 // TestKeysMatchSchema checks that a string parses exactly when it matches
-// the crKey pattern of the state schema once its host is lowercased. The
-// schema cannot tell a "." or ".." segment from a name, so the inputs here
-// leave those out: ParseKey is stricter and is the guard against them.
+// every key pattern of the schemas once its host is lowercased, the
+// project key patterns included, so that no file the schemas accept holds
+// a key the parser refuses, a "." or ".." segment above all.
 func TestKeysMatchSchema(t *testing.T) {
-	data, err := os.ReadFile(filepath.Join("..", "..", "schemas", "state.schema.json"))
-	if err != nil {
-		t.Fatal(err)
+	crKeys, projectKeys := keyPatterns(t)
+	if _, ok := crKeys["state.schema.json/$defs/crKey"]; !ok || len(crKeys) < 5 || len(projectKeys) < 5 {
+		t.Fatalf("found %d key patterns and %d project patterns, want the ones of every schema: %v", len(crKeys), len(projectKeys), crKeys)
 	}
-	var schema struct {
-		Defs struct {
-			CRKey struct {
-				Pattern string `json:"pattern"`
-			} `json:"crKey"`
-		} `json:"$defs"`
-	}
-	if err := json.Unmarshal(data, &schema); err != nil {
-		t.Fatal(err)
-	}
-	pattern := regexp.MustCompile(schema.Defs.CRKey.Pattern)
 	inputs := []string{
 		"github:github.com/a/b#1",
 		"gitlab:h:1/a/b/c/d#10",
@@ -183,16 +218,50 @@ func TestKeysMatchSchema(t *testing.T) {
 		"github:h/a/b/#1",
 		"github:h//a/b#1",
 		"github:h/a/b#1\n",
+		"github:h/.github/b#1",
+		"github:h/a/...#1",
+		"github:h/a/..b#1",
+		"github:h/a/b..#1",
+		"github:h/./b#1",
+		"github:h/a/.#1",
+		"github:h/../b#1",
+		"github:h/a/..#1",
+		"github:h/a/../b#1",
+		"github:h/a/b/../../c#1",
+		"github:h/a/%2e%2e#1",
+		"github:h/a\\..\\b#1",
+		"github:h/a/./.#1",
 	}
 	for _, in := range inputs {
-		k, err := ParseKey(in)
-		if err == nil && !pattern.MatchString(k.String()) {
-			t.Errorf("ParseKey(%q) formats as %q, which the schema rejects", in, k)
+		_, err := ParseKey(in)
+		for name, p := range crKeys {
+			re := regexp.MustCompile(p)
+			if ok := re.MatchString(lowerHost(in)); ok != (err == nil) {
+				t.Errorf("%s: pattern matches %q = %v, ParseKey error = %v", name, in, ok, err)
+			}
 		}
-		if err != nil && pattern.MatchString(in) {
-			t.Errorf("ParseKey(%q) rejects a key the schema accepts: %v", in, err)
+		project, _, _ := strings.Cut(in, "#")
+		_, err = ParseKey(project + "#1")
+		for name, p := range projectKeys {
+			re := regexp.MustCompile(p)
+			if ok := re.MatchString(lowerHost(project)); ok != (err == nil) {
+				t.Errorf("%s: pattern matches %q = %v, ParseKey error = %v", name, project, ok, err)
+			}
 		}
 	}
+}
+
+// lowerHost lowercases the host of a key, as ParseKey does.
+func lowerHost(s string) string {
+	forge, rest, ok := strings.Cut(s, ":")
+	if !ok {
+		return s
+	}
+	host, tail, ok := strings.Cut(rest, "/")
+	if !ok {
+		return s
+	}
+	return forge + ":" + strings.ToLower(host) + "/" + tail
 }
 
 func TestKeyJSON(t *testing.T) {

@@ -107,7 +107,7 @@
     "crKey": {
       "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
       "type": "string",
-      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+#[1-9][0-9]*$"
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,})(?:/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,}))+#[1-9][0-9]*$"
     },
     "line": {
       "description": "Line number, starting at 1, in the file version of the chosen side.",
@@ -117,7 +117,7 @@
     "projectKey": {
       "description": "Project key: <forge>:<host>/<project>, for example github:github.com/acr-plugin-sandbox/sample-app.",
       "type": "string",
-      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,})(?:/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,}))+$"
     },
     "relativePath": {
       "description": "Relative path with forward slashes, without empty, '.' or '..' segments.",

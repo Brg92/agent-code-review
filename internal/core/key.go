@@ -71,9 +71,16 @@ func (e *KeyError) Error() string {
 	return fmt.Sprintf("invalid change request key %q: %s", e.Key, e.Reason)
 }
 
+// projectSegments matches a project path of at least two segments of
+// letters, digits, '_', '.' and '-'. A segment is never "." or "..", which
+// a path resolves to something else: it either has a character other than
+// '.' (after any leading dots), or is three dots or more. The schemas use
+// the same expression, and TestKeysMatchSchema keeps them equal.
+const projectSegments = `(?:\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\.{3,})(?:/(?:\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\.{3,}))+`
+
 var (
 	hostPattern    = regexp.MustCompile(`^[a-z0-9.-]+(?::[0-9]+)?$`)
-	projectPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$`)
+	projectPattern = regexp.MustCompile(`^` + projectSegments + `$`)
 	numberPattern  = regexp.MustCompile(`^[1-9][0-9]*$`)
 )
 
@@ -109,14 +116,7 @@ func ParseKey(s string) (Key, error) {
 		return fail("invalid host")
 	}
 	if !projectPattern.MatchString(project) {
-		return fail("project must be at least two path segments of letters, digits, '_', '.' or '-'")
-	}
-	// The pattern leaves out '%', '\' and empty segments; "." and ".." are
-	// the only names it lets through that a path resolves to something else.
-	for _, seg := range strings.Split(project, "/") {
-		if seg == "." || seg == ".." {
-			return fail("project must not contain a '.' or '..' segment")
-		}
+		return fail("project must be at least two path segments of letters, digits, '_', '.' or '-', none of them '.' or '..'")
 	}
 	return Key{Forge: f, Host: host, Project: project, Number: n}, nil
 }
