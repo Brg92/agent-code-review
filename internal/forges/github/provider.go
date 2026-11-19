@@ -64,6 +64,8 @@ type Provider struct {
 	repos map[string]repoState
 }
 
+var _ base.Reader = (*Provider)(nil)
+
 // repoState is what is known of a repository: its default branch, or why
 // it cannot be read.
 type repoState struct {
@@ -74,12 +76,16 @@ type repoState struct {
 // New returns the reader of host, which must be in the host table. The
 // token of the host is resolved through tokens at each request and handed to
 // the transport alone.
-func New(host string, tokens Resolver, opts Options) (*Provider, error) {
+func New(host string, tokens Resolver, opts Options) (base.Reader, error) {
 	api, ok := apiBases[strings.ToLower(host)]
 	if !ok {
 		return nil, &UnsupportedHostError{Host: host}
 	}
-	return newProvider(strings.ToLower(host), api, tokens, opts)
+	p, err := newProvider(strings.ToLower(host), api, tokens, opts)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
 // newProvider is New for an API base URL of the caller's, which tests point
