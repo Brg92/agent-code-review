@@ -72,9 +72,11 @@ docs/                    project docs for humans
 
 ## 6. Remote actions
 
-The development agent performs remote actions on its own: pushing its branches, opening and updating pull requests, creating and configuring sandbox repositories, triggering workflows, and calling GitHub APIs. It announces each one in its report (command, branch, target).
+The development agent performs remote actions on its own: pushing its branches, opening and updating pull requests, creating sandbox repositories, triggering workflows, and read-only GitHub queries. It announces each one in its report (command, branch, target).
 
 **Merging needs explicit permission.** Before any merge (`gh pr merge`, the merge API, or the web UI), stop and ask, stating the PR, its title and the merge method; proceed only after an explicit "yes" for that PR.
+
+**GitHub API calls and repository settings need explicit permission too.** Before any `gh api` call and any `gh repo edit`, ask and wait for a clear "yes", because their effect cannot be checked from the command prefix. Read-only commands (`gh pr view`, `gh pr checks`, `gh run view`, `gh run list`, `gh pr list`, `gh repo view`) stay autonomous.
 
 **Never**, not even with permission: force-push, push to `main`, delete remote branches, delete repositories, merge or delete sandbox scenario branches or pull requests. Fine-grained tokens are edited by the maintainer only. If `gh` is unavailable, give the exact commands instead.
 
