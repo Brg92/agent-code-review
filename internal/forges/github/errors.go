@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -41,6 +42,8 @@ func (p *Provider) fail(op string, err error) error {
 		return &base.Error{Kind: base.ErrRateLimited, Op: op, Err: errors.New(msg)}
 	case errors.As(err, &se):
 		return statusError(op, se)
+	case errors.Is(err, transport.ErrCrossHostRedirect):
+		return &base.Error{Kind: base.ErrTransport, Op: op, Err: errors.New("redirect to another host refused")}
 	case errors.Is(err, transport.ErrPageLimit):
 		return &base.Error{Kind: base.ErrListTruncated, Op: op, Err: errors.New("more pages than the page cap")}
 	case errors.As(err, &ne):
@@ -80,12 +83,23 @@ func acceptedPermissions(se *transport.StatusError) []string {
 	return out
 }
 
-// scrubbed turns a message into an error without the URL of the request:
-// the URL is replaced by its path.
+var urlInText = regexp.MustCompile(`https?://\S+`)
+
+// scrubbed turns a message into an error without any URL: each one is
+// replaced by its path, so that no query, user info or host is kept.
 func scrubbed(msg, rawURL string) error {
 	if u, err := url.Parse(rawURL); err == nil && rawURL != "" {
 		msg = strings.ReplaceAll(msg, rawURL, u.Path)
 	}
+	msg = urlInText.ReplaceAllStringFunc(msg, func(m string) string {
+		trimmed := strings.TrimRight(m, ":;,.")
+		suffix := m[len(trimmed):]
+		u, err := url.Parse(trimmed)
+		if err != nil {
+			return "[URL]" + suffix
+		}
+		return u.Path + suffix
+	})
 	return errors.New(msg)
 }
 

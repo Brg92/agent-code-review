@@ -57,7 +57,7 @@ func (c changes) Get(ctx context.Context, k core.Key) (cascade.Item, error) {
 			item.Description = *pr.Body
 		}
 		return item, nil
-	case !isKind(err, base.ErrNotFound) && !isKind(err, base.ErrForbidden):
+	case !unreadable(err):
 		return cascade.Item{}, err
 	}
 	var issue struct{}
@@ -65,11 +65,17 @@ func (c changes) Get(ctx context.Context, k core.Key) (cascade.Item, error) {
 	switch {
 	case err == nil:
 		return cascade.Item{Kind: cascade.KindIssue}, nil
-	case isKind(err, base.ErrNotFound), isKind(err, base.ErrForbidden):
+	case unreadable(err):
 		return cascade.Item{Kind: cascade.KindNotFound}, nil
 	}
 	return cascade.Item{}, err
 }
+
+// unreadable reports whether GitHub answered that the number is not there
+// or not for this token: 404 or 403, which the cascade reads as nothing. A
+// refused token (401), a missing token or a limit is an error, never
+// nothing.
+func unreadable(err error) bool { return isStatus(err, 404) || isStatus(err, 403) }
 
 // ChangeRequest implements base.Reader.
 func (p *Provider) ChangeRequest(ctx context.Context, k core.Key) (core.ChangeRequest, error) {
