@@ -35,7 +35,10 @@ type Finding struct {
 // DismissedSignal is a signal the judgement dismissed, kept for the report.
 type DismissedSignal struct {
 	Signal Signal
-	Reason string
+	// DefaultSeverity is the severity of the signal's rule in its catalog;
+	// the signal has none of its own when the rule needs judgement.
+	DefaultSeverity Severity
+	Reason          string
 }
 
 // Result is a finalized change request: its findings, and what the report
@@ -86,13 +89,13 @@ func Finalize(r Review, j Judgement) (Result, error) {
 	}
 	for _, s := range r.Signals {
 		d := decisions[s.ID]
-		if d.Decision == Dismiss {
-			res.Dismissed = append(res.Dismissed, DismissedSignal{Signal: s, Reason: d.Reason})
-			continue
-		}
 		rule, ok := r.Rules[s.Rule]
 		if !ok {
 			return Result{}, fmt.Errorf("signal %s: rule %q is not a rule of this change request", s.ID, s.Rule)
+		}
+		if d.Decision == Dismiss {
+			res.Dismissed = append(res.Dismissed, DismissedSignal{Signal: s, DefaultSeverity: Severity(rule.Severity), Reason: d.Reason})
+			continue
 		}
 		// A loaded catalog guarantees the text of a matched rule that needs
 		// no judgement; a rule that needs judgement may still lack it.

@@ -79,9 +79,9 @@ func TestFinalizeDismissedSignals(t *testing.T) {
 	}
 	var got []string
 	for _, d := range res.Dismissed {
-		got = append(got, d.Signal.ID+" "+d.Signal.Rule+" "+d.Reason)
+		got = append(got, d.Signal.ID+" "+d.Signal.Rule+" "+string(d.DefaultSeverity)+" "+d.Reason)
 	}
-	want := []string{"s1 empty-catch the catch logs through a wrapper", "s3 no-double-bang the value is checked above"}
+	want := []string{"s1 empty-catch BLOCKER the catch logs through a wrapper", "s3 no-double-bang MAJOR the value is checked above"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("dismissed %q, want %q", got, want)
 	}
@@ -89,6 +89,28 @@ func TestFinalizeDismissedSignals(t *testing.T) {
 		if f.Signal == "s1" || f.Signal == "s3" {
 			t.Errorf("dismissed signal %s became a finding", f.Signal)
 		}
+	}
+}
+
+// TestFinalizeDismissedKeepsTheDefaultSeverity checks that a signal that
+// needs judgement, which has no severity of its own, still reports the
+// default severity of its rule when it is dismissed.
+func TestFinalizeDismissedKeepsTheDefaultSeverity(t *testing.T) {
+	r := testReview(t)
+	r.Rules["no-double-bang"].Severity = "BLOCKER"
+	j := testJudgement()
+	j.Signals = []SignalDecision{{ID: "s2", Decision: Dismiss, Reason: "looks fine"}, {ID: "s3", Decision: Dismiss, Reason: "checked above"}}
+	res, err := Finalize(r, j)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Dismissed) != 2 || res.Dismissed[0].Signal.ID != "s2" || res.Dismissed[0].Signal.Severity != "" || res.Dismissed[0].DefaultSeverity != Blocker {
+		t.Errorf("dismissed = %+v, want s2 with no severity of its own and default BLOCKER", res.Dismissed)
+	}
+
+	delete(r.Rules, "no-double-bang")
+	if _, err := Finalize(r, j); err == nil || !strings.Contains(err.Error(), "no-double-bang") {
+		t.Errorf("a dismissed signal of an unknown rule: error %v", err)
 	}
 }
 

@@ -79,7 +79,7 @@ func TestResultDocument(t *testing.T) {
 	if doc.Schema != 1 || doc.CR != res.CR || doc.HeadSHA != testHead || doc.Verdict != res.Verdict || doc.Title != h.Title || doc.BaseRef != "main" {
 		t.Errorf("header of the document: %+v", doc)
 	}
-	if want := []Dismissal{{Rule: "empty-catch", Path: "app/A.kt", Line: 2, Reason: "the catch logs through a wrapper"}}; !reflect.DeepEqual(doc.SignalsDismissed, want) {
+	if want := []Dismissal{{Rule: "empty-catch", Path: "app/A.kt", Line: 2, DefaultSeverity: Blocker, Reason: "the catch logs through a wrapper"}}; !reflect.DeepEqual(doc.SignalsDismissed, want) {
 		t.Errorf("dismissed %+v, want %+v", doc.SignalsDismissed, want)
 	}
 	if !reflect.DeepEqual(doc.Questions, j.Questions) || !reflect.DeepEqual(doc.Notes, j.Notes) || !reflect.DeepEqual(doc.AgentNotVerified, j.NotVerified) {
