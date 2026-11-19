@@ -123,6 +123,9 @@ func (p *Provider) Capabilities() base.Capabilities { return Capabilities() }
 // Changes implements base.Reader.
 func (p *Provider) Changes() cascade.Source { return changes{p} }
 
+// Files implements base.Reader.
+func (p *Provider) Files() core.Files { return files{p} }
+
 // checkHost refuses a key of another host before anything is sent.
 func (p *Provider) checkHost(op string, k core.Key) error {
 	if k.Forge == core.GitHub && strings.EqualFold(k.Host, p.host) {
