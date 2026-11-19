@@ -9,7 +9,7 @@ import (
 
 var (
 	relativePath = regexp.MustCompile(`^(?:[^/\\.][^/\\]*|\.[^/\\.][^/\\]*)(?:/(?:[^/\\.][^/\\]*|\.[^/\\.][^/\\]*))*$`)
-	projectKey   = regexp.MustCompile(`^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$`)
+	projectKey   = regexp.MustCompile(`^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/` + projectSegments + `$`)
 	noSpace      = regexp.MustCompile(`^\S+$`)
 )
 

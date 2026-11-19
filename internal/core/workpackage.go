@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/Brg92/agent-code-review/internal/rules"
 )
@@ -181,9 +182,66 @@ type WorkPackageInput struct {
 	WholeFileLines, ContextLines, PartBudget int
 }
 
+// PathError is returned when a path holds a control character, a newline
+// or a tab included: a file name written by the change request author
+// could forge a line of the brief. Such a change request is not reviewed.
+type PathError struct {
+	// Field says where the path is found.
+	Field string
+	Path  string
+}
+
+func (e *PathError) Error() string {
+	return fmt.Sprintf("%s %q holds a control character", e.Field, e.Path)
+}
+
+// checkPath returns a *PathError if path holds a control character.
+func checkPath(field, path string) error {
+	if strings.IndexFunc(path, unicode.IsControl) >= 0 {
+		return &PathError{Field: field, Path: path}
+	}
+	return nil
+}
+
+// checkPaths checks every path the work package would carry.
+func checkPaths(in WorkPackageInput) error {
+	for _, f := range in.Files {
+		if err := checkPath("path of a changed file", f.File.Diff.Path); err != nil {
+			return err
+		}
+		if err := checkPath("previous path of a changed file", f.File.Diff.OldPath); err != nil {
+			return err
+		}
+	}
+	for _, n := range in.NotVerified {
+		if err := checkPath("path of a file not verified", n.Path); err != nil {
+			return err
+		}
+	}
+	for _, f := range in.Criteria.Files {
+		if err := checkPath("criteria file", f); err != nil {
+			return err
+		}
+	}
+	for _, list := range [][]rules.Signal{in.FileSignals, in.ChangeRequestSignals} {
+		for _, s := range list {
+			if err := checkPath("path of a signal", s.Path); err != nil {
+				return err
+			}
+			for _, r := range s.References {
+				if err := checkPath("path of a signal reference", r.Path); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // BuildWorkPackage builds the work package of a change request and the
 // review its judgement is validated and finalized against, from the same
-// files, rules and signals. It reads nothing: everything comes from in.
+// files, rules and signals. It reads nothing: everything comes from in. A
+// path with a control character gives a *PathError.
 //
 // A file of at most WholeFileLines lines at head is included whole; a
 // larger one in regions, each hunk with ContextLines lines around it,
@@ -192,7 +250,10 @@ type WorkPackageInput struct {
 // summary, with the reason. Files are served in parts of at most
 // PartBudget bytes, in diff order, a file never split and a larger one
 // alone.
-func BuildWorkPackage(in WorkPackageInput) (WorkPackage, Review) {
+func BuildWorkPackage(in WorkPackageInput) (WorkPackage, Review, error) {
+	if err := checkPaths(in); err != nil {
+		return WorkPackage{}, Review{}, err
+	}
 	whole, context, budget := orDefault(in.WholeFileLines, DefaultWholeFileLines), orDefault(in.ContextLines, DefaultContextLines),
 		orDefault(in.PartBudget, DefaultPartBudget)
 	changed := make([]ChangedFile, 0, len(in.Files))
@@ -244,7 +305,7 @@ func BuildWorkPackage(in WorkPackageInput) (WorkPackage, Review) {
 	if wp.Signals == nil {
 		wp.Signals = []Signal{}
 	}
-	return wp, review
+	return wp, review, nil
 }
 
 func orDefault(v, def int) int {

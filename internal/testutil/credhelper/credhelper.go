@@ -34,8 +34,16 @@ const Name = "acrtest"
 // envStore carries the store path to the helper process.
 const envStore = "ACR_TEST_CREDENTIAL_STORE"
 
+// envFail makes the helper fail with the given message.
+const envFail = "ACR_TEST_CREDENTIAL_FAIL"
+
+// FailWith makes the helper, for the rest of the test, print msg on stderr
+// and exit with status 1 on every request, as a helper does when the
+// keychain is locked.
+func FailWith(t *testing.T, msg string) { t.Setenv(envFail, msg) }
+
 // recordedEnv are the variables the helper records, to check how git ran.
-var recordedEnv = []string{"GIT_TERMINAL_PROMPT", "GIT_ASKPASS", "GCM_INTERACTIVE"}
+var recordedEnv = []string{"GIT_TERMINAL_PROMPT", "GIT_ASKPASS", "GCM_INTERACTIVE", "LC_ALL"}
 
 // Entry is one stored credential.
 type Entry struct {
@@ -57,6 +65,10 @@ func Main() {
 	op := os.Args[1]
 	if op != "get" && op != "store" && op != "erase" {
 		return
+	}
+	if msg := os.Getenv(envFail); msg != "" {
+		fmt.Fprintln(os.Stderr, msg)
+		os.Exit(1)
 	}
 	if err := serve(op, os.Stdin, os.Stdout, store, os.Getenv); err != nil {
 		fmt.Fprintln(os.Stderr, "credhelper:", err)

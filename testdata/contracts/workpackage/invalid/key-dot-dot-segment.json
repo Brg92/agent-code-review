@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "runId": "20261102-101500-s2cascade",
+  "cr": "github:github.com/acr-plugin-sandbox/../sample-app#7",
+  "url": "https://github.com/acr-plugin-sandbox/sample-app/pull/7",
+  "title": "Show when the session expires",
+  "description": "Shows the session expiry on the home screen, using `SessionManager.expiresAt()` from core-lib.",
+  "headSha": "e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
+  "baseSha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
+  "baseRef": "main",
+  "criteria": {
+    "source": "overlay",
+    "profile": "app",
+    "profileReason": "set in .agent-code-review/config.json",
+    "packs": [
+      "android"
+    ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "views",
+        "reason": "android default"
+      }
+    },
+    "files": [
+      ".agent-code-review/criteria.md"
+    ],
+    "ignored": []
+  },
+  "rules": [
+    {
+      "id": "run-blocking-prod",
+      "severity": "BLOCKER",
+      "title": "runBlocking on the main thread",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    }
+  ],
+  "checklist": {
+    "sections": [
+      {
+        "heading": "Coroutines and concurrency",
+        "rules": [
+          "run-blocking-prod"
+        ]
+      }
+    ],
+    "repository": []
+  },
+  "files": [
+    {
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline"
+    }
+  ],
+  "signals": [],
+  "notVerified": [],
+  "relatedChanges": [
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "title": "Replace legacyToken with expiresAt",
+      "workPackage": "cr/core-lib-3/workpackage.json"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+      "title": "Prefetch the session on startup",
+      "workPackage": "cr/sample-app-2/workpackage.json"
+    },
+    {
+      "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+      "title": "Add a session countdown",
+      "workPackage": "cr/kmp-shared-2/workpackage.json"
+    }
+  ],
+  "cascade": {
+    "ancestors": []
+  },
+  "parts": {
+    "total": 1,
+    "changeRequestSignals": [],
+    "files": [
+      [
+        "app/src/main/java/com/example/sample/data/SessionRepository.kt"
+      ]
+    ]
+  },
+  "judgementPath": "cr/sample-app-7/judgement.json"
+}

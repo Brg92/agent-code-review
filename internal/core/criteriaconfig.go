@@ -77,7 +77,7 @@ var (
 	ruleIDForm  = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*$`)
 	globForm    = regexp.MustCompile(`^[^/\\]+(?:/[^/\\]+)*$`)
 	// projectKeyForm is <forge>:<host>/<project>, without a number.
-	projectKeyForm = regexp.MustCompile(`^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$`)
+	projectKeyForm = regexp.MustCompile(`^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/` + projectSegments + `$`)
 )
 
 // fields collects the problems of one JSON document.

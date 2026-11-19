@@ -209,7 +209,7 @@ func buildScenario(t *testing.T, cr scenarioCR, budget int) (core.WorkPackage, c
 		notVerified = append(notVerified, core.UnverifiedFile{Path: n.Path, Reason: n.Reason, Detail: n.Detail})
 	}
 	pull := sandbox.PullRequest(t, cr.scen, cr.repo, cr.number)
-	return core.BuildWorkPackage(core.WorkPackageInput{
+	wp, built, err := core.BuildWorkPackage(core.WorkPackageInput{
 		RunID: "20261109-130000-" + strings.ToLower(cr.scen), CR: key,
 		URL:   "https://github.com/" + key.Project + "/pull/" + strconv.Itoa(key.Number),
 		Title: cr.name(), Description: "Recorded scenario " + cr.scen + ".", HeadSHA: pull.HeadSHA, BaseSHA: pull.BaseSHA, BaseRef: "main",
@@ -217,6 +217,10 @@ func buildScenario(t *testing.T, cr scenarioCR, budget int) (core.WorkPackage, c
 		FileSignals: fileSignals, ChangeRequestSignals: res.Signals, NotVerified: notVerified, Ancestors: ancestors,
 		JudgementPath: strings.ReplaceAll(key.Project, "/", "_") + "/judgement.json", PartBudget: budget,
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return wp, built
 }
 
 var (

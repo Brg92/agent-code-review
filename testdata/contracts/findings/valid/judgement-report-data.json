@@ -32,7 +32,15 @@
       "rule": "global-scope",
       "path": "src/main/java/com/example/feature/catalog/IconLoader.kt",
       "line": 12,
+      "defaultSeverity": "BLOCKER",
       "reason": "The launch is in a test helper that the build excludes."
+    },
+    {
+      "rule": "line-too-long",
+      "path": "src/main/java/com/example/feature/catalog/IconLoader.kt",
+      "line": 30,
+      "defaultSeverity": "MINOR",
+      "reason": "The line is a URL that cannot be wrapped."
     }
   ],
   "questions": [

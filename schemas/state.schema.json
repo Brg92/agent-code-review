@@ -141,7 +141,7 @@
     "crKey": {
       "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
       "type": "string",
-      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+#[1-9][0-9]*$"
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,})(?:/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,}))+#[1-9][0-9]*$"
     },
     "runId": {
       "description": "Identifier of a review run, also the name of its work directory.",

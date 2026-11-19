@@ -27,6 +27,9 @@ func (systemTerminal) isTerminal(r io.Reader) bool {
 	return err == nil
 }
 
+// isMsysPty is false: MSYS and Cygwin pseudo-terminals exist only on Windows.
+func (systemTerminal) isMsysPty(io.Reader) bool { return false }
+
 func (systemTerminal) disableEcho(r io.Reader) (func() error, error) {
 	f, _ := r.(*os.File)
 	saved, err := stty(f, "-g")

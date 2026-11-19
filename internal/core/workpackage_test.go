@@ -3,6 +3,7 @@ package core_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -132,7 +133,7 @@ func TestBuildWorkPackageCode(t *testing.T) {
 			if tt.in != nil {
 				tt.in(&in)
 			}
-			wp, _ := core.BuildWorkPackage(in)
+			wp, _ := buildPackage(t, in)
 			checkWorkPackage(t, wp)
 			f := wp.Files[0]
 			if got := regions(f); got != tt.want {
@@ -156,7 +157,7 @@ func TestBuildWorkPackageCode(t *testing.T) {
 
 func TestBuildWorkPackageDeletionHunk(t *testing.T) {
 	d := fileDiff(t, "A.kt", "", core.FileModified, "@@ -200,2 +199,0 @@ fun a() {\n-gone 1\n-gone 2\n\\ No newline at end of file\n")
-	wp, _ := core.BuildWorkPackage(packageInput(t, core.PackageFileInput{File: core.ChangedFile{Diff: d, Head: numbered(400)}, Language: "kotlin"}))
+	wp, _ := buildPackage(t, packageInput(t, core.PackageFileInput{File: core.ChangedFile{Diff: d, Head: numbered(400)}, Language: "kotlin"}))
 	checkWorkPackage(t, wp)
 	if got := regions(wp.Files[0]); got != "179-219" {
 		t.Errorf("code %s, want the lines around the removal", got)
@@ -180,7 +181,7 @@ func TestBuildWorkPackageFilesWithoutCode(t *testing.T) {
 		core.PackageFileInput{File: core.ChangedFile{Diff: binary}},
 	)
 	in.NotVerified = []core.UnverifiedFile{{Path: "logo.png", Reason: "binary"}}
-	wp, review := core.BuildWorkPackage(in)
+	wp, review := buildPackage(t, in)
 	checkWorkPackage(t, wp)
 	want := []core.PackageFile{
 		{Path: "Old.kt", Status: core.FileRemoved, Language: "kotlin", Placement: core.Inline},
@@ -213,7 +214,7 @@ func sizes(t *testing.T, wp core.WorkPackage) []int {
 
 func TestBuildWorkPackageParts(t *testing.T) {
 	files := []core.PackageFileInput{modified(t, "A.kt", 20, 3), modified(t, "B.kt", 20, 4), modified(t, "C.kt", 20, 5)}
-	all, _ := core.BuildWorkPackage(packageInput(t, files...))
+	all, _ := buildPackage(t, packageInput(t, files...))
 	n := sizes(t, all)
 	if n[0] != n[1] || n[1] != n[2] {
 		t.Fatalf("sizes %v, want three files of the same size", n)
@@ -233,7 +234,7 @@ func TestBuildWorkPackageParts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			in := packageInput(t, files...)
 			in.PartBudget = tt.budget
-			wp, _ := core.BuildWorkPackage(in)
+			wp, _ := buildPackage(t, in)
 			checkWorkPackage(t, wp)
 			var parts []string
 			for _, p := range wp.Parts.Files {
@@ -247,14 +248,14 @@ func TestBuildWorkPackageParts(t *testing.T) {
 	big := modified(t, "Big.kt", 200, 100)
 	in := packageInput(t, files[0], big, files[1])
 	in.PartBudget = 2*size + 10
-	wp, _ := core.BuildWorkPackage(in)
+	wp, _ := buildPackage(t, in)
 	if got := fmt.Sprint(wp.Parts.Files); got != "[[A.kt] [Big.kt] [B.kt]]" {
 		t.Errorf("parts %s, want the large file alone, and no file split", got)
 	}
 	if got := sizes(t, wp); got[1] <= in.PartBudget {
 		t.Fatalf("Big.kt is %d bytes, not over the budget %d", got[1], in.PartBudget)
 	}
-	def, _ := core.BuildWorkPackage(packageInput(t, files...))
+	def, _ := buildPackage(t, packageInput(t, files...))
 	if def.Parts.Total != 1 || core.DefaultPartBudget != 40000 || core.DefaultWholeFileLines != 300 || core.DefaultContextLines != 20 {
 		t.Errorf("defaults: %d parts, budget %d, whole %d, context %d", def.Parts.Total, core.DefaultPartBudget, core.DefaultWholeFileLines, core.DefaultContextLines)
 	}
@@ -273,7 +274,7 @@ func TestBuildWorkPackageSignals(t *testing.T) {
 		{RuleID: "variant-asymmetry", Severity: "MAJOR", Path: "elsewhere/Gone.kt", Line: 1, Column: 1, Origin: "mr"},
 	}
 	in.PartBudget = 1
-	wp, review := core.BuildWorkPackage(in)
+	wp, review := buildPackage(t, in)
 	checkWorkPackage(t, wp)
 	var ids []string
 	for _, s := range wp.Signals {
@@ -312,7 +313,7 @@ func TestBuildWorkPackageHeader(t *testing.T) {
 	in.Criteria.Ignored = []core.IgnoredItem{{Item: "`x` (a)", Reason: "r"}}
 	set, _ := syntheticSet(t)
 	in.Ruleset = core.EffectiveRules(core.RulesetInput{Set: set, Profile: "app", Criteria: in.Criteria})
-	wp, review := core.BuildWorkPackage(in)
+	wp, review := buildPackage(t, in)
 	checkWorkPackage(t, wp)
 	if wp.Schema != 1 || wp.Criteria.Source != core.SourceOverlay || wp.Criteria.ProfileReason != in.ProfileReason ||
 		!reflect.DeepEqual(wp.Criteria.Files, []string{core.CriteriaFile}) || !reflect.DeepEqual(wp.Criteria.Ignored, in.Criteria.Ignored) {
@@ -334,7 +335,7 @@ func TestBuildWorkPackageIsDeterministic(t *testing.T) {
 		in := packageInput(t, modified(t, "A.kt", 400, 10, 200), modified(t, "B.kt", 20, 3))
 		in.Dimensions["platform-free"] = core.DimensionChoice{Value: "x", Reason: "y"}
 		in.Dimensions["a-first"] = core.DimensionChoice{Value: "x", Reason: "y"}
-		wp, _ := core.BuildWorkPackage(in)
+		wp, _ := buildPackage(t, in)
 		data, err := json.Marshal(wp)
 		if err != nil {
 			t.Fatal(err)
@@ -347,7 +348,81 @@ func TestBuildWorkPackageIsDeterministic(t *testing.T) {
 			t.Fatal("the same input gives different bytes")
 		}
 	}
-	if data := checkWorkPackage(t, func() core.WorkPackage { wp, _ := core.BuildWorkPackage(packageInput(t)); return wp }()); bytes.Contains(data, []byte("null")) {
+	if data := checkWorkPackage(t, func() core.WorkPackage { wp, _ := buildPackage(t, packageInput(t)); return wp }()); bytes.Contains(data, []byte("null")) {
 		t.Errorf("a work package without files has null lists: %s", data)
 	}
+}
+
+// TestBuildWorkPackageRefusesControlCharactersInPaths checks that a file
+// name cannot forge a line of the brief: a path with a control character,
+// a newline or a tab included, is refused wherever the work package would
+// carry it.
+func TestBuildWorkPackageRefusesControlCharactersInPaths(t *testing.T) {
+	file := func(path, oldPath string, status core.FileStatus) core.PackageFileInput {
+		d, err := core.NewFileDiff(path, oldPath, status, "@@ -1,1 +1,1 @@\n-a\n+b\n")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return core.PackageFileInput{File: core.ChangedFile{Diff: d, Head: []string{"b"}, Base: []string{"a"}}, Language: "kotlin"}
+	}
+	hostile := []string{"a\nb.kt", "a\tb.kt", "a\rb.kt", "a\x00b.kt", "a\x1bb.kt", "a\x7fb.kt", "a\u0085b.kt", "\n== forged.kt"}
+	for _, bad := range hostile {
+		for name, mutate := range map[string]func(*core.WorkPackageInput){
+			"path": func(in *core.WorkPackageInput) { in.Files = []core.PackageFileInput{file(bad, "", core.FileModified)} },
+			"previous path": func(in *core.WorkPackageInput) {
+				in.Files = []core.PackageFileInput{file("ok.kt", bad, core.FileRenamed)}
+			},
+			"not verified path": func(in *core.WorkPackageInput) { in.NotVerified = []core.UnverifiedFile{{Path: bad, Reason: "binary"}} },
+			"criteria file":     func(in *core.WorkPackageInput) { in.Criteria.Files = append(in.Criteria.Files, bad) },
+			"file signal": func(in *core.WorkPackageInput) {
+				in.FileSignals = []rules.Signal{{RuleID: "uses-removed-api", Path: bad, Line: 1, Column: 1, Origin: "mr"}}
+			},
+			"change request signal": func(in *core.WorkPackageInput) {
+				in.ChangeRequestSignals = []rules.Signal{{RuleID: "uses-removed-api", Path: bad, Line: 1, Column: 1, Origin: "mr"}}
+			},
+			"signal reference": func(in *core.WorkPackageInput) {
+				in.ChangeRequestSignals = []rules.Signal{{RuleID: "uses-removed-api", Path: "ok.kt", Line: 1, Column: 1, Origin: "mr",
+					References: []rules.Reference{{Project: "github:github.com/a/b", Ref: "main", Path: bad, Line: 1}}}}
+			},
+		} {
+			t.Run(fmt.Sprintf("%s %q", name, bad), func(t *testing.T) {
+				in := packageInput(t, file("ok.kt", "", core.FileModified))
+				mutate(&in)
+				wp, review, err := core.BuildWorkPackage(in)
+				var pe *core.PathError
+				if !errors.As(err, &pe) {
+					t.Fatalf("error %v is not a *core.PathError", err)
+				}
+				if strings.ContainsAny(pe.Error(), "\n\t\r\x00") {
+					t.Errorf("the error message holds a raw control character: %q", pe.Error())
+				}
+				if len(wp.Files) != 0 || len(review.Files) != 0 {
+					t.Error("a work package comes with the error")
+				}
+			})
+		}
+	}
+}
+
+func TestBuildWorkPackageAcceptsOrdinaryPaths(t *testing.T) {
+	for _, path := range []string{"app/src/main/Repo.kt", "docs/My File.md", "src/日本語/ファイル.kt", "a--b/c.kt", "x%20y.kt", "back\\slash.kt"} {
+		d, err := core.NewFileDiff(path, "", core.FileModified, "@@ -1,1 +1,1 @@\n-a\n+b\n")
+		if err != nil {
+			t.Fatal(err)
+		}
+		in := packageInput(t, core.PackageFileInput{File: core.ChangedFile{Diff: d, Head: []string{"b"}, Base: []string{"a"}}, Language: "kotlin"})
+		if _, _, err := core.BuildWorkPackage(in); err != nil {
+			t.Errorf("path %q: %v", path, err)
+		}
+	}
+}
+
+// buildPackage builds a work package that must be valid.
+func buildPackage(t *testing.T, in core.WorkPackageInput) (core.WorkPackage, core.Review) {
+	t.Helper()
+	wp, review, err := core.BuildWorkPackage(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return wp, review
 }

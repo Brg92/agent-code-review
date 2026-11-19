@@ -155,6 +155,7 @@
           "rule",
           "path",
           "line",
+          "defaultSeverity",
           "reason"
         ],
         "properties": {
@@ -169,6 +170,10 @@
           "line": {
             "description": "Line of the signal, on the RIGHT side.",
             "$ref": "#/$defs/line"
+          },
+          "defaultSeverity": {
+            "description": "Severity of the rule in its catalog. A signal of a rule that needs judgement has no severity of its own, so this is what tells a dismissed BLOCKER from a dismissed MINOR; the report marks the dismissed signals whose rule is BLOCKER by default.",
+            "$ref": "#/$defs/severity"
           },
           "reason": {
             "description": "Why the judgement dismissed it.",
@@ -465,7 +470,7 @@
     "crKey": {
       "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
       "type": "string",
-      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+#[1-9][0-9]*$"
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,})(?:/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,}))+#[1-9][0-9]*$"
     },
     "criteriaSource": {
       "description": "Where the criteria come from: overlay is .agent-code-review/, legacy is .github/skills and .github/mr-review.json, default is the packs alone.",
@@ -500,7 +505,7 @@
     "projectKey": {
       "description": "Project key: <forge>:<host>/<project>, for example github:github.com/acr-plugin-sandbox/sample-app.",
       "type": "string",
-      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,})(?:/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,}))+$"
     },
     "reference": {
       "description": "Another place in the code that a finding relies on, possibly in another project.",

@@ -47,10 +47,15 @@ type UnverifiedFile struct {
 
 // Dismissal is a signal the judgement dismissed, as the report lists it.
 type Dismissal struct {
-	Rule   string `json:"rule"`
-	Path   string `json:"path"`
-	Line   int    `json:"line"`
-	Reason string `json:"reason"`
+	Rule string `json:"rule"`
+	Path string `json:"path"`
+	Line int    `json:"line"`
+	// DefaultSeverity is the severity the rule has in its catalog. A rule
+	// that needs judgement gives its signals no severity of their own, so
+	// the report could not otherwise tell a dismissed BLOCKER from a
+	// dismissed MINOR.
+	DefaultSeverity Severity `json:"defaultSeverity"`
+	Reason          string   `json:"reason"`
 }
 
 // CIState is the state of the checks on the head commit.
@@ -136,7 +141,7 @@ type Header struct {
 func (r Result) Document(h Header) Document {
 	dismissed := []Dismissal{}
 	for _, d := range r.Dismissed {
-		dismissed = append(dismissed, Dismissal{Rule: d.Signal.Rule, Path: d.Signal.Path, Line: d.Signal.Line, Reason: d.Reason})
+		dismissed = append(dismissed, Dismissal{Rule: d.Signal.Rule, Path: d.Signal.Path, Line: d.Signal.Line, DefaultSeverity: d.DefaultSeverity, Reason: d.Reason})
 	}
 	crit := h.Criteria
 	crit.Packs, crit.Notes = nonNil(crit.Packs), nonNil(crit.Notes)

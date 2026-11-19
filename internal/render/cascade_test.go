@@ -180,3 +180,48 @@ func TestCascadeSummaryNamesTheHostOfOtherPlatforms(t *testing.T) {
 		t.Errorf("overall:\n%s", got)
 	}
 }
+
+// TestCascadeShowsDismissedBlockerDefaults checks the count of dismissed
+// BLOCKER-default signals on the row of each change request and in total,
+// in the summary and in the final message, and its absence when it is 0.
+func TestCascadeShowsDismissedBlockerDefaults(t *testing.T) {
+	res, reviewed := testCascade(t, false)
+	blocker := func(n int) []core.Dismissal {
+		var out []core.Dismissal
+		for i := 0; i < n; i++ {
+			out = append(out, core.Dismissal{Rule: "uses-removed-api", Path: "app/B.kt", Line: i + 1, DefaultSeverity: core.Blocker, Reason: "Not needed."})
+		}
+		return append(out, core.Dismissal{Rule: "empty-catch", Path: "app/B.kt", Line: 50, DefaultSeverity: core.Minor, Reason: "Logged."})
+	}
+	// reviewed[1] is core-lib#3, reviewed[2] kmp-shared#2.
+	reviewed[1].Doc.SignalsDismissed = blocker(2)
+	reviewed[2].Doc.SignalsDismissed = blocker(1)
+	for name, render := range map[string]func() (string, error){
+		"summary": func() (string, error) { return Cascade(res, reviewed) },
+		"final":   func() (string, error) { return Final(res, reviewed) },
+	} {
+		got, err := render()
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, want := range []string{
+			"  1. acr-plugin-sandbox/kmp-shared#2   OK        0 blocker · 0 major · 1 minor (+0 existing) · 1 BLOCKER-default signal dismissed\n",
+			"  2. acr-plugin-sandbox/core-lib#3     BLOCKED   1 blocker · 1 major · 0 minor (+1 existing, 1 crash) · 2 BLOCKER-default signals dismissed\n",
+			"  3. acr-plugin-sandbox/sample-app#7   OK        0 blocker · 1 major · 0 minor (+0 existing)\n",
+			"Dismissed BLOCKER-default signals: 3 (marked in the reports)\nOverall: BLOCKED\n",
+		} {
+			if !strings.Contains(got, want) {
+				t.Errorf("%s: no %q in\n%s", name, want, got)
+			}
+		}
+	}
+	res, reviewed = testCascade(t, false)
+	for name, render := range map[string]func() (string, error){
+		"summary": func() (string, error) { return Cascade(res, reviewed) },
+		"final":   func() (string, error) { return Final(res, reviewed) },
+	} {
+		if got, _ := render(); strings.Contains(got, "BLOCKER-default") {
+			t.Errorf("%s: mentions dismissed BLOCKER-default signals when there are none:\n%s", name, got)
+		}
+	}
+}

@@ -37,7 +37,7 @@ type NoteFingerprint struct {
 
 const (
 	rulePart    = `[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*`
-	projectPart = `[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+`
+	projectPart = projectSegments
 	severityTag = `(?:blocker|major|minor)`
 )
 
@@ -61,7 +61,8 @@ var (
 )
 
 // ParseFingerprints reads the fingerprints embedded in notes, current and
-// legacy forms alike, each once, in the order they appear. Notes written by
+// legacy forms alike, each once, in the order they appear, with the
+// characters Embed encoded restored. Notes written by
 // the author of the change request are skipped: the author could otherwise
 // plant a fingerprint to hide a finding. Authors compare without case, as
 // platform logins do; an empty author skips nothing.
@@ -74,7 +75,12 @@ func ParseFingerprints(notes []ReviewNote, crAuthor string) []NoteFingerprint {
 		}
 		for _, m := range embedded.FindAllStringSubmatch(n.Body, -1) {
 			fp, ok := classify(m[1])
-			if !ok || seen[fp.Value] {
+			if !ok {
+				continue
+			}
+			fp.Value = unescapeComment(fp.Value)
+			fp.Finding = unescapeComment(fp.Finding)
+			if seen[fp.Value] {
 				continue
 			}
 			seen[fp.Value] = true

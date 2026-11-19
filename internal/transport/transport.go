@@ -154,6 +154,19 @@ func New(cfg Config) (*Client, error) {
 	return c, nil
 }
 
+// ErrInsecureScheme is returned for a base URL that would send the token in
+// clear text: http is accepted only for loopback hosts.
+var ErrInsecureScheme = errors.New("transport: base URL must use https unless the host is loopback")
+
+// isLoopbackHost reports whether host is localhost or a loopback address.
+func isLoopbackHost(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
+}
+
 func parseBaseURL(raw string) (*url.URL, error) {
 	u, err := url.Parse(raw)
 	if err != nil {
@@ -162,6 +175,8 @@ func parseBaseURL(raw string) (*url.URL, error) {
 	switch {
 	case u.Scheme != "https" && u.Scheme != "http":
 		return nil, errors.New("transport: base URL must use https or http")
+	case u.Scheme == "http" && !isLoopbackHost(u.Hostname()):
+		return nil, fmt.Errorf("%w: %s", ErrInsecureScheme, u.Redacted())
 	case u.Host == "":
 		return nil, errors.New("transport: base URL has no host")
 	case u.User != nil:

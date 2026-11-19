@@ -69,3 +69,13 @@ func TestParseFingerprintsIgnoresTheAuthor(t *testing.T) {
 		t.Errorf("without a known author, %d fingerprints, want 3", len(got))
 	}
 }
+
+// TestParseFingerprintsIgnoresDotSegments checks that an issue fingerprint
+// of a project that is not a valid key is not a fingerprint.
+func TestParseFingerprintsIgnoresDotSegments(t *testing.T) {
+	notes := []ReviewNote{{Author: "reviewer", Body: "<!-- acr:v1:issue:acme/../x#2:major --> <!-- acr:v1:issue:./x#2:major --> <!-- acr:v1:issue:acme/.github#2:major -->"}}
+	got := describe(ParseFingerprints(notes, ""))
+	if want := []string{"issue acr:v1:issue:acme/.github#2:major"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}

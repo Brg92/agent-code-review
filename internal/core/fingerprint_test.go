@@ -1,6 +1,11 @@
 package core
 
-import "testing"
+import (
+	"fmt"
+	"reflect"
+	"strings"
+	"testing"
+)
 
 func TestNormalizeLine(t *testing.T) {
 	tests := []struct{ in, want string }{
@@ -79,6 +84,92 @@ func TestSeverity(t *testing.T) {
 	for _, s := range []Severity{"", "blocker", "CRITICAL"} {
 		if s.Valid() {
 			t.Errorf("%q is valid", s)
+		}
+	}
+}
+
+// hostilePaths are paths that would end, escape or corrupt the HTML comment
+// a fingerprint is published in, or that look like the escapes themselves.
+var hostilePaths = []string{
+	"a-->b", "a>b", "a<b", "a<!-- b", "a--!>b", "x-->", "<", ">", "-->", "->", "--",
+	"a\nb", "a\tb", "a\rb", "a\x00b", "a\x1fb", "a\x7fb", "a\x0cb",
+	"a%25b", "a%3Eb", "a%3Cb", "a%0Ab", "a%7Fb", "%25", "%3E", "%", "a%", "%%3E", "%3%3E", "%2>", "%>", "%\n",
+	"a\xffb", "-->\n<!--",
+}
+
+func TestEmbedKeepsOrdinaryFingerprints(t *testing.T) {
+	paths := []string{
+		"app/src/main/Repo.kt", "app/src/main/java/a/My File.kt", "docs/a--b.md", "a-b/c_d.e",
+		"héllo/日本語.kt", "100%.kt", "my%20file.txt", "a%zz", "a%3c", "a%3e", "a%2", "%41", "a%e9b", "x:y/z",
+		"a/-/b",
+	}
+	for _, path := range paths {
+		fp := FindingFingerprint("global-scope", path, "x := 1", 0)
+		if got, want := Embed(fp), "<!-- "+fp+" -->"; got != want {
+			t.Errorf("Embed changed the fingerprint of %q: got %q, want %q", path, got, want)
+		}
+		item := ItemFingerprint(fp)
+		if got, want := Embed(item), "<!-- "+item+" -->"; got != want {
+			t.Errorf("Embed changed the item fingerprint of %q: got %q, want %q", path, got, want)
+		}
+	}
+}
+
+func TestEmbedRoundTripsHostilePaths(t *testing.T) {
+	for _, path := range hostilePaths {
+		t.Run(fmt.Sprintf("%q", path), func(t *testing.T) {
+			fp := FindingFingerprint("global-scope", path, "x := 1", 0)
+			item := ItemFingerprint(fp)
+			body := "text before " + Embed(fp) + "\n- [ ] item " + Embed(item) + "\nafter"
+			comment := Embed(fp)
+			if strings.Count(comment, "-->") != 1 || !strings.HasSuffix(comment, "-->") ||
+				strings.Count(comment, "<") != 1 || strings.Count(comment, ">") != 1 {
+				t.Errorf("embedded comment %q is not one well-formed HTML comment", comment)
+			}
+			for _, r := range comment {
+				if r < 0x20 || r == 0x7f {
+					t.Errorf("embedded comment %q holds the control character %q", comment, r)
+				}
+			}
+			got := ParseFingerprints([]ReviewNote{{Author: "reviewer", Body: body}}, "author")
+			want := []string{
+				"finding " + fp,
+				"item " + item + " -> " + fp,
+			}
+			if d := describe(got); !reflect.DeepEqual(d, want) {
+				t.Errorf("read back\n%q\nwant\n%q", d, want)
+			}
+		})
+	}
+}
+
+// TestEscapeRoundTrip checks that every string over a small alphabet that
+// holds the escapes and what they stand for comes back unchanged.
+func TestEscapeRoundTrip(t *testing.T) {
+	alphabet := []string{"%", "2", "5", "3", "C", "E", "F", "7", "0", "A", ">", "<", "-", "\n", "a", "c"}
+	var walk func(prefix string, depth int)
+	walk = func(prefix string, depth int) {
+		enc := escapeComment(prefix)
+		if strings.ContainsAny(enc, "<>\n") {
+			t.Fatalf("escapeComment(%q) = %q still holds a reserved character", prefix, enc)
+		}
+		if dec := unescapeComment(enc); dec != prefix {
+			t.Fatalf("unescapeComment(escapeComment(%q)) = %q (escaped %q)", prefix, dec, enc)
+		}
+		if depth == 0 {
+			return
+		}
+		for _, a := range alphabet {
+			walk(prefix+a, depth-1)
+		}
+	}
+	walk("", 4)
+}
+
+func TestUnescapeLeavesOtherSequences(t *testing.T) {
+	for _, s := range []string{"a%20b", "a%3cb", "a%41", "a%", "a%2", "a%zzb", "%%", "a%e9b"} {
+		if got := unescapeComment(s); got != s {
+			t.Errorf("unescapeComment(%q) = %q, want it unchanged", s, got)
 		}
 	}
 }

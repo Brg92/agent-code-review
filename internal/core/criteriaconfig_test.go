@@ -105,6 +105,8 @@ func TestDecodeRepoConfigRejects(t *testing.T) {
 		{"noise glob", `{"schema":1,"noise":["/abs/**"]}`, "/noise/0"},
 		{"shared library without a forge", `{"schema":1,"sharedLibraries":["acme/core-lib"]}`, "/sharedLibraries/0"},
 		{"shared library with a number", `{"schema":1,"sharedLibraries":["github:github.com/acme/core-lib#1"]}`, "/sharedLibraries/0"},
+		{"shared library with a dot dot segment", `{"schema":1,"sharedLibraries":["github:github.com/acme/../core-lib"]}`, "/sharedLibraries/0"},
+		{"shared library with a dot segment", `{"schema":1,"sharedLibraries":["github:github.com/./core-lib"]}`, "/sharedLibraries/0"},
 		{"cascade field", `{"schema":1,"cascade":{"depth":1}}`, "/cascade/depth"},
 		{"negative depth", `{"schema":1,"cascade":{"maxDepth":-1}}`, "/cascade/maxDepth"},
 		{"zero count", `{"schema":1,"cascade":{"maxChangeRequests":0}}`, "/cascade/maxChangeRequests"},

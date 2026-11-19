@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Brg92/agent-code-review/internal/auth"
 )
@@ -16,8 +17,8 @@ const testToken = "test-token-value-0123"
 
 // gitAnswer is a scripted git result.
 type gitAnswer struct {
-	stdout string
-	err    error
+	stdout, stderr string
+	err            error
 }
 
 // scriptedGit answers git command lines and records stdin per command.
@@ -36,7 +37,7 @@ func (g *scriptedGit) Run(_ context.Context, stdin string, args ...string) (stri
 	if !ok {
 		return "", "", fmt.Errorf("unexpected git %s", key)
 	}
-	return a.stdout, "", a.err
+	return a.stdout, a.stderr, a.err
 }
 
 const (
@@ -45,7 +46,7 @@ const (
 )
 
 var (
-	noEntry   = gitAnswer{err: &auth.ExitError{Code: 128}}
+	noEntry   = gitAnswer{stderr: "fatal: could not read Password for 'https://acr-api@github.com': terminal prompts disabled\n", err: &auth.ExitError{Code: 128}}
 	haveEntry = gitAnswer{stdout: "username=acr-api\npassword=" + testToken + "\n"}
 )
 
@@ -103,6 +104,12 @@ func TestAuthStatus(t *testing.T) {
 		{name: "none on other host", args: []string{"--host", "ghe.example.invalid"}, fill: noEntry, code: exitAuth,
 			stderrPart: "ghe.example.invalid: no token; run `agent-code-review auth login --host ghe.example.invalid`\n"},
 		{name: "git missing", fill: gitAnswer{err: exec.ErrNotFound}, code: exitAuth, stderrPart: "git"},
+		{name: "helper failed", fill: gitAnswer{stderr: "error: keychain is locked\n", err: &auth.ExitError{Code: 128}}, code: exitAuth,
+			stderrPart: "github.com: auth: git credential fill: git exited with status 128"},
+		{name: "helper timed out", fill: gitAnswer{err: &auth.TimeoutError{After: 30 * time.Second}}, code: exitAuth,
+			stderrPart: "git did not answer within 30s"},
+		{name: "invalid token in the environment", env: map[string]string{"ACR_GITHUB_TOKEN": "two words"}, code: exitAuth,
+			stderrPart: "ACR_GITHUB_TOKEN: auth: the token contains whitespace or control characters"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -110,6 +117,9 @@ func TestAuthStatus(t *testing.T) {
 			r := runWith(t, env{git: git, getenv: func(k string) string { return tt.env[k] }}, append([]string{"auth", "status"}, tt.args...)...)
 			if r.code != tt.code || r.stdout != tt.stdout || !strings.Contains(r.stderr, tt.stderrPart) {
 				t.Errorf("got %+v, want code %d stdout %q stderr containing %q", r, tt.code, tt.stdout, tt.stderrPart)
+			}
+			if tt.code == exitAuth && strings.Contains(tt.name, "helper") && strings.Contains(r.stderr, "no token") {
+				t.Errorf("a failing helper is reported as a missing token: %q", r.stderr)
 			}
 		})
 	}
