@@ -76,7 +76,7 @@ func (s search) Search(project, ref, term string) ([]rules.Match, error) {
 	sort.Strings(paths)
 	out := []rules.Match{}
 	for _, path := range paths {
-		content, found, err := (files{s.p}).Get(ctx, k, ref, path)
+		content, found, err := s.p.Files().Get(ctx, k, ref, path)
 		if err != nil {
 			return nil, err
 		}
