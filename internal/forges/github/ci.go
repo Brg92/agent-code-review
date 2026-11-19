@@ -32,6 +32,10 @@ func (p *Provider) CI(ctx context.Context, project core.Key, head string) (core.
 		runs = append(runs, page.CheckRuns...)
 	})
 	if err != nil {
+		if isStatus(err, 422) {
+			// GitHub answers 422, not 404, for a SHA it has no commit for.
+			return core.CI{}, &base.Error{Kind: base.ErrNotFound, Op: op, Err: err}
+		}
 		if isKind(err, base.ErrForbidden) && len(base.PermissionsOf(err)) == 0 {
 			var be *base.Error
 			if errors.As(err, &be) {

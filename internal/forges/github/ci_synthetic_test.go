@@ -114,3 +114,13 @@ func TestCIReadsEveryPageOfCheckRuns(t *testing.T) {
 		t.Errorf("CI() = %+v, %v, want both pages and failing", ci, err)
 	}
 }
+
+func TestCIOfAnUnknownCommitIsNotFound(t *testing.T) {
+	s := onSynthetic(t, nil)
+	// GitHub answers 422, not 404, for a SHA it has no commit for.
+	s.route(422, repo+"/commits/"+sha+"/check-runs", perPageQuery, nil, `{"message":"No commit found for SHA: `+sha+`"}`)
+	ci, err := s.CI(context.Background(), synthKey, sha)
+	if !isKind(err, base.ErrNotFound) || !reflect.DeepEqual(ci, core.CI{}) {
+		t.Errorf("CI() = %+v, %v, want ErrNotFound", ci, err)
+	}
+}
