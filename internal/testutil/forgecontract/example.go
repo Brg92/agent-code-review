@@ -27,18 +27,31 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 	finding := "acr:v1:logic-defect:app/src/main/kotlin/acme/Greeter.kt:0123456789ab"
 
 	locked, huge, busy, flaky, private := key("acme/locked", 1), key("acme/huge", 1), key("acme/busy", 3), key("acme/flaky", 2), key("acme/private", 1)
+	meta := core.ChangeRequest{
+		Key: app, Title: item.Title, Description: item.Description, HeadSHA: head,
+		BaseSHA: "89abcdef0123456789abcdef0123456789abcdef", TargetBranch: "main", Author: "author-login", State: core.StateOpen,
+	}
+	changed := []core.FileChange{
+		{Path: "app/src/main/kotlin/acme/Greeter.kt", Status: core.FileModified, Patch: "@@ -1,3 +1,3 @@\n package acme\n \n-fun greet() = \"Hello\"\n+fun greet(name: String) = \"Hello, $name\""},
+		{Path: "app/src/main/kotlin/acme/Names.kt", OldPath: "app/src/main/kotlin/acme/Name.kt", Status: core.FileRenamed},
+		{Path: "app/src/main/res/logo.png", Status: core.FileAdded, Missing: core.PatchBinary, Binary: true},
+	}
 	fake := &Fake{
-		Caps:          caps,
-		Items:         map[core.Key]cascade.Item{app: item, key("acme/app", 8): {Kind: cascade.KindIssue}},
-		DefaultBranch: map[string]string{pk: "main", flaky.ProjectKey(): "main"},
-		Repos:         map[string]map[string]string{pk + "@main": files, pk + "@release/2.0": files},
-		CIs:           map[string]core.CI{pk + "@" + head: ci},
+		Caps:           caps,
+		ChangeRequests: map[core.Key]core.ChangeRequest{app: meta},
+		FileSets:       map[core.Key][]core.FileChange{app: changed},
+		Items:          map[core.Key]cascade.Item{app: item, key("acme/app", 8): {Kind: cascade.KindIssue}},
+		DefaultBranch:  map[string]string{pk: "main", flaky.ProjectKey(): "main"},
+		Repos:          map[string]map[string]string{pk + "@main": files, pk + "@release/2.0": files},
+		CIs:            map[string]core.CI{pk + "@" + head: ci},
 		NoteSets: map[core.Key][]core.ReviewNote{app: {
 			{Author: "reviewer", Body: "Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},
 			{Author: "author-login", Body: "<!-- acr:v1:ok:89abcdef -->"},
 			{Author: "reviewer", Body: "Inline finding.\n\n<!-- " + finding + " -->"},
 		}},
 		Fail: map[Call]error{
+			{OpChangedFiles, locked.ProjectKey(), ""}:  &base.Error{Kind: base.ErrForbidden, Op: "changed files acme/locked#1", Permissions: []string{"pull requests: read"}},
+			{OpChangeRequest, busy.ProjectKey(), ""}:   &base.Error{Kind: base.ErrRateLimited, Op: "change request acme/busy#3"},
 			{OpFilesList, locked.ProjectKey(), "main"}: &base.Error{Kind: base.ErrForbidden, Op: "contents acme/locked@main", Permissions: []string{"contents: read"}},
 			{OpTree, huge.ProjectKey(), "main"}:        &base.Error{Kind: base.ErrTreeTruncated, Op: "tree acme/huge@main"},
 			{OpCI, busy.ProjectKey(), head}:            &base.Error{Kind: base.ErrRateLimited, Op: "ci acme/busy"},
@@ -52,6 +65,8 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 		Capabilities:  caps,
 		ChangeRequest: app,
 		Item:          item,
+		Metadata:      meta,
+		ChangedFiles:  changed,
 		Issue:         key("acme/app", 8),
 		Missing:       key("acme/app", 9),
 		Project:       app,
@@ -83,6 +98,9 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 			{OpFilesList, locked, "main", base.ErrForbidden},
 			{OpCI, busy, head, base.ErrRateLimited},
 			{OpChange, busy, "", base.ErrRateLimited},
+			{OpChangeRequest, busy, "", base.ErrRateLimited},
+			{OpChangedFiles, locked, "", base.ErrForbidden},
+			{OpChangedFiles, private, "", base.ErrNotFound},
 			{OpNotes, flaky, "", base.ErrTransport},
 		},
 	}

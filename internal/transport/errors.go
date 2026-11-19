@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -24,6 +25,10 @@ type StatusError struct {
 	URL string
 	// Message is the start of the response body, on one line, redacted.
 	Message string
+	// Header holds the response headers, for callers that read what the
+	// platform says in them, such as the permissions a request needed.
+	// Error does not print them.
+	Header http.Header
 }
 
 func (e *StatusError) Error() string {

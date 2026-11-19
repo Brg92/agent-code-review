@@ -26,6 +26,8 @@ func TestErrorKinds(t *testing.T) {
 			ErrSearchUnavailable, "search-unavailable", "search acme/app@dev: search unavailable for this ref", nil},
 		{"tree truncated", &Error{Kind: ErrTreeTruncated, Op: "tree acme/app@main"},
 			ErrTreeTruncated, "tree-truncated", "tree acme/app@main: tree truncated", nil},
+		{"list truncated", &Error{Kind: ErrListTruncated, Op: "files acme/app#1"},
+			ErrListTruncated, "list-truncated", "files acme/app#1: list truncated", nil},
 		{"rate limited", &Error{Kind: ErrRateLimited, Op: "ci acme/app@abc"},
 			ErrRateLimited, "rate-limited", "ci acme/app@abc: rate limited", nil},
 		{"transport with cause", &Error{Kind: ErrTransport, Op: "notes acme/app#1", Err: cause},

@@ -8,9 +8,9 @@ import (
 	"github.com/Brg92/agent-code-review/internal/testutil/forgecontract"
 )
 
-// TestContract runs the contract suite on every provider. The in-memory
-// fake stands in for GitHub, with GitHub's capabilities, until the GitHub
-// provider exists.
+// TestContract runs the contract suite on the in-memory fake, with GitHub's
+// capabilities. The GitHub provider runs the same suite on the replay of
+// recorded scenarios, in its own package.
 func TestContract(t *testing.T) {
 	providers := []struct {
 		name string

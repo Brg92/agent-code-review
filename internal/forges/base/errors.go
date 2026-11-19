@@ -7,7 +7,8 @@
 //
 // A read either returns a complete answer or an error. It never returns an
 // empty or partial result in place of an error: a tree the platform cut
-// short is ErrTreeTruncated, not the part it sent; a search the platform
+// short is ErrTreeTruncated and a list of changed files it cut short is
+// ErrListTruncated, not the part it sent; a search the platform
 // cannot run on a ref is ErrSearchUnavailable, not "no matches"; a project
 // the token cannot read is ErrNotFound, not an empty listing. Absence is
 // an answer only where a core interface says so: a change request that
@@ -43,6 +44,10 @@ const (
 	ErrSearchUnavailable Kind = "search-unavailable"
 	// ErrTreeTruncated: the platform returned only part of the tree.
 	ErrTreeTruncated Kind = "tree-truncated"
+	// ErrListTruncated: a list the platform pages, such as the changed
+	// files of a change request, is longer than the platform or the
+	// reader returns; the part read is never returned in place of it.
+	ErrListTruncated Kind = "list-truncated"
 	// ErrRateLimited: the platform refused the request for its rate limit.
 	ErrRateLimited Kind = "rate-limited"
 	// ErrTransport: the request failed for any other reason.
@@ -50,13 +55,14 @@ const (
 )
 
 // Kinds are all the kinds, in a fixed order.
-var Kinds = []Kind{ErrNotFound, ErrForbidden, ErrSearchUnavailable, ErrTreeTruncated, ErrRateLimited, ErrTransport}
+var Kinds = []Kind{ErrNotFound, ErrForbidden, ErrSearchUnavailable, ErrTreeTruncated, ErrListTruncated, ErrRateLimited, ErrTransport}
 
 var messages = map[Kind]string{
 	ErrNotFound:          "not found or no access",
 	ErrForbidden:         "forbidden",
 	ErrSearchUnavailable: "search unavailable for this ref",
 	ErrTreeTruncated:     "tree truncated",
+	ErrListTruncated:     "list truncated",
 	ErrRateLimited:       "rate limited",
 	ErrTransport:         "transport error",
 }

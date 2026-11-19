@@ -38,10 +38,12 @@ type FileList struct {
 }
 
 type recording struct {
-	Path   string            `json:"path"`
-	Query  map[string]string `json:"query"`
-	Status int               `json:"status"`
-	Body   json.RawMessage   `json:"body"`
+	Method  string            `json:"method"`
+	Path    string            `json:"path"`
+	Query   map[string]string `json:"query"`
+	Status  int               `json:"status"`
+	Headers map[string]string `json:"headers"`
+	Body    json.RawMessage   `json:"body"`
 }
 
 // root is the repository root, found from this file so that tests of any
@@ -124,6 +126,8 @@ type Pull struct {
 	BaseRef string
 	// Author is the login of the author.
 	Author string
+	// Title and Body are as written.
+	Title, Body string
 }
 
 // PullRequest returns the recorded pull request number of repo in a
@@ -136,14 +140,16 @@ func PullRequest(t testing.TB, scenario, repo string, number int) Pull {
 			continue
 		}
 		var body struct {
-			Head struct{ SHA string }      `json:"head"`
-			Base struct{ SHA, Ref string } `json:"base"`
-			User struct{ Login string }    `json:"user"`
+			Title string                    `json:"title"`
+			Body  string                    `json:"body"`
+			Head  struct{ SHA string }      `json:"head"`
+			Base  struct{ SHA, Ref string } `json:"base"`
+			User  struct{ Login string }    `json:"user"`
 		}
 		if err := json.Unmarshal(r.Body, &body); err != nil {
 			t.Fatalf("%s: %v", f, err)
 		}
-		return Pull{HeadSHA: body.Head.SHA, BaseSHA: body.Base.SHA, BaseRef: body.Base.Ref, Author: body.User.Login}
+		return Pull{Title: body.Title, Body: body.Body, HeadSHA: body.Head.SHA, BaseSHA: body.Base.SHA, BaseRef: body.Base.Ref, Author: body.User.Login}
 	}
 	t.Fatalf("no recorded pull request %s#%d in %s", repo, number, scenario)
 	return Pull{}

@@ -27,13 +27,15 @@ type Op string
 
 // The operations.
 const (
-	OpChange    Op = "change"
-	OpFilesGet  Op = "files-get"
-	OpFilesList Op = "files-list"
-	OpTree      Op = "tree"
-	OpSearch    Op = "search"
-	OpCI        Op = "ci"
-	OpNotes     Op = "notes"
+	OpChange        Op = "change"
+	OpChangeRequest Op = "change-request"
+	OpChangedFiles  Op = "changed-files"
+	OpFilesGet      Op = "files-get"
+	OpFilesList     Op = "files-list"
+	OpTree          Op = "tree"
+	OpSearch        Op = "search"
+	OpCI            Op = "ci"
+	OpNotes         Op = "notes"
 )
 
 // Fixture is what a provider must answer.
@@ -45,6 +47,10 @@ type Fixture struct {
 	Item          cascade.Item
 	Issue         core.Key
 	Missing       core.Key
+	// ChangeRequest reads as Metadata through ChangeRequest, and lists
+	// ChangedFiles; Issue and Missing are not found there.
+	Metadata     core.ChangeRequest
+	ChangedFiles []core.FileChange
 
 	// Project has the same files at DefaultBranch and at OtherRef.
 	Project       core.Key
@@ -58,12 +64,18 @@ type Fixture struct {
 	Dir        string
 	Entries    []core.DirEntry
 	MissingDir string
-	// TreePrefix lists as TreePaths.
+	// TreePrefix lists as TreePaths, in the tree at TreeRef; empty means
+	// DefaultBranch.
 	TreePrefix string
 	TreePaths  []string
-	// Term is found at Matches wherever the search can run.
-	Term    string
-	Matches []At
+	TreeRef    string
+	// Term is found at Matches wherever the search can run. If SearchError
+	// is set, which is for a provider whose answers are recorded and whose
+	// search was recorded as failing, a search where it can run must fail
+	// with that kind instead, and Matches may be empty.
+	Term        string
+	Matches     []At
+	SearchError base.Kind
 
 	// Head of Project has CI.
 	Head string
@@ -101,6 +113,7 @@ func Run(t testing.TB, r base.Reader, fx Fixture) {
 	checkFixture(t, fx)
 	checkCapabilities(t, r, fx)
 	checkChanges(t, ctx, r, fx)
+	checkChangeRequest(t, ctx, r, fx)
 	checkFiles(t, ctx, r, fx)
 	checkTree(t, ctx, r, fx)
 	checkSearch(t, r, fx)
@@ -118,10 +131,14 @@ func checkFixture(t testing.TB, fx Fixture) {
 	switch {
 	case fx.Item.Kind != cascade.KindChangeRequest:
 		t.Errorf("fixture: Item must be a change request")
-	case fx.Content == "" || len(fx.Entries) == 0 || len(fx.TreePaths) == 0 || len(fx.Matches) == 0:
+	case fx.Content == "" || len(fx.Entries) == 0 || len(fx.TreePaths) == 0 || (len(fx.Matches) == 0 && fx.SearchError == ""):
 		t.Errorf("fixture: Content, Entries, TreePaths and Matches must not be empty")
+	case fx.SearchError != "" && fx.SearchError != base.ErrSearchUnavailable && fx.SearchError != base.ErrRateLimited && fx.SearchError != base.ErrTransport:
+		t.Errorf("fixture: SearchError must be a kind a search can fail with, not %q", string(fx.SearchError))
 	case fx.OtherRef == fx.DefaultBranch:
 		t.Errorf("fixture: OtherRef must differ from DefaultBranch")
+	case fx.Metadata.Key != fx.ChangeRequest || fx.Metadata.Validate() != nil || len(fx.ChangedFiles) == 0:
+		t.Errorf("fixture: Metadata must be valid and of ChangeRequest, and ChangedFiles must not be empty")
 	case len(fx.Fingerprints) == 0:
 		t.Errorf("fixture: Fingerprints must not be empty")
 	}
@@ -166,6 +183,35 @@ func checkChanges(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) 
 	}
 }
 
+func checkChangeRequest(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
+	t.Helper()
+	cr, err := r.ChangeRequest(ctx, fx.ChangeRequest)
+	if err != nil || !reflect.DeepEqual(cr, fx.Metadata) {
+		t.Errorf("ChangeRequest(%s) = %+v, %v, want %+v", fx.ChangeRequest, cr, err, fx.Metadata)
+	}
+	for _, key := range []core.Key{fx.Issue, fx.Missing} {
+		cr, err := r.ChangeRequest(ctx, key)
+		if !errors.Is(err, base.ErrNotFound) || cr != (core.ChangeRequest{}) {
+			t.Errorf("ChangeRequest(%s) = %+v, %v, want ErrNotFound and nothing else", key, cr, err)
+		}
+		files, err := r.ChangedFiles(ctx, key)
+		if !errors.Is(err, base.ErrNotFound) || files != nil {
+			t.Errorf("ChangedFiles(%s) = %v, %v, want ErrNotFound and nothing else", key, files, err)
+		}
+	}
+	files, err := r.ChangedFiles(ctx, fx.ChangeRequest)
+	if err != nil || !reflect.DeepEqual(files, fx.ChangedFiles) {
+		t.Errorf("ChangedFiles(%s) = %+v, %v, want %+v", fx.ChangeRequest, files, err, fx.ChangedFiles)
+	}
+	seen := map[string]bool{}
+	for _, f := range files {
+		if f.Path == "" || seen[f.Path] {
+			t.Errorf("ChangedFiles(%s) lists %q twice or without a path: pages must be resolved into one list", fx.ChangeRequest, f.Path)
+		}
+		seen[f.Path] = true
+	}
+}
+
 func checkFiles(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
 	t.Helper()
 	files := r.Files()
@@ -197,7 +243,11 @@ func checkFiles(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
 
 func checkTree(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
 	t.Helper()
-	tree := r.Tree(ctx, fx.Project, fx.DefaultBranch)
+	ref := fx.TreeRef
+	if ref == "" {
+		ref = fx.DefaultBranch
+	}
+	tree := r.Tree(ctx, fx.Project, ref)
 	got, err := tree.List(fx.TreePrefix)
 	if err != nil || !reflect.DeepEqual(got, fx.TreePaths) {
 		t.Errorf("Tree().List(%q) = %v, %v, want %v", fx.TreePrefix, got, err, fx.TreePaths)
@@ -226,6 +276,12 @@ func checkSearch(t testing.TB, r base.Reader, fx Fixture) {
 		if !caps.SearchOn(ref, fx.DefaultBranch) {
 			if !errors.Is(err, base.ErrSearchUnavailable) || got != nil {
 				t.Errorf("Search at %s = %v, %v, want ErrSearchUnavailable: search scope is %q", ref, got, err, caps.Search)
+			}
+			continue
+		}
+		if fx.SearchError != "" {
+			if !errors.Is(err, fx.SearchError) || got != nil {
+				t.Errorf("Search at %s = %v, %v, want %v", ref, got, err, fx.SearchError)
 			}
 			continue
 		}
@@ -285,6 +341,9 @@ func checkFailure(t testing.TB, ctx context.Context, r base.Reader, fx Fixture, 
 	case f.Kind == base.ErrTreeTruncated && (f.Op != OpTree || !caps.TreeMayTruncate):
 		t.Errorf("failure %s: a truncated tree needs the tree operation and TreeMayTruncate", f.Op)
 		return
+	case f.Kind == base.ErrListTruncated && f.Op != OpChangedFiles:
+		t.Errorf("failure %s: a truncated list is a changed files failure", f.Op)
+		return
 	case f.Kind == base.ErrSearchUnavailable && f.Op != OpSearch:
 		t.Errorf("failure %s: search unavailable is a search failure", f.Op)
 		return
@@ -297,6 +356,14 @@ func checkFailure(t testing.TB, ctx context.Context, r base.Reader, fx Fixture, 
 		var item cascade.Item
 		item, err = r.Changes().Get(ctx, f.Project)
 		empty = item == cascade.Item{}
+	case OpChangeRequest:
+		var cr core.ChangeRequest
+		cr, err = r.ChangeRequest(ctx, f.Project)
+		empty = cr == (core.ChangeRequest{})
+	case OpChangedFiles:
+		var files []core.FileChange
+		files, err = r.ChangedFiles(ctx, f.Project)
+		empty = files == nil
 	case OpFilesGet:
 		var content []byte
 		var found bool
