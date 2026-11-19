@@ -100,7 +100,7 @@ func TestBriefSmall(t *testing.T) {
 	in.Files = append(in.Files, core.PackageFileInput{File: core.ChangedFile{Diff: logo}})
 	briefSignals(&in)
 	wp, _ := core.BuildWorkPackage(in)
-	got, err := Brief(wp, 1)
+	got, err := BriefWithToken(wp, 1, testToken)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,20 +122,20 @@ func TestBriefParts(t *testing.T) {
 		t.Fatalf("%d parts, want 3: %v", wp.Parts.Total, wp.Parts.Files)
 	}
 	for n := 1; n <= 2; n++ {
-		got, err := Brief(wp, n)
+		got, err := BriefWithToken(wp, n, testToken)
 		if err != nil {
 			t.Fatal(err)
 		}
 		golden(t, fmt.Sprintf("brief-parts-%d", n), got)
 		checkBrief(t, wp, n, got)
 	}
-	last, err := Brief(wp, 3)
+	last, err := BriefWithToken(wp, 3, testToken)
 	if err != nil {
 		t.Fatal(err)
 	}
 	checkBrief(t, wp, 3, last)
 	for _, n := range []int{0, 4} {
-		if _, err := Brief(wp, n); err == nil || !strings.Contains(err.Error(), "3 parts") {
+		if _, err := BriefWithToken(wp, n, testToken); err == nil || !strings.Contains(err.Error(), "3 parts") {
 			t.Errorf("part %d: error %v", n, err)
 		}
 	}
@@ -146,7 +146,7 @@ func TestBriefParts(t *testing.T) {
 // contract, and the invariants of rendered text.
 func checkBrief(t *testing.T, wp core.WorkPackage, n int, got string) {
 	t.Helper()
-	if again, _ := Brief(wp, n); again != got {
+	if again, _ := BriefWithToken(wp, n, testToken); again != got {
 		t.Error("the same work package gives a different brief")
 	}
 	if !strings.Contains(got, fmt.Sprintf("part %d of %d", n, wp.Parts.Total)) {
@@ -166,7 +166,7 @@ func checkBrief(t *testing.T, wp core.WorkPackage, n int, got string) {
 		}
 	}
 	for _, f := range part.Files {
-		if !strings.Contains(got, "== "+f.Path) {
+		if !strings.Contains(got, "== <<<UNTRUSTED-"+testToken+" "+f.Path+" UNTRUSTED-"+testToken+">>>") {
 			t.Errorf("part %d: no file %s", n, f.Path)
 		}
 	}
