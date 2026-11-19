@@ -99,7 +99,7 @@ func TestBriefSmall(t *testing.T) {
 	}
 	in.Files = append(in.Files, core.PackageFileInput{File: core.ChangedFile{Diff: logo}})
 	briefSignals(&in)
-	wp, _ := core.BuildWorkPackage(in)
+	wp := buildBriefPackage(t, in)
 	got, err := BriefWithToken(wp, 1, testToken)
 	if err != nil {
 		t.Fatal(err)
@@ -117,7 +117,7 @@ func TestBriefParts(t *testing.T) {
 	briefSignals(&in)
 	in.FileSignals = append(in.FileSignals, rules.Signal{RuleID: "mobile-lines", Severity: "MINOR", Path: "app/src/main/java/com/example/screens/ListScreen.kt", Line: 200, Column: 121, Origin: "mr"})
 	in.PartBudget = 2000
-	wp, _ := core.BuildWorkPackage(in)
+	wp := buildBriefPackage(t, in)
 	if wp.Parts.Total != 3 {
 		t.Fatalf("%d parts, want 3: %v", wp.Parts.Total, wp.Parts.Files)
 	}
@@ -178,4 +178,14 @@ func checkBrief(t *testing.T, wp core.WorkPackage, n int, got string) {
 	if !strings.HasSuffix(got, "\n") || strings.HasSuffix(got, "\n\n") {
 		t.Errorf("part %d: the brief does not end with exactly one line break", n)
 	}
+}
+
+// buildBriefPackage builds a work package that must be valid.
+func buildBriefPackage(t *testing.T, in core.WorkPackageInput) core.WorkPackage {
+	t.Helper()
+	wp, _, err := core.BuildWorkPackage(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return wp
 }
