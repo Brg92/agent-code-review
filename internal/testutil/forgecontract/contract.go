@@ -64,12 +64,18 @@ type Fixture struct {
 	Dir        string
 	Entries    []core.DirEntry
 	MissingDir string
-	// TreePrefix lists as TreePaths.
+	// TreePrefix lists as TreePaths, in the tree at TreeRef; empty means
+	// DefaultBranch.
 	TreePrefix string
 	TreePaths  []string
-	// Term is found at Matches wherever the search can run.
-	Term    string
-	Matches []At
+	TreeRef    string
+	// Term is found at Matches wherever the search can run. If SearchError
+	// is set, which is for a provider whose answers are recorded and whose
+	// search was recorded as failing, a search where it can run must fail
+	// with that kind instead, and Matches may be empty.
+	Term        string
+	Matches     []At
+	SearchError base.Kind
 
 	// Head of Project has CI.
 	Head string
@@ -125,8 +131,10 @@ func checkFixture(t testing.TB, fx Fixture) {
 	switch {
 	case fx.Item.Kind != cascade.KindChangeRequest:
 		t.Errorf("fixture: Item must be a change request")
-	case fx.Content == "" || len(fx.Entries) == 0 || len(fx.TreePaths) == 0 || len(fx.Matches) == 0:
+	case fx.Content == "" || len(fx.Entries) == 0 || len(fx.TreePaths) == 0 || (len(fx.Matches) == 0 && fx.SearchError == ""):
 		t.Errorf("fixture: Content, Entries, TreePaths and Matches must not be empty")
+	case fx.SearchError != "" && fx.SearchError != base.ErrSearchUnavailable && fx.SearchError != base.ErrRateLimited && fx.SearchError != base.ErrTransport:
+		t.Errorf("fixture: SearchError must be a kind a search can fail with, not %q", string(fx.SearchError))
 	case fx.OtherRef == fx.DefaultBranch:
 		t.Errorf("fixture: OtherRef must differ from DefaultBranch")
 	case fx.Metadata.Key != fx.ChangeRequest || fx.Metadata.Validate() != nil || len(fx.ChangedFiles) == 0:
@@ -235,7 +243,11 @@ func checkFiles(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
 
 func checkTree(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
 	t.Helper()
-	tree := r.Tree(ctx, fx.Project, fx.DefaultBranch)
+	ref := fx.TreeRef
+	if ref == "" {
+		ref = fx.DefaultBranch
+	}
+	tree := r.Tree(ctx, fx.Project, ref)
 	got, err := tree.List(fx.TreePrefix)
 	if err != nil || !reflect.DeepEqual(got, fx.TreePaths) {
 		t.Errorf("Tree().List(%q) = %v, %v, want %v", fx.TreePrefix, got, err, fx.TreePaths)
@@ -264,6 +276,12 @@ func checkSearch(t testing.TB, r base.Reader, fx Fixture) {
 		if !caps.SearchOn(ref, fx.DefaultBranch) {
 			if !errors.Is(err, base.ErrSearchUnavailable) || got != nil {
 				t.Errorf("Search at %s = %v, %v, want ErrSearchUnavailable: search scope is %q", ref, got, err, caps.Search)
+			}
+			continue
+		}
+		if fx.SearchError != "" {
+			if !errors.Is(err, fx.SearchError) || got != nil {
+				t.Errorf("Search at %s = %v, %v, want %v", ref, got, err, fx.SearchError)
 			}
 			continue
 		}

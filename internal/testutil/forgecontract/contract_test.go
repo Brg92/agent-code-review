@@ -143,6 +143,18 @@ func TestRunCatchesBrokenProviders(t *testing.T) {
 			delete(f.Fail, Call{OpChangedFiles, "github:github.com/acme/locked", ""})
 			return f
 		}, "want forbidden"},
+		{"matches returned although the search must fail", func(f *Fake, fx *Fixture) base.Reader {
+			fx.SearchError, fx.Matches = base.ErrSearchUnavailable, nil
+			return f
+		}, "Search at main"},
+		{"search error with no kind that fits", func(f *Fake, fx *Fixture) base.Reader {
+			fx.SearchError = base.ErrNotFound
+			return f
+		}, "SearchError"},
+		{"tree read at another ref", func(f *Fake, fx *Fixture) base.Reader {
+			fx.TreeRef = "nowhere"
+			return f
+		}, "Tree().List"},
 		{"empty fixture", func(f *Fake, fx *Fixture) base.Reader {
 			fx.Matches = nil
 			return f
