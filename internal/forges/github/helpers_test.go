@@ -84,3 +84,9 @@ func newTestProviderWith(t *testing.T, tok Resolver) *Provider {
 	}
 	return p
 }
+
+// inProject returns k in another project.
+func inProject(k core.Key, project string) core.Key {
+	k.Project = project
+	return k
+}

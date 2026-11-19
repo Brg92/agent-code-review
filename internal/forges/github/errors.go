@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/Brg92/agent-code-review/internal/auth"
@@ -50,10 +51,7 @@ func (p *Provider) fail(op string, err error) error {
 
 // statusError maps an HTTP status to a read error.
 func statusError(op string, se *transport.StatusError) error {
-	cause := fmt.Errorf("status %d", se.StatusCode)
-	if se.Message != "" {
-		cause = fmt.Errorf("status %d: %s", se.StatusCode, se.Message)
-	}
+	cause := &statusCause{Code: se.StatusCode, Message: se.Message}
 	switch se.StatusCode {
 	case 404, 410, 451:
 		return &base.Error{Kind: base.ErrNotFound, Op: op, Err: cause}
@@ -89,4 +87,24 @@ func scrubbed(msg, rawURL string) error {
 		msg = strings.ReplaceAll(msg, rawURL, u.Path)
 	}
 	return errors.New(msg)
+}
+
+// statusCause is the cause of a read error that came from an HTTP answer.
+type statusCause struct {
+	Code    int
+	Message string
+}
+
+func (c *statusCause) Error() string {
+	if c.Message == "" {
+		return "status " + strconv.Itoa(c.Code)
+	}
+	return "status " + strconv.Itoa(c.Code) + ": " + c.Message
+}
+
+// isStatus reports whether err is a read error that came from an HTTP
+// answer with the given status.
+func isStatus(err error, status int) bool {
+	var c *statusCause
+	return errors.As(err, &c) && c.Code == status
 }
