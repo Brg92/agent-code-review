@@ -126,3 +126,16 @@ func TestSyntheticReplayHasOnlyItsRoutes(t *testing.T) {
 		t.Errorf("errors = %v, want one for the request without a route", rec.errs)
 	}
 }
+
+func TestSyntheticRouteSequence(t *testing.T) {
+	r := NewSynthetic(t)
+	r.Add(Route{Path: "/x", Status: 503, Then: []Route{{Status: 429, Header: map[string]string{"Retry-After": "1"}}, {Status: 200, Body: "ok"}}})
+	var got []int
+	for range 5 {
+		resp, _ := get(t, r.URL()+"/x")
+		got = append(got, resp.StatusCode)
+	}
+	if want := []int{503, 429, 200, 200, 200}; fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Errorf("statuses = %v, want %v: each request takes the next response and the last one repeats", got, want)
+	}
+}

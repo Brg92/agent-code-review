@@ -22,6 +22,9 @@ type Route struct {
 	Status int
 	Header map[string]string
 	Body   string
+	// Then are the responses to the requests that follow, one each; the
+	// last one repeats. Their Path and Query are ignored.
+	Then []Route
 }
 
 // Replay is an HTTP server that answers with the recordings of one
@@ -35,6 +38,7 @@ type Replay struct {
 	srv    *httptest.Server
 	mu     sync.Mutex
 	routes map[string]Route
+	hits   map[string]int
 	log    []string
 }
 
@@ -42,7 +46,7 @@ type Replay struct {
 // It is closed when the test ends.
 func NewReplay(t testing.TB, scenario string) *Replay {
 	t.Helper()
-	r := &Replay{t: t, routes: map[string]Route{}}
+	r := &Replay{t: t, routes: map[string]Route{}, hits: map[string]int{}}
 	for f, rec := range recordings(t, filepath.Join(scenario, "*.json")) {
 		if rec.Method != "" && rec.Method != http.MethodGet {
 			continue
@@ -67,7 +71,7 @@ func NewReplay(t testing.TB, scenario string) *Replay {
 // is synthetic.
 func NewSynthetic(t testing.TB) *Replay {
 	t.Helper()
-	r := &Replay{t: t, routes: map[string]Route{}}
+	r := &Replay{t: t, routes: map[string]Route{}, hits: map[string]int{}}
 	r.srv = httptest.NewServer(http.HandlerFunc(r.serve))
 	t.Cleanup(r.srv.Close)
 	return r
@@ -112,7 +116,14 @@ func (r *Replay) serve(w http.ResponseWriter, req *http.Request) {
 	}
 	r.mu.Lock()
 	r.log = append(r.log, line)
-	route, ok := r.routes[routeKey(req.Method, req.URL.Path, req.URL.Query())]
+	key := routeKey(req.Method, req.URL.Path, req.URL.Query())
+	route, ok := r.routes[key]
+	if ok {
+		if n := r.hits[key]; n > 0 && len(route.Then) > 0 {
+			route = route.Then[min(n-1, len(route.Then)-1)]
+		}
+		r.hits[key]++
+	}
 	r.mu.Unlock()
 	if !ok {
 		r.t.Errorf("replay: no recording for %s", line)
