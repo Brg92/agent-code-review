@@ -8,15 +8,15 @@
       "Bash(gh pr list:*)",
       "Bash(gh pr checks:*)",
       "Bash(gh repo create:*)",
-      "Bash(gh repo edit:*)",
       "Bash(gh repo view:*)",
       "Bash(gh workflow run:*)",
       "Bash(gh run list:*)",
-      "Bash(gh run view:*)",
-      "Bash(gh api:*)"
+      "Bash(gh run view:*)"
     ],
     "ask": [
-      "Bash(gh pr merge:*)"
+      "Bash(gh pr merge:*)",
+      "Bash(gh api:*)",
+      "Bash(gh repo edit:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
@@ -31,7 +31,13 @@
       "Bash(git push origin HEAD:main:*)",
       "Bash(gh api -X DELETE:*)",
       "Bash(gh api --method DELETE:*)",
-      "Bash(gh pr close:*)"
+      "Bash(gh pr close:*)",
+      "Bash(git push *:main)",
+      "Bash(git push *:main *)",
+      "Bash(git push *:refs/heads/main)",
+      "Bash(git push *:refs/heads/main *)",
+      "Bash(git push * :**)",
+      "Bash(git push * +*)"
     ]
   }
 }
