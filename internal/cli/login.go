@@ -20,6 +20,9 @@ const maxTokenBytes = 4096
 type terminal interface {
 	// isTerminal reports whether r is an interactive terminal.
 	isTerminal(r io.Reader) bool
+	// isMsysPty reports whether r is the pipe of an MSYS or Cygwin
+	// pseudo-terminal (Git Bash), which cannot hide typed input.
+	isMsysPty(r io.Reader) bool
 	// disableEcho turns echo off on r and returns the function restoring it.
 	disableEcho(r io.Reader) (restore func() error, err error)
 }
@@ -92,6 +95,9 @@ func readFailure(e env, err error) int {
 }
 
 func authLogin(e env, host string) int {
+	if e.term.isMsysPty(e.stdin) {
+		return fail(e, exitUsage, "%s: %s", host, msysTerminalHint)
+	}
 	ctx := context.Background()
 	r := e.resolver()
 	// Check the helpers before asking for the token, so nobody types it for nothing.

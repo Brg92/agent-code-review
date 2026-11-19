@@ -75,3 +75,9 @@ func TestNotifyInterrupts(t *testing.T) {
 		t.Fatal("no signal relayed")
 	}
 }
+
+func TestSystemTerminalIsNeverAnMsysPty(t *testing.T) {
+	if (systemTerminal{}).isMsysPty(os.Stdin) || (systemTerminal{}).isMsysPty(strings.NewReader("")) {
+		t.Error("isMsysPty = true outside Windows")
+	}
+}

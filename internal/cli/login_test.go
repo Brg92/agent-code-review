@@ -18,12 +18,15 @@ var (
 // fakeTerm records how the login command used the terminal.
 type fakeTerm struct {
 	terminal   bool
+	msys       bool
 	disableErr error
 	disabled   int
 	restored   int
 }
 
 func (f *fakeTerm) isTerminal(io.Reader) bool { return f.terminal }
+
+func (f *fakeTerm) isMsysPty(io.Reader) bool { return f.msys }
 
 func (f *fakeTerm) disableEcho(io.Reader) (func() error, error) {
 	if f.disableErr != nil {
@@ -172,5 +175,36 @@ func TestAuthLoginWarnings(t *testing.T) {
 	}
 	if strings.Contains(r.stderr, "env-token-value-9") {
 		t.Error("stderr leaks the environment token")
+	}
+}
+
+// TestAuthLoginRefusesMsysTerminal checks that in Git Bash, where stdin is a
+// pipe that echoes what is typed, login does not read the token, and does not
+// touch git either.
+func TestAuthLoginRefusesMsysTerminal(t *testing.T) {
+	git := &scriptedGit{}
+	stdin := strings.NewReader(testToken + "\n")
+	term := &fakeTerm{msys: true}
+	r := runWith(t, env{git: git, term: term, stdin: stdin}, "auth", "login")
+	if r.code != exitUsage || r.stdout != "" {
+		t.Errorf("got %+v, want code %d and no output", r, exitUsage)
+	}
+	for _, part := range []string{"Git Bash", "PowerShell or cmd", "password manager", "pipe the token"} {
+		if !strings.Contains(r.stderr, part) {
+			t.Errorf("stderr %q does not say %q", r.stderr, part)
+		}
+	}
+	if stdin.Len() != len(testToken)+1 || len(git.stdin) != 0 || term.disabled != 0 {
+		t.Error("login read stdin, ran git or changed the terminal before refusing")
+	}
+}
+
+// TestAuthLoginPipedInMsys checks that a real pipe from another program,
+// which the terminal does not report as a pseudo-terminal, keeps working.
+func TestAuthLoginPipedInMsys(t *testing.T) {
+	term := &fakeTerm{}
+	r := runWith(t, env{git: loginGit("osxkeychain"), term: term, stdin: strings.NewReader(testToken + "\n")}, "auth", "login")
+	if r.code != exitOK {
+		t.Errorf("got %+v", r)
 	}
 }
