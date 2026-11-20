@@ -7,7 +7,7 @@ agent-code-review review [--verbose] <pull request URL | owner/repo#N>
 ```
 
 ```bash
-agent-code-review next [--verbose] [--run <run id>]
+agent-code-review next [--verbose] [--run <run id>] [--part <n>]
 ```
 
 ## `review`
@@ -20,7 +20,9 @@ agent-code-review next [--verbose] [--run <run id>]
 
 Titles are written by the authors of the change requests, so the summary puts them between the delimiters of untrusted content that the briefs use, and says so in its first line.
 
-A read that fails because of the platform or the token stops the review (exit 6 or 7). A read that the core turns into Not verified does not: a tree cut short, checks that cannot be read, a search the platform cannot run. It is listed in the work package.
+Only the root stops the review when it cannot be read (exit 6 or 7). A related change request that the platform says is gone, or that the token cannot read, after the cascade read it, is skipped as `not-found`: the cascade is resolved again without it, so what it listed is not in the run, the cascade is INCOMPLETE and `run.log` records it. A failure that is not about that change request, such as the network or the rate limit, still stops the review. A read that the core turns into Not verified does not stop it: a tree cut short, checks that cannot be read, a search the platform cannot run, a changed file whose contents the platform does not give (`content-unavailable`, left out of the rules). They are listed in the work package.
+
+The notes of reading the criteria, such as criteria edited by the change request that are not applied, are in `criteria.notes` of the work package and in its brief; `finalize` copies them into the findings.
 
 ## `next`
 
@@ -30,7 +32,13 @@ Chooses the most recent run that is not `published`, by run id, or the run given
 Judge github:github.com/o/r#3 part 1 of 2 — write the judgement to <work dir>/runs/<run id>/o_r-3-1a2b3c4d/judgement.json
 ```
 
-The change request is the first one in review order without a judgement that parses. Its parts are served in turn, each call giving the next one and starting again after the last, so an agent that lost one can ask again; the count is kept in the file `served` of the change request's directory. When every change request has a judgement it prints `Done: run agent-code-review finalize`. `next` never changes the phase of the run, and whether a judgement is valid is for `finalize` to say.
+The change request is the first one in review order without a judgement that parses. Its parts are served in order, one per call, and `next` only moves forward: the count of the parts served is kept in the file `served` of the change request's directory and never goes back. Once every part was served, `next` repeats one line until the judgement is there, then moves to the next change request:
+
+```text
+Write the judgement to <work dir>/runs/<run id>/o_r-3-1a2b3c4d/judgement.json, then run agent-code-review next
+```
+
+When every change request has a judgement it prints `Done: run agent-code-review finalize`. `next --part N` prints part N of the change request that is up again, without moving the count; a part it does not have is a usage error (exit 2). `next` never changes the phase of the run, and whether a judgement is valid is for `finalize` to say. Every part served, and every time `next` waits, is a line of `run.log`.
 
 ## `run.log`
 
