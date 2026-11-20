@@ -64,7 +64,11 @@ func (Registry) Parse(line string, from core.Key) []refs.Ref {
 		blank(m[0], m[1])
 	}
 	rest := string(masked)
-	namespace := from.Project[:strings.LastIndex(from.Project, "/")]
+	// A key without a project has no namespace: project!N cannot be read.
+	namespace := ""
+	if i := strings.LastIndex(from.Project, "/"); i >= 0 {
+		namespace = from.Project[:i]
+	}
 	for _, m := range refRe.FindAllStringSubmatchIndex(rest, -1) {
 		if endsInWord(rest, m[1]) {
 			continue
