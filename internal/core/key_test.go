@@ -319,3 +319,23 @@ func TestKeySame(t *testing.T) {
 		}
 	}
 }
+
+func TestKeyURL(t *testing.T) {
+	tests := []struct{ key, want string }{
+		{"github:github.com/acme/app#7", "https://github.com/acme/app/pull/7"},
+		{"github:ghe.example.com:8443/acme/app#12", "https://ghe.example.com:8443/acme/app/pull/12"},
+		{"gitlab:gitlab.com/group/sub/app#3", "https://gitlab.com/group/sub/app/-/merge_requests/3"},
+	}
+	for _, tt := range tests {
+		k, err := ParseKey(tt.key)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := k.URL(); got != tt.want {
+			t.Errorf("%s: URL() = %q, want %q", tt.key, got, tt.want)
+		}
+	}
+	if got := (Key{}).URL(); got != "" {
+		t.Errorf("zero key: URL() = %q, want none", got)
+	}
+}
