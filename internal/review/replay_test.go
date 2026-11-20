@@ -2,8 +2,6 @@ package review
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"io/fs"
 	"math/rand"
 	"os"
@@ -15,25 +13,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Brg92/agent-code-review/internal/auth"
 	"github.com/Brg92/agent-code-review/internal/core"
 	"github.com/Brg92/agent-code-review/internal/forges/github"
 	"github.com/Brg92/agent-code-review/internal/refs"
 	"github.com/Brg92/agent-code-review/internal/runlog"
 	"github.com/Brg92/agent-code-review/internal/state"
+	"github.com/Brg92/agent-code-review/internal/testutil/reviewreplay"
 	"github.com/Brg92/agent-code-review/internal/testutil/sandbox"
 	"github.com/Brg92/agent-code-review/internal/transport"
 )
-
-// canary is the token of the replay tests: nothing the review writes or
-// prints may hold it.
-const canary = "ghp_CANARYtoken0123456789abcdefABCDEF"
-
-type canaryTokens struct{}
-
-func (canaryTokens) Resolve(ctx context.Context, host string) (auth.Token, error) {
-	return auth.Resolver{Getenv: func(string) string { return canary }}.Resolve(ctx, host)
-}
 
 // fakeClock advances instead of sleeping.
 type fakeClock struct{ at time.Time }
@@ -49,19 +37,16 @@ func (c *fakeClock) Sleep(ctx context.Context, d time.Duration) error {
 // the run log.
 func replayDeps(t testing.TB, scenarios ...string) (Deps, string, *sandbox.Replay, *verboseLog) {
 	t.Helper()
-	r := sandbox.NewReplay(t, scenarios[0])
-	for _, extra := range scenarios[1:] {
-		addRecordings(t, r, extra)
-	}
-	// The repository endpoint is the one response the recordings lack: the
-	// default branch of each sandbox repository.
-	for _, repo := range []string{"sample-app", "core-lib", "kmp-shared", "feature-lib"} {
-		r.Add(sandbox.Route{Path: "/repos/" + sandbox.Owner + "/" + repo, Status: 200, Body: `{"default_branch":"main"}`})
-	}
+	return replayDepsOn(t, reviewreplay.New(t, scenarios...))
+}
+
+// replayDepsOn is replayDeps over a replay server that is already set up.
+func replayDepsOn(t testing.TB, r *sandbox.Replay) (Deps, string, *sandbox.Replay, *verboseLog) {
+	t.Helper()
 	verbose := &verboseLog{}
 	clock := &fakeClock{at: now}
 	log := runlog.New(clock.Now, verbose)
-	reader, err := github.NewLoopback("github.com", r.URL(), canaryTokens{}, github.Options{
+	reader, err := github.NewLoopback("github.com", r.URL(), reviewreplay.Tokens{}, github.Options{
 		Transport: transport.Config{Now: clock.Now, Sleep: clock.Sleep, Observe: log.Observe},
 	})
 	if err != nil {
@@ -80,81 +65,6 @@ func replayDeps(t testing.TB, scenarios ...string) (Deps, string, *sandbox.Repla
 	}, work, r, verbose
 }
 
-// addRecordings makes the recordings of another scenario answer on r: a
-// cascade walks into the pull requests of several scenarios, as S2 reaches
-// the one of S4.
-func addRecordings(t testing.TB, r *sandbox.Replay, scenario string) {
-	t.Helper()
-	files, err := filepath.Glob(filepath.Join("..", "..", "testdata", "github", scenario, "GET_*.json"))
-	if err != nil || len(files) == 0 {
-		t.Fatalf("no recordings of %s: %v", scenario, err)
-	}
-	for _, f := range files {
-		data, err := os.ReadFile(f)
-		if err != nil {
-			t.Fatal(err)
-		}
-		var rec struct {
-			Path    string            `json:"path"`
-			Query   map[string]string `json:"query"`
-			Status  int               `json:"status"`
-			Headers map[string]string `json:"headers"`
-			Body    json.RawMessage   `json:"body"`
-		}
-		if err := json.Unmarshal(data, &rec); err != nil {
-			t.Fatalf("%s: %v", f, err)
-		}
-		r.Add(sandbox.Route{Path: rec.Path, Query: rec.Query, Status: rec.Status, Header: rec.Headers, Body: string(rec.Body)})
-	}
-}
-
-// buildFiles are synthetic build files of the sandbox repositories: their
-// trees list them but the recordings hold no contents, and the packs read
-// them to be activated and to settle the profile and the dimensions.
-var buildFiles = map[string][2]string{
-	"sample-app":  {"app/build.gradle.kts", "plugins { id(\"com.android.application\") }\ndependencies { implementation(\"androidx.compose.ui:ui\") }\n"},
-	"core-lib":    {"build.gradle.kts", "plugins {\n    id(\"com.android.library\")\n    id(\"maven-publish\")\n}\n"},
-	"feature-lib": {"build.gradle.kts", "plugins { id(\"com.android.library\") }\nandroid { buildFeatures { viewBinding = true } }\n"},
-	"kmp-shared":  {"shared/build.gradle.kts", "plugins {\n    kotlin(\"multiplatform\")\n    id(\"com.android.library\")\n}\n"},
-}
-
-// addBuildFiles answers the reads of the build files of repo at the head of
-// pull request number of a scenario: the main one with its synthetic
-// contents, any other file the packs read with neutral ones.
-func addBuildFiles(t testing.TB, r *sandbox.Replay, scenario, repo string, number int) {
-	t.Helper()
-	head := sandbox.PullRequest(t, scenario, repo, number).HeadSHA
-	for _, p := range sandbox.TreeOf(t, scenario, repo, head).Paths {
-		var content string
-		switch {
-		case p == buildFiles[repo][0]:
-			content = buildFiles[repo][1]
-		case strings.HasSuffix(p, "build.gradle.kts") || strings.HasSuffix(p, "build.gradle"):
-			content = "// synthetic build file\n"
-		case strings.HasSuffix(p, "src/main/AndroidManifest.xml") || p == "gradle/libs.versions.toml":
-			content = "<manifest/>\n"
-		default:
-			continue
-		}
-		body, err := json.Marshal(map[string]any{
-			"type": "file", "encoding": "base64", "name": filepath.Base(p), "path": p, "sha": "0000000000000000000000000000000000000000",
-			"content": base64.StdEncoding.EncodeToString([]byte(content)),
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		r.Add(sandbox.Route{Path: "/repos/" + sandbox.Owner + "/" + repo + "/contents/" + p, Query: map[string]string{"ref": head}, Status: 200, Body: string(body)})
-	}
-}
-
-// addNotFound answers 404 for a path of a sandbox repository that the
-// recorder did not ask for because the repository does not have it, as
-// GitHub does: the references directory of a legacy skill, for example.
-func addNotFound(r *sandbox.Replay, repo, path, ref string) {
-	r.Add(sandbox.Route{Path: "/repos/" + sandbox.Owner + "/" + repo + "/contents/" + path, Query: map[string]string{"ref": ref}, Status: 404,
-		Body: `{"message":"Not Found","status":"404"}`})
-}
-
 // verboseLog collects what the log writes as it happens.
 type verboseLog struct{ b []byte }
 
@@ -170,13 +80,7 @@ func sandboxKey(t testing.TB, repo string, n int) core.Key {
 // into S4, and the pull requests whose repositories it reads.
 func s2Deps(t testing.TB) (Deps, string, *verboseLog) {
 	t.Helper()
-	d, work, r, log := replayDeps(t, "S2", "S4")
-	addBuildFiles(t, r, "S2", "sample-app", 7)
-	addBuildFiles(t, r, "S2", "sample-app", 2)
-	addBuildFiles(t, r, "S2", "core-lib", 3)
-	addBuildFiles(t, r, "S2", "kmp-shared", 2)
-	addBuildFiles(t, r, "S4", "feature-lib", 1)
-	addNotFound(r, "core-lib", ".github/skills/core-lib-code-review/references", "main")
+	d, work, _, log := replayDepsOn(t, reviewreplay.S2(t))
 	return d, work, log
 }
 
@@ -244,7 +148,7 @@ func TestNothingTheReviewWritesHoldsTheToken(t *testing.T) {
 	if _, err := Collect(context.Background(), d, sandboxKey(t, "sample-app", 7)); err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(log.String(), canary) || log.String() == "" {
+	if strings.Contains(log.String(), reviewreplay.Canary) || log.String() == "" {
 		t.Errorf("verbose log:\n%s", log)
 	}
 	err := filepath.WalkDir(work, func(p string, e fs.DirEntry, err error) error {
@@ -255,7 +159,7 @@ func TestNothingTheReviewWritesHoldsTheToken(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if strings.Contains(string(data), canary) {
+		if strings.Contains(string(data), reviewreplay.Canary) {
 			t.Errorf("%s holds the token", p)
 		}
 		return nil
@@ -360,8 +264,8 @@ func TestCollectRecordedScenarios(t *testing.T) {
 	for _, s := range scenarioReplays {
 		t.Run(s.name, func(t *testing.T) {
 			d, _, r, log := replayDeps(t, s.scenario)
-			addBuildFiles(t, r, s.scenario, s.repo, s.number)
-			addNotFound(r, "core-lib", ".github/skills/core-lib-code-review/references", "main")
+			reviewreplay.AddBuildFiles(t, r, s.scenario, s.repo, s.number)
+			reviewreplay.AddNotFound(r, "core-lib", ".github/skills/core-lib-code-review/references", "main")
 			run, err := Collect(context.Background(), d, sandboxKey(t, s.repo, s.number))
 			if err != nil {
 				t.Fatalf("%v\n%s", err, log)
