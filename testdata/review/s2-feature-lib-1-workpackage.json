@@ -22,7 +22,10 @@
       }
     },
     "files": [],
-    "ignored": []
+    "ignored": [],
+    "notes": [
+      "No repository criteria on main: only the pack and core rules apply."
+    ]
   },
   "ci": {
     "state": "passing",

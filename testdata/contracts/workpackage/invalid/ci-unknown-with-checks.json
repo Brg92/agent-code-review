@@ -25,7 +25,8 @@
       ".github/skills/core-lib-code-review/SKILL.md",
       ".github/mr-review.json"
     ],
-    "ignored": []
+    "ignored": [],
+    "notes": []
   },
   "ci": {
     "state": "unknown",

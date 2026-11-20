@@ -16,6 +16,7 @@ Profile: library (<<<UNTRUSTED-470553b5 cascade dependency of github:github.com/
 Dimension: ui-toolkit both (<<<UNTRUSTED-470553b5 android UNTRUSTED-470553b5>>>)
 Packs: kotlin-multiplatform, android
 Criteria: default on <<<UNTRUSTED-470553b5 main UNTRUSTED-470553b5>>>
+Criteria note: <<<UNTRUSTED-470553b5 No repository criteria on main: only the pack and core rules apply. UNTRUSTED-470553b5>>>
 CI: passing
 Cascade: below github:github.com/acr-plugin-sandbox/sample-app#7 <<<UNTRUSTED-470553b5 Show when the session expires UNTRUSTED-470553b5>>> > github:github.com/acr-plugin-sandbox/core-lib#3 <<<UNTRUSTED-470553b5 Replace legacyToken with expiresAt UNTRUSTED-470553b5>>>
 Related: github:github.com/acr-plugin-sandbox/sample-app#7 <<<UNTRUSTED-470553b5 Show when the session expires UNTRUSTED-470553b5>>> (acr-plugin-sandbox_sample-app-7-e9009ec0/workpackage.json)

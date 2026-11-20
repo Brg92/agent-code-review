@@ -71,6 +71,10 @@ type PackageCriteria struct {
 	// Files are the criteria files read on the target branch.
 	Files   []string      `json:"files"`
 	Ignored []IgnoredItem `json:"ignored"`
+	// Notes are the notes of reading the criteria, for the summary of the
+	// report: criteria edited by the change request that are not applied, an
+	// absence of criteria, the items ignored. finalize copies them.
+	Notes []string `json:"notes"`
 }
 
 // PackageRule is a rule that applies, as the work package lists it.
@@ -280,7 +284,7 @@ func BuildWorkPackage(in WorkPackageInput) (WorkPackage, Review, error) {
 		HeadSHA: in.HeadSHA, BaseSHA: in.BaseSHA, BaseRef: in.BaseRef,
 		Criteria: PackageCriteria{
 			Source: in.Criteria.Source, Profile: in.Profile, ProfileReason: in.ProfileReason, Packs: nonNil(in.Criteria.Packs),
-			Dimensions: map[string]DimensionChoice{}, Files: nonNil(in.Criteria.Files), Ignored: append([]IgnoredItem{}, in.Ruleset.Ignored...),
+			Dimensions: map[string]DimensionChoice{}, Files: nonNil(in.Criteria.Files), Ignored: append([]IgnoredItem{}, in.Ruleset.Ignored...), Notes: nonNil(in.Criteria.Notes),
 		},
 		CI:    CI{State: in.CI.State, Reason: in.CI.Reason, Detail: in.CI.Detail, Checks: append([]Check{}, in.CI.Checks...)},
 		Rules: []PackageRule{}, Files: []PackageFile{}, Signals: signals,

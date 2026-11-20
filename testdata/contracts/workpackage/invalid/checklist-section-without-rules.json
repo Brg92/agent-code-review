@@ -34,7 +34,8 @@
         "item": "`line-too-long.width` in ruleOptions (.agent-code-review/config.json)",
         "reason": "the rule has no option width"
       }
-    ]
+    ],
+    "notes": []
   },
   "ci": {
     "state": "none",

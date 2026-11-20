@@ -25,7 +25,10 @@
       ".github/skills/core-lib-code-review/SKILL.md",
       ".github/mr-review.json"
     ],
-    "ignored": []
+    "ignored": [],
+    "notes": [
+      "Legacy criteria are in use: .github/skills and .github/mr-review.json."
+    ]
   },
   "ci": {
     "state": "passing",

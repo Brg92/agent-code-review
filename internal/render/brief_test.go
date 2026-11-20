@@ -123,6 +123,27 @@ func TestBriefCI(t *testing.T) {
 	}
 }
 
+func TestBriefShowsTheCriteriaNotes(t *testing.T) {
+	in := briefInput(t, screenFile(t, "app/src/main/java/com/example/screens/HomeScreen.kt", 6, 3))
+	ignored := core.IgnoredItem{Item: "`Bad Id` (.agent-code-review/criteria.md:9)", Reason: "the id is not kebab-case"}
+	in.Criteria.Ignored = []core.IgnoredItem{ignored}
+	in.Criteria.Notes = []string{"Criteria changed in this change request are not applied: .agent-code-review/config.json. The criteria of main are used.", ignored.Note()}
+	in.Ruleset = briefRuleset(t, in.Criteria)
+	wp := buildBriefPackage(t, in)
+	got, err := BriefWithToken(wp, 1, testToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "Criteria note: <<<UNTRUSTED-0a1b2c3d Criteria changed in this change request are not applied: .agent-code-review/config.json. The criteria of main are used. UNTRUSTED-0a1b2c3d>>>\n"
+	if !strings.Contains(got, want) {
+		t.Errorf("no %q in:\n%s", want, got)
+	}
+	// An ignored item is listed once, under the criteria ignored.
+	if strings.Count(got, "Bad Id") != 1 {
+		t.Errorf("the ignored item is listed more than once:\n%s", got)
+	}
+}
+
 func TestBriefSmall(t *testing.T) {
 	in := briefInput(t, screenFile(t, "app/src/main/java/com/example/screens/HomeScreen.kt", 6, 3))
 	in.Criteria.Ignored = []core.IgnoredItem{{Item: "`Bad Id` (.agent-code-review/criteria.md:9)", Reason: "the id is not kebab-case"}}

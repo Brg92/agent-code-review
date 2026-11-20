@@ -182,6 +182,12 @@ func briefHeader(b *briefWriter, wp core.WorkPackage) {
 	}
 	b.line(fmt.Sprintf("Packs: %s", strings.Join(c.Packs, ", ")))
 	b.line(criteria)
+	for _, n := range c.Notes {
+		// An ignored item is listed once, under the criteria ignored.
+		if !strings.HasPrefix(n, core.IgnoredPrefix) {
+			b.line("Criteria note: " + b.data("criteria note", n))
+		}
+	}
 	b.line(briefCI(b, wp.CI))
 	if len(wp.Cascade.Ancestors) == 0 {
 		b.line("Cascade: root")

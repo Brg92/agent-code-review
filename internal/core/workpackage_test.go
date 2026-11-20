@@ -312,12 +312,14 @@ func TestBuildWorkPackageHeader(t *testing.T) {
 	in.Ancestors = []core.Ancestor{{CR: core.Key{Forge: core.GitHub, Host: "github.com", Project: "acr-plugin-sandbox/sample-app", Number: 7}, Title: "Root"}}
 	in.RelatedChanges = []core.RelatedChange{{CR: in.Ancestors[0].CR, Title: "Root", WorkPackage: "x/workpackage.json"}}
 	in.Criteria.Ignored = []core.IgnoredItem{{Item: "`x` (a)", Reason: "r"}}
+	in.Criteria.Notes = []string{"Criteria changed in this change request are not applied: a.", core.IgnoredPrefix + "`x` (a) — r"}
 	set, _ := syntheticSet(t)
 	in.Ruleset = core.EffectiveRules(core.RulesetInput{Set: set, Profile: "app", Criteria: in.Criteria})
 	wp, review := buildPackage(t, in)
 	checkWorkPackage(t, wp)
 	if wp.Schema != 1 || wp.Criteria.Source != core.SourceOverlay || wp.Criteria.ProfileReason != in.ProfileReason ||
-		!reflect.DeepEqual(wp.Criteria.Files, []string{core.CriteriaFile}) || !reflect.DeepEqual(wp.Criteria.Ignored, in.Criteria.Ignored) {
+		!reflect.DeepEqual(wp.Criteria.Files, []string{core.CriteriaFile}) || !reflect.DeepEqual(wp.Criteria.Ignored, in.Criteria.Ignored) ||
+		!reflect.DeepEqual(wp.Criteria.Notes, in.Criteria.Notes) {
 		t.Errorf("criteria %+v", wp.Criteria)
 	}
 	if !reflect.DeepEqual(wp.Cascade.Ancestors, in.Ancestors) || !reflect.DeepEqual(wp.RelatedChanges, in.RelatedChanges) {

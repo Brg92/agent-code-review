@@ -227,6 +227,8 @@ var scenarioReplays = []struct {
 	}},
 	{"S6 A", "S6", "sample-app", 5, func(t *testing.T, wp core.WorkPackage) {
 		expect(t, wp.Criteria.Source == core.SourceOverlay && len(wp.Criteria.Ignored) == 0, "criteria %+v", wp.Criteria)
+		expect(t, len(wp.Criteria.Notes) == 1 && strings.HasPrefix(wp.Criteria.Notes[0], "Criteria changed in this change request are not applied: "+core.ConfigFile),
+			"the edit of the criteria is noted: %q", wp.Criteria.Notes)
 		expect(t, hasNotVerified(wp, core.ConfigFile, "unsupported-language"), "the edited criteria file is a changed file: %v", wp.NotVerified)
 	}},
 	{"S6 B", "S6", "sample-app", 6, func(t *testing.T, wp core.WorkPackage) {
