@@ -389,7 +389,8 @@ func TestNextRefusesAWorkPackageWithoutParts(t *testing.T) {
 }
 
 func TestNextRefusesAJudgementPathOutsideTheRun(t *testing.T) {
-	for _, path := range []string{"../escape/judgement.json", "", "/etc/judgement.json"} {
+	for _, path := range []string{"../escape/judgement.json", "", "/etc/judgement.json", "a/../../x/judgement.json", "./x/judgement.json", "x//judgement.json",
+		`C:\x\judgement.json`, `x\judgement.json`, "C:/x/judgement.json", "x/judgement.json/"} {
 		work := t.TempDir()
 		m := makeRun(t, work, now, state.Collected)
 		m.LibWP.JudgementPath = path

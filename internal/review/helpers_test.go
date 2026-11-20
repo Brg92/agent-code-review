@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -56,15 +55,6 @@ func loadPacks(t testing.TB) *packs.Set {
 		t.Fatal(err)
 	}
 	return set
-}
-
-func kotlinFile(name string, n int) string {
-	var b strings.Builder
-	b.WriteString("package acme\n\n")
-	for i := 3; i <= n; i++ {
-		b.WriteString("fun " + name + strings.Repeat("x", i) + "() = " + string(rune('0'+i%10)) + "\n")
-	}
-	return b.String()
 }
 
 // fakeCascade is a root change request, acme/app#7, that lists acme/lib#3

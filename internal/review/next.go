@@ -129,15 +129,20 @@ func readWorkPackageFile(path string, cr core.Key) (core.WorkPackage, error) {
 }
 
 // insideRun resolves a path the work package gives, relative to the run's
-// work directory, and refuses one that leaves it.
+// work directory, and refuses one that leaves it. The path has the form of
+// the relativePath of the contract on every system: forward slashes and
+// segments that are not empty, "." or "..", and no backslash or colon, which
+// Windows reads as a separator and a drive.
 func insideRun(runDir, rel string, cr core.Key) (string, error) {
-	full := filepath.Join(runDir, filepath.FromSlash(rel))
-	inside, err := filepath.Rel(runDir, full)
-	if rel == "" || filepath.IsAbs(rel) || err != nil || inside == ".." || strings.HasPrefix(inside, ".."+string(filepath.Separator)) {
+	ok := rel != "" && !strings.ContainsAny(rel, `\:`)
+	for _, seg := range strings.Split(rel, "/") {
+		ok = ok && seg != "" && seg != "." && seg != ".."
+	}
+	if !ok {
 		return "", &Failure{Kind: KindState, What: "the work package of " + cr.String() + " names a path outside the run", Where: cr.String() + ", judgementPath",
 			Why: "path not allowed", Hint: "the run is damaged: run `agent-code-review review <pull request>` again"}
 	}
-	return full, nil
+	return filepath.Join(runDir, filepath.FromSlash(rel)), nil
 }
 
 // judgementState says whether the judgement at path counts as written: the
