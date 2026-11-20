@@ -15,6 +15,7 @@ import (
 
 	"github.com/Brg92/agent-code-review/internal/core"
 	"github.com/Brg92/agent-code-review/internal/forges/github"
+	"github.com/Brg92/agent-code-review/internal/forges/gitlab"
 	"github.com/Brg92/agent-code-review/internal/refs"
 	"github.com/Brg92/agent-code-review/internal/runlog"
 	"github.com/Brg92/agent-code-review/internal/state"
@@ -55,7 +56,7 @@ func replayDepsOn(t testing.TB, r *sandbox.Replay) (Deps, string, *sandbox.Repla
 	work := t.TempDir()
 	return Deps{
 		Reader:     reader,
-		Registries: []refs.Registry{github.Registry{}},
+		Registries: []refs.Registry{github.Registry{}, gitlab.Registry{}},
 		Packs:      loadPacks(t),
 		WorkDir:    work,
 		KeepDays:   state.DefaultKeepDays,
@@ -107,12 +108,13 @@ func TestCollectS2Cascade(t *testing.T) {
 	}
 	var entries []string
 	for _, e := range st.ChangeRequests {
-		entries = append(entries, strings.TrimPrefix(e.CR.String(), "github:github.com/"+sandbox.Owner+"/")+" d"+strconv.Itoa(e.Depth)+" "+string(e.Status)+" "+string(e.SkipReason))
+		entries = append(entries, strings.TrimPrefix(strings.TrimPrefix(e.CR.String(), "gitlab:gitlab.com/"+sandbox.Owner+"/"), "github:github.com/"+sandbox.Owner+"/")+" d"+strconv.Itoa(e.Depth)+" "+string(e.Status)+" "+string(e.SkipReason))
 	}
 	want := []string{
 		"sample-app#7 d0 collected ", "core-lib#3 d1 collected ", "kmp-shared#2 d2 collected ", "feature-lib#1 d3 collected ",
 		"sample-app#7 d2 skipped cycle", "feature-lib#2 d1 skipped already-done", "sample-app#2 d1 collected ",
-		"sample-app#1 d1 skipped not-a-change-request", "sample-app#7 d1 skipped self-reference", "core-lib#9999 d1 skipped not-found",
+		"sample-app#1 d1 skipped not-a-change-request", "sample-app#7 d1 skipped self-reference", "sample-app#1 d1 skipped other-platform",
+		"core-lib#9999 d1 skipped not-found",
 	}
 	if !reflect.DeepEqual(entries, want) {
 		t.Errorf("entries:\n%s\nwant:\n%s", strings.Join(entries, "\n"), strings.Join(want, "\n"))
