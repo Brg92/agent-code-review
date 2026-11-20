@@ -29,7 +29,7 @@ var moreValidExamples = map[string][]string{
 	"lexer-table":   {"packs/*/lexer/*.json", "testdata/packs/*/lexer/*.json"},
 	"pack-manifest": {"packs/*/manifest.json", "testdata/packs/*/manifest.json"},
 	"rules-catalog": {"internal/rules/core.json", "packs/*/rules.json", "testdata/packs/*/rules.json"},
-	"workpackage":   {"testdata/workpackage/*-workpackage.json"},
+	"workpackage":   {"testdata/workpackage/*-workpackage.json", "testdata/review/*-workpackage.json"},
 }
 
 func schemaFiles(t *testing.T) map[string]string {
