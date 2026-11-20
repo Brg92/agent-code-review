@@ -163,7 +163,8 @@ func TestRecordedCriteriaS6A(t *testing.T) {
 }
 
 // TestRecordedCriteriaS6B checks that an invalid overlay on the target
-// branch stops the review, naming the file and every invalid field.
+// branch is an error that names the file and every invalid field; the
+// review leaves the file out and goes on (see IgnoreInvalidCriteria).
 func TestRecordedCriteriaS6B(t *testing.T) {
 	_, err := readRecorded(t, "S6", "sample-app", 6, "chore/criteria-s6-invalid-overlay-base")
 	var ce *core.CriteriaError
