@@ -181,11 +181,13 @@ func (c *collector) collectOne(ctx context.Context, e core.Entry, crit *core.Rep
 	}
 	tree := c.d.Reader.Tree(ctx, k, m.HeadSHA)
 	paths, err := tree.List("")
+	treeErr := err
 	if err != nil {
 		c.d.Log.NotVerified("tree "+m.HeadSHA, base.ReasonOf(err))
 		paths = changedPaths
 	}
 	repo := base.Repo(ctx, c.d.Reader.Files(), k, m.HeadSHA)
+	packsNamed := len(crit.Packs) > 0
 	active, err := c.activate(crit, paths, repo)
 	if err != nil {
 		return Package{}, classify(err, c.host(), "could not choose the packs of "+k.String(), k.String()+", detect the packs")
@@ -239,7 +241,14 @@ func (c *collector) collectOne(ctx context.Context, e core.Entry, crit *core.Rep
 		var assigned rules.File
 		switch {
 		case a.NotVerified != nil:
-			notVerified = append(notVerified, core.UnverifiedFile{Path: fc.Path, Reason: a.NotVerified.Reason, Detail: a.NotVerified.Detail})
+			nv := core.UnverifiedFile{Path: fc.Path, Reason: a.NotVerified.Reason, Detail: a.NotVerified.Detail}
+			switch {
+			case nv.Reason == packs.ReasonUnsupportedLanguage && (fc.Binary || fc.Missing == core.PatchBinary):
+				nv = core.UnverifiedFile{Path: fc.Path, Reason: "binary"}
+			case nv.Reason == packs.ReasonUnsupportedLanguage && treeErr != nil && !packsNamed:
+				nv.Detail += "; the repository tree could not be read (" + base.ReasonOf(treeErr) + "), so the packs were detected from the changed files only"
+			}
+			notVerified = append(notVerified, nv)
 		case !diff.Visible() && diff.Status != core.FileRenamed:
 			if fc.Missing == core.PatchBinary || fc.Binary {
 				notVerified = append(notVerified, core.UnverifiedFile{Path: fc.Path, Reason: "binary"})

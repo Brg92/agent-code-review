@@ -31,7 +31,7 @@ const (
 	baseLib  = "2222222222222222222222222222222222222222"
 	greeter  = "app/src/main/kotlin/acme/Greeter.kt"
 	greeterT = "app/src/test/kotlin/acme/GreeterTest.kt"
-	loader   = "lib/src/main/kotlin/acme/Loader.kt"
+	loader   = "lib/src/main/kotlin/acme/LoadRepository.kt"
 )
 
 func key(t testing.TB, s string) core.Key {
@@ -99,9 +99,9 @@ func fakeCascade(t testing.TB) *forgecontract.Fake {
 			},
 			app.ProjectKey() + "@" + baseApp: {greeter: "package acme\n\nfun greet() = 1\n"},
 			lib.ProjectKey() + "@" + headLib: {
-				"lib/build.gradle.kts":                   "plugins {\n    id(\"com.android.library\")\n}\n",
-				loader:                                   "package acme\n\nfun load() = 1\nfun loadAll() = 2\n",
-				"lib/src/test/kotlin/acme/LoaderTest.kt": "package acme\n\nclass LoaderTest\n",
+				"lib/build.gradle.kts": "plugins {\n    id(\"com.android.library\")\n}\n",
+				loader:                 "package acme\n\nfun load() = 1\nfun loadAll() = 2\n",
+				"lib/src/test/kotlin/acme/LoadRepositoryTest.kt": "package acme\n\nclass LoaderTest\n",
 			},
 			lib.ProjectKey() + "@" + baseLib: {loader: "package acme\n\nfun load() = 1\n"},
 		},
