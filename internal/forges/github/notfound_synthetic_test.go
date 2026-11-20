@@ -11,31 +11,12 @@ import (
 )
 
 // Synthetic: GitHub answers 404 both for a missing file and for a repository
-// the token cannot read, and the recordings only have the first kind.
+// the token cannot read, and the recordings only have the first kind. A
+// missing file of a readable repository is recorded: see files_test.go.
 
 var notFound = `{"message":"Not Found"}`
 
 var refMain = map[string]string{"ref": "main"}
-
-func TestMissingFileOfAReadableRepositoryIsAbsence(t *testing.T) {
-	s := onSynthetic(t, nil)
-	s.repoRoute()
-	s.route(404, repo+"/contents/a.md", refMain, nil, notFound)
-	s.route(404, repo+"/contents/docs", refMain, nil, notFound)
-	ctx := context.Background()
-
-	got, found, err := s.Files().Get(ctx, synthKey, "main", "a.md")
-	if err != nil || found || got != nil {
-		t.Errorf("Get() = %q, %v, %v, want not found and no error", got, found, err)
-	}
-	entries, err := s.Files().List(ctx, synthKey, "main", "docs")
-	if err != nil || len(entries) != 0 {
-		t.Errorf("List() = %v, %v, want no entries and no error", entries, err)
-	}
-	if n := s.Replay.Count("GET", repo); n != 1 {
-		t.Errorf("the repository was read %d times for two missing paths, want once (cached)", n)
-	}
-}
 
 func TestMissingFileOfAnUnreadableRepositoryIsAnError(t *testing.T) {
 	tests := []struct {
