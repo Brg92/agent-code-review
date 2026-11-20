@@ -116,10 +116,54 @@ func TestReviewThenNextOnS2(t *testing.T) {
 			}
 			// The run is named by its id as well.
 			id := "20261120T120000Z-52fdfc07"
-			if m := runWith(t, e, "next", "--run", id); m.code != exitOK || !strings.HasPrefix(m.stdout, "Judge github:github.com/acr-plugin-sandbox/") {
+			// The first part was served; the run named by its id says what is awaited.
+			if m := runWith(t, e, "next", "--run", id); m.code != exitOK || !strings.HasPrefix(m.stdout, "Write the judgement to ") {
 				t.Errorf("next --run: code %d\n%s", m.code, m.stdout)
 			}
 		})
+	}
+}
+
+func TestNextMovesForwardAndPartReadsAgain(t *testing.T) {
+	e, work := reviewEnv(t, reviewreplay.S2(t))
+	if r := runWith(t, e, "review", s2Root); r.code != exitOK {
+		t.Fatalf("review: %d\n%s", r.code, r.stderr)
+	}
+	first := runWith(t, e, "next")
+	if first.code != exitOK || portable(first.stdout, work) != goldenText(t, "s2-next-1.txt") {
+		t.Fatalf("next: code %d\n%s", first.code, first.stdout)
+	}
+	// The one part was served: the command says what to do, as often as asked.
+	judgement := strings.TrimSuffix(strings.TrimPrefix(strings.Split(first.stdout, "\n")[0], "Judge github:github.com/acr-plugin-sandbox/feature-lib#1 part 1 of 1 — write the judgement to "), "\n")
+	for range 2 {
+		wait := runWith(t, e, "next")
+		if wait.code != exitOK || wait.stdout != "Write the judgement to "+judgement+", then run agent-code-review next\n" || wait.stderr != "" {
+			t.Errorf("waiting: code %d, stdout %q, stderr %q", wait.code, wait.stdout, wait.stderr)
+		}
+	}
+	// --part reads it again without moving.
+	again := runWith(t, e, "next", "--part", "1")
+	if again.code != exitOK || again.stdout != first.stdout {
+		t.Errorf("--part 1: code %d\n%s", again.code, again.stdout)
+	}
+	if again := runWith(t, e, "next", "--part=1", "--run", "20261120T120000Z-52fdfc07"); again.stdout != first.stdout {
+		t.Errorf("--part with --run: %s", again.stdout)
+	}
+	if wait := runWith(t, e, "next"); !strings.HasPrefix(wait.stdout, "Write the judgement to ") {
+		t.Errorf("after --part: %s", wait.stdout)
+	}
+	// A part the change request does not have is a usage error.
+	out := runWith(t, e, "next", "--part", "2")
+	if out.code != exitUsage || out.stdout != "" || !strings.Contains(out.stderr, "no part 2") || !strings.Contains(out.stderr, "1 part") {
+		t.Errorf("--part 2: code %d, stderr:\n%s", out.code, out.stderr)
+	}
+	failShape(t, out.stderr, true)
+	// Judged, the next change request is served.
+	if err := os.WriteFile(judgement, []byte(`{"schema":1,"cr":"x","headSha":"e7665e368da1fcad940a56e09eeb9f10ad4b4a45","findings":[],"preExisting":[]}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if n := runWith(t, e, "next"); n.code != exitOK || !strings.HasPrefix(n.stdout, "Judge github:github.com/acr-plugin-sandbox/kmp-shared#2 part 1 of 1") {
+		t.Errorf("after the judgement: %s", n.stdout)
 	}
 }
 
@@ -262,6 +306,11 @@ func TestReviewUsageErrors(t *testing.T) {
 		{"unknown flag", []string{"review", "--nope", "o/r#1"}, "unknown flag"},
 		{"a flag that needs a value", []string{"next", "--run"}, "flag needs an argument"},
 		{"next with an argument", []string{"next", "extra"}, "takes no argument"},
+		{"part zero", []string{"next", "--part", "0"}, "from 1"},
+		{"part negative", []string{"next", "--part=-2"}, "from 1"},
+		{"part not a number", []string{"next", "--part", "two"}, "not a number"},
+		{"part without a value", []string{"next", "--part"}, "flag needs an argument"},
+		{"part on review", []string{"review", "--part", "1", "o/r#1"}, "unknown flag"},
 		{"a run id that is not one", []string{"next", "--run", "../x"}, "run id"},
 	}
 	for _, tt := range tests {

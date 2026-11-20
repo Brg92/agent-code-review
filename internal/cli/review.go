@@ -31,11 +31,15 @@ work packages in the work directory and prints a summary.
 --verbose also writes the lines of run.log to stderr as they happen.
 `
 
-const nextUsage = `usage: agent-code-review next [--verbose] [--run <run id>]
+const nextUsage = `usage: agent-code-review next [--verbose] [--run <run id>] [--part <n>]
 
 Prints the next part to judge of the most recent run that is not published,
-or of the run given, with where to write its judgement; or says that
-nothing is left to judge.
+or of the run given, with where to write its judgement. Once every part of a
+change request was printed it says where to write the judgement, until it is
+there; when nothing is left to judge it says so.
+
+--part prints part n of the change request being judged again, without
+moving on.
 
 --verbose also writes the lines of run.log to stderr as they happen.
 `
@@ -44,6 +48,8 @@ nothing is left to judge.
 type options struct {
 	verbose bool
 	run     string
+	part    int
+	partSet bool
 	args    []string
 }
 
@@ -56,15 +62,20 @@ func parseOptions(name string, args []string, withRun bool) (options, error) {
 	fs.BoolVar(&o.verbose, "verbose", false, "")
 	if withRun {
 		fs.StringVar(&o.run, "run", "", "")
+		fs.IntVar(&o.part, "part", 0, "")
 	}
 	for {
 		if err := fs.Parse(args); err != nil {
-			if strings.HasPrefix(err.Error(), "flag needs an argument") {
+			switch {
+			case strings.HasPrefix(err.Error(), "flag needs an argument"):
 				return o, err
+			case strings.Contains(err.Error(), "invalid value"):
+				return o, errors.New("--part is not a number")
 			}
 			return o, errors.New("unknown flag")
 		}
 		if fs.NArg() == 0 {
+			fs.Visit(func(f *flag.Flag) { o.partSet = o.partSet || f.Name == "part" })
 			return o, nil
 		}
 		o.args = append(o.args, fs.Arg(0))
@@ -248,6 +259,8 @@ func runNext(args []string, e env) int {
 		return usageError(e, "next", err.Error(), nextUsage)
 	case len(o.args) > 0:
 		return usageError(e, "next", "takes no argument", nextUsage)
+	case o.partSet && o.part < 1:
+		return usageError(e, "next", "--part is a part number from 1", nextUsage)
 	}
 	work, err := e.workDir()
 	if err != nil {
@@ -259,7 +272,7 @@ func runNext(args []string, e env) int {
 	if err != nil {
 		return finish(e, err, log)
 	}
-	served, err := review.Next(opened, log)
+	served, err := review.Next(opened, log, o.part)
 	if err != nil {
 		return finish(e, err, log)
 	}

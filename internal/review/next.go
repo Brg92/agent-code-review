@@ -27,11 +27,13 @@ const DoneText = "Done: run agent-code-review finalize\n"
 // of which change request it is. Done is set when every change request has
 // a judgement.
 type Served struct {
-	Text  string
-	Done  bool
-	CR    core.Key
-	Part  int
-	Total int
+	Text string
+	// Done: nothing is left to judge. Waiting: every part of CR was served
+	// and its judgement is not there yet.
+	Done, Waiting bool
+	CR            core.Key
+	Part          int
+	Total         int
 }
 
 // reviewOrder returns the change requests to review, related first and the
@@ -57,11 +59,15 @@ func reviewOrder(entries []core.Entry) []core.Entry {
 
 // Next serves the next part to judge of a collected run: the first change
 // request, in review order, without a judgement that parses, and in it the
-// part after the last one served; after the last part it starts again, so
-// that an agent that lost them can read them again. It reads the run and
-// writes only the count of the parts served; the phase does not change.
-// Whether a judgement is valid is for finalize to say.
-func Next(o *Opened, log *runlog.Log) (Served, error) {
+// part after the last one served. It only moves forward: once every part of
+// the change request was served, it says where to write the judgement and
+// repeats that until the judgement is there, then moves to the next change
+// request. With part set (from 1) it prints that part of the change request
+// that is up again, without moving what was served; a part the change
+// request does not have is a usage error. It reads the run and writes only
+// the count of the parts served; the phase does not change. Whether a
+// judgement is valid is for finalize to say.
+func Next(o *Opened, log *runlog.Log, part int) (Served, error) {
 	log.SetCR(core.Key{})
 	if o.State.Phase != state.Collected {
 		f := &Failure{Kind: KindState, What: "the run is not ready to be judged", Where: o.Dir, Why: "its phase is " + string(o.State.Phase),
@@ -94,22 +100,44 @@ func Next(o *Opened, log *runlog.Log) (Served, error) {
 		if judged {
 			continue
 		}
-		part, err := nextPart(dir, wp.Parts.Total)
-		if err != nil {
-			return Served{}, err
+		log.SetCR(e.CR)
+		served := Served{CR: e.CR, Total: wp.Parts.Total}
+		suffix := ""
+		if why != "" {
+			suffix = " (" + why + ")"
 		}
-		brief, err := render.Brief(wp, part)
+		switch {
+		case part != 0:
+			if part < 1 || part > wp.Parts.Total {
+				return Served{}, &Failure{Kind: KindUsage, What: "the change request has no part " + strconv.Itoa(part), Where: e.CR.String() + ", --part",
+					Why: "it has " + plural(wp.Parts.Total, "part"), Hint: "give a part from 1 to " + strconv.Itoa(wp.Parts.Total)}
+			}
+			served.Part = part
+			log.Event(fmt.Sprintf("serve part %d of %d again", part, wp.Parts.Total), "ok")
+		default:
+			n, err := partsServed(dir)
+			if err != nil {
+				return Served{}, err
+			}
+			if n >= wp.Parts.Total {
+				served.Waiting = true
+				served.Text = "Write the judgement to " + judgement + suffix + ", then run agent-code-review next\n"
+				log.Event("wait for the judgement", "ok")
+				return served, nil
+			}
+			served.Part = n + 1
+			if err := recordPartServed(dir, served.Part); err != nil {
+				return Served{}, err
+			}
+			log.Event(fmt.Sprintf("serve part %d of %d", served.Part, wp.Parts.Total), "ok")
+		}
+		brief, err := render.Brief(wp, served.Part)
 		if err != nil {
-			return Served{}, &Failure{Kind: KindUnexpected, What: "could not write the brief of " + e.CR.String(), Where: e.CR.String() + ", part " + strconv.Itoa(part),
+			return Served{}, &Failure{Kind: KindUnexpected, What: "could not write the brief of " + e.CR.String(), Where: e.CR.String() + ", part " + strconv.Itoa(served.Part),
 				Why: err.Error(), Err: err, Hint: "the change request holds text the brief cannot carry safely; it is not served"}
 		}
-		header := fmt.Sprintf("Judge %s part %d of %d — write the judgement to %s", e.CR, part, wp.Parts.Total, judgement)
-		if why != "" {
-			header += " (" + why + ")"
-		}
-		log.SetCR(e.CR)
-		log.Event(fmt.Sprintf("serve part %d of %d", part, wp.Parts.Total), "ok")
-		return Served{Text: header + "\n" + brief, CR: e.CR, Part: part, Total: wp.Parts.Total}, nil
+		served.Text = fmt.Sprintf("Judge %s part %d of %d — write the judgement to %s%s\n%s", e.CR, served.Part, wp.Parts.Total, judgement, suffix, brief)
+		return served, nil
 	}
 	log.Event("nothing left to judge", "ok")
 	return Served{Text: DoneText, Done: true}, nil
@@ -162,20 +190,26 @@ func judgementState(path string) (judged bool, why string) {
 	return true, ""
 }
 
-// nextPart returns the part to serve of a change request with total parts
-// and counts it as served.
-func nextPart(dir string, total int) (int, error) {
-	path := filepath.Join(dir, servedFile)
-	served := 0
-	if data, err := os.ReadFile(path); err == nil {
-		if n, err := strconv.Atoi(strings.TrimSpace(string(data))); err == nil && n >= 0 {
-			served = n
-		}
+// partsServed returns how many parts of a change request were served: the
+// number of the last one.
+func partsServed(dir string) (int, error) {
+	data, err := os.ReadFile(filepath.Join(dir, servedFile))
+	if err != nil {
+		return 0, nil
 	}
-	part := served%total + 1
+	n, err := strconv.Atoi(strings.TrimSpace(string(data)))
+	if err != nil || n < 0 {
+		return 0, nil
+	}
+	return n, nil
+}
+
+// recordPartServed counts part as served.
+func recordPartServed(dir string, part int) error {
+	path := filepath.Join(dir, servedFile)
 	if err := os.WriteFile(path, []byte(strconv.Itoa(part)+"\n"), 0o600); err != nil {
-		return 0, &Failure{Kind: KindUnexpected, What: "could not record the part served", Where: path, Why: err.Error(), Err: err,
+		return &Failure{Kind: KindUnexpected, What: "could not record the part served", Where: path, Why: err.Error(), Err: err,
 			Hint: "check that the work directory can be written"}
 	}
-	return part, nil
+	return nil
 }

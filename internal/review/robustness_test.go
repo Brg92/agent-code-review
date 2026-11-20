@@ -151,7 +151,7 @@ func TestNextOnADamagedRun(t *testing.T) {
 			t.Fatal(err)
 		}
 		o, log, _ := open(t, work, "")
-		_, err := Next(o, log)
+		_, err := Next(o, log, 0)
 		if f := failure(t, err); f.Kind != KindUnexpected || !strings.Contains(f.What, "part served") {
 			t.Errorf("failure %+v", f)
 		}
@@ -183,7 +183,7 @@ func TestNextOnADamagedRun(t *testing.T) {
 			t.Fatal(err)
 		}
 		o, log, _ := open(t, work, "")
-		_, err = Next(o, log)
+		_, err = Next(o, log, 0)
 		var marker *render.MarkerError
 		if f := failure(t, err); f.Kind != KindUnexpected || !errors.As(f, &marker) {
 			t.Errorf("failure %+v", f)
@@ -194,7 +194,7 @@ func TestNextOnADamagedRun(t *testing.T) {
 		m := makeRun(t, work, now, state.Collected)
 		o, log, _ := open(t, work, "")
 		o.State.ChangeRequests[1].HeadSHA = ""
-		_, err := Next(o, log)
+		_, err := Next(o, log, 0)
 		if f := failure(t, err); f.Kind != KindState || !strings.Contains(f.Why, "head") || !strings.Contains(f.Where, m.Lib.String()) {
 			t.Errorf("failure %+v for %s", f, m.Lib)
 		}

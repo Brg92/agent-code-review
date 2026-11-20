@@ -138,35 +138,49 @@ func open(t testing.TB, work, runID string) (*Opened, *runlog.Log, *bytes.Buffer
 
 func next(t testing.TB, o *Opened, log *runlog.Log) Served {
 	t.Helper()
-	s, err := Next(o, log)
+	return nextPart(t, o, log, 0)
+}
+
+// nextPart is next with --part: 0 serves forward.
+func nextPart(t testing.TB, o *Opened, log *runlog.Log, part int) Served {
+	t.Helper()
+	s, err := Next(o, log, part)
 	if err != nil {
 		t.Fatalf("Next: %v", err)
 	}
 	return s
 }
 
-func TestNextServesPartsInReviewOrder(t *testing.T) {
+func waitLine(path string) string {
+	return "Write the judgement to " + path + ", then run agent-code-review next\n"
+}
+
+func TestNextMovesForwardOnly(t *testing.T) {
 	work := t.TempDir()
 	m := makeRun(t, work, now, state.Collected)
 	o, log, _ := open(t, work, "")
 
-	// The related change request first, its parts in order and round again.
-	for i, want := range []struct {
-		cr   core.Key
-		part int
-	}{{m.Lib, 1}, {m.Lib, 2}, {m.Lib, 1}} {
+	// The related change request first, its parts in order.
+	for i, part := range []int{1, 2} {
 		s := next(t, o, log)
-		brief, err := render.Brief(m.LibWP, want.part)
+		brief, err := render.Brief(m.LibWP, part)
 		if err != nil {
 			t.Fatal(err)
 		}
-		header := "Judge " + want.cr.String() + " part " + string(rune('0'+want.part)) + " of 2 — write the judgement to " + m.LibJudgement + "\n"
-		if s.Done || s.CR != want.cr || s.Part != want.part || s.Total != 2 || s.Text != header+brief {
+		header := "Judge " + m.Lib.String() + " part " + string(rune('0'+part)) + " of 2 — write the judgement to " + m.LibJudgement + "\n"
+		if s.Done || s.Waiting || s.CR != m.Lib || s.Part != part || s.Total != 2 || s.Text != header+brief {
 			t.Errorf("call %d: %+v\nwant header %q", i+1, s, header)
 		}
 	}
+	// Every part served, it says one thing until the judgement is there.
+	for range 3 {
+		s := next(t, o, log)
+		if !s.Waiting || s.Done || s.CR != m.Lib || s.Text != waitLine(m.LibJudgement) {
+			t.Fatalf("waiting: %+v", s)
+		}
+	}
 
-	// Judged, it is the root's turn.
+	// Judged, it is the root's turn, which has one part.
 	writeJudgement(t, m.LibJudgement, validJudgement)
 	s := next(t, o, log)
 	brief, err := render.Brief(m.AppWP, 1)
@@ -177,14 +191,81 @@ func TestNextServesPartsInReviewOrder(t *testing.T) {
 	if s.Done || s.CR != m.App || s.Text != header+brief {
 		t.Errorf("root: %+v", s)
 	}
-	if got := next(t, o, log).CR; got != m.App {
-		t.Errorf("the root is served again until it is judged, not %s", got)
+	if again := next(t, o, log); !again.Waiting || again.CR != m.App || again.Text != waitLine(m.AppJudgement) {
+		t.Errorf("the root is not served twice: %+v", again)
 	}
 
 	writeJudgement(t, m.AppJudgement, validJudgement)
 	done := next(t, o, log)
 	if !done.Done || done.Text != "Done: run agent-code-review finalize\n" {
 		t.Errorf("done: %+v", done)
+	}
+}
+
+func TestNextJudgedBeforeEveryPartWasServedMovesOn(t *testing.T) {
+	work := t.TempDir()
+	m := makeRun(t, work, now, state.Collected)
+	o, log, _ := open(t, work, "")
+	next(t, o, log) // part 1 of the library
+	writeJudgement(t, m.LibJudgement, validJudgement)
+	if s := next(t, o, log); s.CR != m.App || s.Waiting {
+		t.Errorf("served %+v", s)
+	}
+}
+
+// --part prints a part again without moving what is served.
+func TestNextPartServesAgainWithoutMoving(t *testing.T) {
+	work := t.TempDir()
+	m := makeRun(t, work, now, state.Collected)
+	o, log, _ := open(t, work, "")
+	brief := func(part int) string {
+		b, err := render.Brief(m.LibWP, part)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return "Judge " + m.Lib.String() + " part " + string(rune('0'+part)) + " of 2 — write the judgement to " + m.LibJudgement + "\n" + b
+	}
+	// Before anything is served the part can be read, and forward still starts at 1.
+	if s := nextPart(t, o, log, 2); s.Text != brief(2) || s.Part != 2 || s.CR != m.Lib {
+		t.Errorf("part 2 first: %+v", s)
+	}
+	if s := next(t, o, log); s.Part != 1 {
+		t.Errorf("forward after --part: %+v", s)
+	}
+	if s := next(t, o, log); s.Part != 2 {
+		t.Errorf("forward: %+v", s)
+	}
+	if s := nextPart(t, o, log, 1); s.Text != brief(1) {
+		t.Errorf("part 1 again: %+v", s)
+	}
+	// Reading parts again does not make forward serve anything.
+	if s := next(t, o, log); !s.Waiting {
+		t.Errorf("forward after the last part: %+v", s)
+	}
+	// Once judged, --part is about the change request that is left.
+	writeJudgement(t, m.LibJudgement, validJudgement)
+	if s := nextPart(t, o, log, 1); s.CR != m.App || s.Part != 1 {
+		t.Errorf("--part after the judgement: %+v", s)
+	}
+	writeJudgement(t, m.AppJudgement, validJudgement)
+	if s := nextPart(t, o, log, 1); !s.Done {
+		t.Errorf("--part with nothing left: %+v", s)
+	}
+}
+
+func TestNextPartOutOfRangeIsAUsageError(t *testing.T) {
+	work := t.TempDir()
+	m := makeRun(t, work, now, state.Collected)
+	o, log, _ := open(t, work, "")
+	for _, part := range []int{3, 99, -1} {
+		_, err := Next(o, log, part)
+		if f := failure(t, err); f.Kind != KindUsage || !strings.Contains(f.Why, "2 parts") || !strings.Contains(f.Where, m.Lib.String()) {
+			t.Errorf("part %d: failure %+v", part, f)
+		}
+	}
+	// It did not count as a part served.
+	if s := next(t, o, log); s.Part != 1 {
+		t.Errorf("served %+v", s)
 	}
 }
 
@@ -212,9 +293,19 @@ func TestNextTakesAJudgementThatDoesNotParseForMissing(t *testing.T) {
 	if s.Done || s.CR != m.Lib || !strings.HasPrefix(s.Text, "Judge "+m.Lib.String()+" part 1 of 2 — write the judgement to "+m.LibJudgement+" (the file there does not parse and is replaced)\n") {
 		t.Errorf("%s", s.Text[:min(len(s.Text), 300)])
 	}
+	// The same on the line that waits for it.
+	next(t, o, log)
+	waiting := next(t, o, log)
+	if want := "Write the judgement to " + m.LibJudgement + " (the file there does not parse and is replaced), then run agent-code-review next\n"; !waiting.Waiting || waiting.Text != want {
+		t.Errorf("waiting: %q", waiting.Text)
+	}
 	writeJudgement(t, m.LibJudgement, "")
-	if s := next(t, o, log); s.CR != m.Lib {
-		t.Errorf("an empty judgement counts as judged: %+v", s)
+	if s := next(t, o, log); !s.Waiting || s.CR != m.Lib {
+		t.Errorf("an empty file is not a judgement: %+v", s)
+	}
+	writeJudgement(t, m.LibJudgement, "{}")
+	if s := next(t, o, log); s.CR != m.App {
+		t.Errorf("a document that parses counts as judged: %+v", s)
 	}
 }
 
@@ -227,7 +318,7 @@ func TestNextRefusesARunInAnotherPhase(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = Next(o, runlog.New(func() time.Time { return now }, nil))
+			_, err = Next(o, runlog.New(func() time.Time { return now }, nil), 0)
 			f := failure(t, err)
 			if f.Kind != KindState || !strings.Contains(f.Why, string(phase)) || f.Hint == "" {
 				t.Errorf("failure %+v", f)
@@ -243,9 +334,26 @@ func TestNextNeedsItsWorkPackages(t *testing.T) {
 		t.Fatal(err)
 	}
 	o, log, _ := open(t, work, "")
-	_, err := Next(o, log)
+	_, err := Next(o, log, 0)
 	if f := failure(t, err); f.Kind != KindState || !strings.Contains(f.Where, m.Lib.String()) {
 		t.Errorf("failure %+v", f)
+	}
+}
+
+func TestNextRecordsEveryPartServedInTheRunLog(t *testing.T) {
+	work := t.TempDir()
+	m := makeRun(t, work, now, state.Collected)
+	o, log, verbose := open(t, work, "")
+	next(t, o, log)
+	next(t, o, log)
+	next(t, o, log)
+	nextPart(t, o, log, 1)
+	lib := "2026-11-20T12:00:00Z\tnext\t" + m.Lib.String() + "\t"
+	want := lib + "serve part 1 of 2\t-\t-\t-\tok\n" + lib + "serve part 2 of 2\t-\t-\t-\tok\n" +
+		lib + "wait for the judgement\t-\t-\t-\tok\n" + lib + "serve part 1 of 2 again\t-\t-\t-\tok\n"
+	data, err := os.ReadFile(filepath.Join(m.Dir, runlog.FileName))
+	if err != nil || string(data) != want || verbose.String() != want {
+		t.Errorf("run.log:\n%s\nwant:\n%s", data, want)
 	}
 }
 
@@ -382,7 +490,7 @@ func TestNextRefusesAWorkPackageWithoutParts(t *testing.T) {
 		t.Fatal(err)
 	}
 	o, log, _ := open(t, work, "")
-	_, err = Next(o, log)
+	_, err = Next(o, log, 0)
 	if f := failure(t, err); f.Kind != KindState || !strings.Contains(f.Where, m.Lib.String()) {
 		t.Errorf("failure %+v", f)
 	}
@@ -402,7 +510,7 @@ func TestNextRefusesAJudgementPathOutsideTheRun(t *testing.T) {
 			t.Fatal(err)
 		}
 		o, log, _ := open(t, work, "")
-		_, err = Next(o, log)
+		_, err = Next(o, log, 0)
 		if f := failure(t, err); f.Kind != KindState || f.Why != "path not allowed" {
 			t.Errorf("%q: failure %+v", path, f)
 		}
