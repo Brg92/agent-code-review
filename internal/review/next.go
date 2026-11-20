@@ -74,7 +74,8 @@ func Next(o *Opened, log *runlog.Log) (Served, error) {
 	for _, e := range reviewOrder(o.State.ChangeRequests) {
 		name, err := dirName(e)
 		if err != nil {
-			return Served{}, err
+			return Served{}, &Failure{Kind: KindState, What: "the directory of " + e.CR.String() + " cannot be named", Where: e.CR.String() + ", " + state.FileName, Why: err.Error(), Err: err,
+				Hint: "the run is damaged: run `agent-code-review review <pull request>` again"}
 		}
 		dir := filepath.Join(o.Dir, name)
 		wp, err := readWorkPackageFile(filepath.Join(dir, state.WorkPackageFile), e.CR)

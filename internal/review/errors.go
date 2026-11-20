@@ -8,7 +8,6 @@ import (
 
 	"github.com/Brg92/agent-code-review/internal/auth"
 	"github.com/Brg92/agent-code-review/internal/cascade"
-	"github.com/Brg92/agent-code-review/internal/core"
 	"github.com/Brg92/agent-code-review/internal/forges/base"
 )
 
@@ -151,11 +150,8 @@ func whyOf(err error) string {
 	}
 	reason := base.ReasonOf(err)
 	if reason == "" {
-		var pe *core.PathError
-		if errors.As(err, &pe) {
-			return pe.Error()
-		}
-		return "unexpected error"
+		// Not a read: one of our own checks, which says what it found.
+		return oneLine(err.Error())
 	}
 	why := reason
 	if perms := base.PermissionsOf(err); len(perms) > 0 {
