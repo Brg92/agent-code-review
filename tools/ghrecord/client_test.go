@@ -27,6 +27,8 @@ type fakeAPI struct {
 
 func newFakeAPI(t *testing.T) *fakeAPI {
 	api := &fakeAPI{t: t, routes: map[string]string{
+		"/repos/o/r": `{"id":5,"full_name":"o/r","default_branch":"main","owner":{"login":"o","id":3,"type":"Organization"},` +
+			`"temp_clone_token":"AAAA"}`,
 		"/repos/o/r/pulls/1": `{"number":1,"user":{"login":"real-author","id":42},` +
 			`"head":{"ref":"feat/x","sha":"h1"},"base":{"ref":"main","sha":"b1"}}`,
 		"/repos/o/r/pulls/1/files?per_page=100": `[{"filename":"A.kt","status":"added","patch":"@@"}]`,
@@ -209,7 +211,7 @@ func TestRecordNumberThatIsNotAPullRequest(t *testing.T) {
 			recs := readRecordings(t, c.Dir)
 			pull := recs[fmt.Sprintf("/repos/o/r/pulls/%d?map[]", tt.number)]
 			issue := recs[fmt.Sprintf("/repos/o/r/issues/%d?map[]", tt.number)]
-			if len(recs) != 2 || pull.Status != 404 || issue.Status != tt.issue {
+			if len(recs) != 3 || pull.Status != 404 || issue.Status != tt.issue {
 				t.Errorf("recordings = %v", recs)
 			}
 		})
@@ -306,32 +308,115 @@ func TestSearchThrottleOnlyAppliesToSearch(t *testing.T) {
 	}
 }
 
-func TestRecordTreeOfRecordedPullRequest(t *testing.T) {
+func TestRecordReadsTheRepositoryOnce(t *testing.T) {
+	api := newFakeAPI(t)
+	c := newTestClient(t, api)
+	for _, n := range []int{1, 9, 9999} {
+		if err := c.Record(Target{Owner: "o", Repo: "r", Number: n}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var reads int
+	for _, s := range api.seen {
+		if s == "GET /repos/o/r" {
+			reads++
+		}
+	}
+	if reads != 1 {
+		t.Errorf("the repository was read %d times, want once: %v", reads, api.seen)
+	}
+	repo, ok := readRecordings(t, c.Dir)["/repos/o/r?map[]"]
+	if !ok || repo.Status != 200 {
+		t.Fatalf("repository not recorded: %v", ok)
+	}
+	if strings.Contains(string(repo.Body), "AAAA") {
+		t.Errorf("the repository keeps its clone token: %s", repo.Body)
+	}
+}
+
+func TestRecordFailsWhenTheRepositoryIsNotReadable(t *testing.T) {
+	api := newFakeAPI(t)
+	delete(api.routes, "/repos/o/r")
+	c := newTestClient(t, api)
+	if err := c.Record(Target{Owner: "o", Repo: "r", Number: 1}); err == nil || !strings.Contains(err.Error(), "repository") {
+		t.Errorf("Record without a readable repository: %v", err)
+	}
+}
+
+// writeRecording stores a recording as an earlier run would have.
+func writeRecording(t *testing.T, c *Client, r Recording) {
+	t.Helper()
+	data, err := r.Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(c.Dir, FileName(r.Method, r.Path, r.Query)), data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRecordMissingSendsOnlyWhatIsNotRecorded(t *testing.T) {
 	api := newFakeAPI(t)
 	c := newTestClient(t, api)
 	// A previous run recorded the pull request, which must not be read
-	// again, and a number that is an issue.
+	// again, its issue comments, which must stay as they are, and a number
+	// that is not a pull request.
 	pull := Recording{Method: "GET", Path: "/repos/o/r/pulls/1", Status: 200,
 		Body: json.RawMessage(`{"head":{"ref":"feat/x","sha":"h1"},"base":{"ref":"main","sha":"b1"}}`)}
+	comments := Recording{Method: "GET", Path: "/repos/o/r/issues/1/comments", Query: map[string]string{"per_page": "100"}, Status: 200,
+		Body: json.RawMessage(`[]`)}
 	missing := Recording{Method: "GET", Path: "/repos/o/r/pulls/9", Status: 404, Body: json.RawMessage(`{"message":"Not Found"}`)}
-	for _, r := range []Recording{pull, missing} {
-		data, err := r.Encode()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(c.Dir, FileName(r.Method, r.Path, r.Query)), data, 0o644); err != nil {
-			t.Fatal(err)
-		}
+	for _, r := range []Recording{pull, comments, missing} {
+		writeRecording(t, c, r)
+	}
+	before, err := os.ReadFile(filepath.Join(c.Dir, FileName(comments.Method, comments.Path, comments.Query)))
+	if err != nil {
+		t.Fatal(err)
 	}
 	for _, n := range []int{1, 9} {
-		if err := c.RecordTreeOfRecorded(Target{Owner: "o", Repo: "r", Number: n}); err != nil {
+		if err := c.RecordMissing(Target{Owner: "o", Repo: "r", Number: n}); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if want := []string{"GET /repos/o/r/git/trees/h1?recursive=1"}; !reflect.DeepEqual(api.seen, want) {
-		t.Errorf("requests %v, want only %v", api.seen, want)
+	want := []string{
+		"GET /repos/o/r",
+		"GET /repos/o/r/git/trees/h1?recursive=1",
+		"GET /repos/o/r/pulls/1/commits?per_page=100",
+		"GET /repos/o/r/pulls/1/reviews?per_page=100",
+		"GET /repos/o/r/pulls/1/comments?per_page=100",
+		"GET /repos/o/r/commits/h1/check-runs?per_page=100",
+		"GET /repos/o/r/commits/h1/status",
+		"GET /repos/o/r/contents/.agent-code-review?ref=main",
+		"GET /repos/o/r/contents/.agent-code-review/config.json?ref=main",
+		"GET /repos/o/r/contents/.agent-code-review/criteria.md?ref=main",
+		"GET /repos/o/r/contents/.github/mr-review.json?ref=main",
+		"GET /repos/o/r/contents/.github/skills?ref=main",
+		"GET /repos/o/r/contents/.github/skills/r-code-review/SKILL.md?ref=main",
+		"GET /repos/o/r/contents/.github/skills/r-code-review/references?ref=main",
 	}
-	if err := c.RecordTreeOfRecorded(Target{Owner: "o", Repo: "r", Number: 77}); err == nil {
+	if !reflect.DeepEqual(api.seen, want) {
+		t.Errorf("requests\n%v\nwant\n%v", api.seen, want)
+	}
+	after, err := os.ReadFile(filepath.Join(c.Dir, FileName(comments.Method, comments.Path, comments.Query)))
+	if err != nil || string(after) != string(before) {
+		t.Errorf("the recorded issue comments changed: %v", err)
+	}
+	api.seen = nil
+	if err := c.RecordMissing(Target{Owner: "o", Repo: "r", Number: 1}); err != nil || len(api.seen) != 0 {
+		t.Errorf("a second run sent %v, %v; want no request", api.seen, err)
+	}
+	if err := c.RecordMissing(Target{Owner: "o", Repo: "r", Number: 77}); err == nil {
 		t.Error("a pull request that was never recorded has no head to read the tree at")
+	}
+}
+
+func TestRecordMissingFailsWithoutTree(t *testing.T) {
+	api := newFakeAPI(t)
+	delete(api.routes, "/repos/o/r/git/trees/h1?recursive=1")
+	c := newTestClient(t, api)
+	writeRecording(t, c, Recording{Method: "GET", Path: "/repos/o/r/pulls/1", Status: 200,
+		Body: json.RawMessage(`{"head":{"ref":"feat/x","sha":"h1"},"base":{"ref":"main","sha":"b1"}}`)})
+	if err := c.RecordMissing(Target{Owner: "o", Repo: "r", Number: 1}); err == nil || !strings.Contains(err.Error(), "tree") {
+		t.Errorf("RecordMissing without a tree: %v", err)
 	}
 }
