@@ -88,7 +88,7 @@ ACR_RECORDER_TOKEN=<token> ACR_SANDBOX_LOGINS=<reviewer>,<author> go run ./tools
 
 Pass scenario names instead of `all` to record only some of them: `S1` to `S7`, or `queue` for the review-requested search. Each scenario is recorded into `testdata/github/<scenario>/`, and the recordings of the previous run are removed first.
 
-With `-extend`, the recorder only adds what an earlier run did not record, the repository trees and the code searches, and leaves every existing recording as it is. It reads the head commit of each pull request from its recording and sends no other request for it:
+With `-extend`, the recorder only adds what an earlier run did not record, and leaves every existing recording as it is. For each target it reads the pull request from its recording, then sends every request of a review that has no recording yet, except the contents of the changed files: the repository, the tree at the head commit, and the commits, reviews, comments, checks and criteria listed below. The code searches are recorded again every time, because their result depends on GitHub's index. To record a response again, for example the comments of a pull request after a new comment, delete its file and run `-extend`:
 
 ```bash
 ACR_RECORDER_TOKEN=<token> ACR_SANDBOX_LOGINS=<reviewer>,<author> go run ./tools/recorder -extend S1 S2
@@ -100,15 +100,20 @@ What the recorder does:
 
 - **Read-only:** it only sends `GET` requests, and follows pagination only within the API base URL.
 - **Requests:** for each pull request of the scenario, it reads what a review reads:
-  - the pull request, its files, commits, reviews and comments;
+  - the repository, once per repository and scenario, for its default branch and to tell a missing file from a repository the token cannot see;
+  - the pull request, its files, commits, reviews, and its issue comments and review comments (`/issues/{n}/comments`, `/pulls/{n}/comments`);
   - the check runs and the combined status of the head commit;
-  - the criteria files on the target branch;
+  - the criteria on the target branch: the files, and the listings of `.agent-code-review`, of `.github/skills` and of `.github/skills/<repo>-code-review/references`. Only the last two are listed by the criteria reader; the first is recorded because the repositories with a criteria overlay have it, and the provider tests use it as a directory at `main`;
   - the contents of every changed file that has a patch;
   - the recursive Git tree of the repository at the head commit, with its `truncated` flag as returned. There is no tree at the base;
   - the code searches listed for the scenario (below).
-  A number that is not a pull request is also looked up as an issue, which tells an issue from a missing number. Missing files are recorded with their `404`.
+  A number that is not a pull request is also looked up as an issue, which tells an issue from a missing number. Missing files and directories are recorded with their `404`.
 - **One file per response page:** method, path, query, status, the `Link` and `ETag` headers only, and the body.
 - **Sanitized:** the two sandbox logins become `sandbox-reviewer` and `sandbox-author`, with ids 1001 and 1002. Their avatar URLs and node ids are replaced. Email addresses outside `example.com` and the reserved `.invalid` domain, and token-like strings, are redacted. Any other user account becomes `sandbox-user-<n>`.
+
+### Comments
+
+Every recorded comment list is empty, except the issue comments of S1 (`sample-app#2`). That one holds a single comment, posted by the author account, with a made-up fingerprint (`acr:v1:global-scope:...:a1b2c3d4e5f6`) in an HTML comment. It is there so that the provider tests read a real note with its author, and so that `ParseFingerprints` is tested on a fingerprint written by the change request author, which it must ignore. The author account posted it by hand, with `gh pr comment`; the recorder never writes. Never delete it, or the recordings and the tests that rely on them stop agreeing with the sandbox. If the S1 comments are recorded again, the comment is part of them. The sandbox has no comment by another account, no review comment and no second page, so the tests make those up (see the synthetic tests of `internal/forges/github`).
 
 ### Code search
 

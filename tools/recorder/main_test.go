@@ -78,6 +78,10 @@ func TestRunRecordsIntoScenarioDirectories(t *testing.T) {
 			w.Write([]byte(`{"total_count":0,"items":[]}`))
 			return
 		}
+		if strings.Count(r.URL.Path, "/") == 3 && strings.HasPrefix(r.URL.Path, "/repos/") {
+			w.Write([]byte(`{"default_branch":"main"}`))
+			return
+		}
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"message":"Not Found"}`))
 	}))
@@ -157,6 +161,10 @@ func newTreeAPI(t *testing.T, incomplete bool) (*httptest.Server, *[]string) {
 		seen = append(seen, r.URL.Path+"?"+r.URL.Query().Encode())
 		mu.Unlock()
 		switch r.URL.Path {
+		case "/repos/acr-plugin-sandbox/app":
+			w.Write([]byte(`{"default_branch":"main","owner":{"login":"acr-plugin-sandbox","type":"Organization"}}`))
+		case "/repos/acr-plugin-sandbox/app/contents/.agent-code-review":
+			w.Write([]byte(`[{"name":"config.json","type":"file"}]`))
 		case "/repos/acr-plugin-sandbox/app/pulls/1":
 			w.Write([]byte(`{"head":{"ref":"feat/x","sha":"h1"},"base":{"ref":"main","sha":"b1"},"updated_at":"` + time.Now().Format(time.RFC3339Nano) + `"}`))
 		case "/repos/acr-plugin-sandbox/app/pulls/1/files":
@@ -193,7 +201,7 @@ func TestRunRecordsTreeAndSearch(t *testing.T) {
 	}
 	files, _ := filepath.Glob(filepath.Join(out, "T1", "*.json"))
 	names := strings.Join(files, "\n")
-	for _, want := range []string{"git_trees_h1", "search_code", "contents_A.kt_ref_main"} {
+	for _, want := range []string{"git_trees_h1", "search_code", "contents_A.kt_ref_main", "contents_.agent-code-review_ref_main", "_app-"} {
 		if !strings.Contains(names, want) {
 			t.Errorf("no recording named like %s in\n%s", want, names)
 		}
@@ -248,12 +256,22 @@ func TestRunExtendKeepsExistingRecordings(t *testing.T) {
 		data, _ := os.ReadFile(f)
 		before[f] = string(data)
 	}
-	// Drop the tree and the search, as in a scenario recorded before they
-	// existed, and extend it.
+	// Drop what the recorder did not record at first, as in a scenario
+	// recorded before it did, keep an issue comments recording to see that
+	// it stays, and extend.
+	added := func(f string) bool {
+		return strings.Contains(f, "git_trees") || strings.Contains(f, "search_code") || strings.Contains(f, "contents_A.kt") ||
+			strings.Contains(f, "contents_.agent-code-review_ref_main") || strings.Contains(f, "_acr-plugin-sandbox_app-")
+	}
+	var dropped int
 	for f := range before {
-		if strings.Contains(f, "git_trees") || strings.Contains(f, "search_code") || strings.Contains(f, "contents_A.kt") {
+		if added(f) {
 			os.Remove(f)
+			dropped++
 		}
+	}
+	if dropped != 5 {
+		t.Fatalf("dropped %d recordings, want the repository, the directory, the tree, the search and its file: %v", dropped, before)
 	}
 	*seen = nil
 	if code := run(append([]string{"-extend"}, append(args, "T1")...), env(validEnv), &stdout, &stderr); code != 0 {
@@ -262,7 +280,7 @@ func TestRunExtendKeepsExistingRecordings(t *testing.T) {
 	for f, data := range before {
 		now, err := os.ReadFile(f)
 		switch {
-		case err != nil && !strings.Contains(f, "git_trees") && !strings.Contains(f, "search_code") && !strings.Contains(f, "contents_A.kt"):
+		case err != nil && !added(f):
 			t.Errorf("%s was removed: %v", f, err)
 		case err == nil && string(now) != data:
 			t.Errorf("%s changed by -extend", f)
@@ -273,7 +291,7 @@ func TestRunExtendKeepsExistingRecordings(t *testing.T) {
 		t.Errorf("%d recordings after -extend, %d before", len(after), len(before))
 	}
 	for _, s := range *seen {
-		if strings.Contains(s, "/pulls/") {
+		if strings.Contains(s, "/pulls/") || strings.Contains(s, "/comments") {
 			t.Errorf("-extend read %s again", s)
 		}
 	}

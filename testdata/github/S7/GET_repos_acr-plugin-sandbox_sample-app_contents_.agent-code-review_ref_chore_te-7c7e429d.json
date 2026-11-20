@@ -1,0 +1,45 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review",
+  "query": {
+    "ref": "chore/tests-s7-existing-test-base"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"32084124f5800ad86495a2f2ba3d7f5ecc160a56\""
+  },
+  "body": [
+    {
+      "_links": {
+        "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/69bd9f0665823459d567abfd18683db611eed1ac",
+        "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/chore/tests-s7-existing-test-base/.agent-code-review/config.json",
+        "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json?ref=chore/tests-s7-existing-test-base"
+      },
+      "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/chore/tests-s7-existing-test-base/.agent-code-review/config.json",
+      "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/69bd9f0665823459d567abfd18683db611eed1ac",
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/chore/tests-s7-existing-test-base/.agent-code-review/config.json",
+      "name": "config.json",
+      "path": ".agent-code-review/config.json",
+      "sha": "69bd9f0665823459d567abfd18683db611eed1ac",
+      "size": 94,
+      "type": "file",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json?ref=chore/tests-s7-existing-test-base"
+    },
+    {
+      "_links": {
+        "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+        "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/chore/tests-s7-existing-test-base/.agent-code-review/criteria.md",
+        "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/criteria.md?ref=chore/tests-s7-existing-test-base"
+      },
+      "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/chore/tests-s7-existing-test-base/.agent-code-review/criteria.md",
+      "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/chore/tests-s7-existing-test-base/.agent-code-review/criteria.md",
+      "name": "criteria.md",
+      "path": ".agent-code-review/criteria.md",
+      "sha": "c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+      "size": 339,
+      "type": "file",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/criteria.md?ref=chore/tests-s7-existing-test-base"
+    }
+  ]
+}

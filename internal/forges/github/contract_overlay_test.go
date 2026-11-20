@@ -12,15 +12,20 @@ import (
 )
 
 // Synthetic: everything here is made up. The recordings of a scenario have
-// no repository endpoint, no directory listing at main, no comment, no
-// complete search and no failure, and the contract needs them. Nothing here
-// changes a recorded response except the empty comments of the change
-// request, which carry the fingerprints the contract looks for. The
+// no comment by anyone but the author of the change request, no directory
+// listing at main in a repository without a criteria overlay, no complete
+// search and no failure, and the contract needs them. Nothing here changes a
+// recorded response except the comments of the change request, which carry
+// the fingerprints the contract looks for. The repository endpoint and the
+// listing of .agent-code-review are recorded and used as they are. The
 // failures are on repositories of acme, which no recording touches.
 
 const (
-	finding = "acr:v1:logic-defect:app/Greeter.kt:0123456789ab"
-	farAway = 1 << 40 // seconds since the epoch: a reset no one waits for
+	// overlayDir is the criteria overlay, a directory recorded at main in the
+	// repositories that have one.
+	overlayDir = ".agent-code-review"
+	finding    = "acr:v1:logic-defect:app/Greeter.kt:0123456789ab"
+	farAway    = 1 << 40 // seconds since the epoch: a reset no one waits for
 )
 
 func contractOptions() Options {
@@ -46,10 +51,6 @@ func overlay(t *testing.T, r *sandbox.Replay, sc scenarioCase, fx *forgecontract
 	per := map[string]string{"per_page": "100"}
 	n := strconv.Itoa(sc.number)
 
-	// The repository, for its default branch and to tell a missing file from an
-	// unreadable repository.
-	route(200, repoPath, nil, nil, `{"default_branch":"main"}`)
-
 	// An issue and a number that is nothing.
 	route(404, repoPath+"/pulls/50", nil, nil, `{"message":"Not Found"}`)
 	route(200, repoPath+"/issues/50", nil, nil, `{"number":50}`)
@@ -67,13 +68,23 @@ func overlay(t *testing.T, r *sandbox.Replay, sc scenarioCase, fx *forgecontract
 	route(200, repoPath+"/pulls/"+n+"/comments", per, nil, `[{"user":{"login":"sandbox-reviewer"},"body":"Inline.\n\n<!-- `+finding+` -->"}]`)
 	fx.Fingerprints = []string{"acr:v1:ok:01234567", finding}
 
-	// A file at main, where none was recorded, and a directory.
+	// A file at main, where none was recorded.
 	if fx.Path == "" {
 		fx.Path, fx.Content = "shared/build.gradle.kts", "plugins {\n    kotlin(\"multiplatform\")\n}\n"
 		route(200, repoPath+"/contents/"+fx.Path, main, nil, fileBody(fx.Content))
 	}
-	fx.Dir, fx.Entries = "app/src", []core.DirEntry{{Name: "main", Dir: true}, {Name: "README.md"}}
-	route(200, repoPath+"/contents/app/src", main, nil, `[{"name":"main","type":"dir"},{"name":"README.md","type":"file"}]`)
+
+	// A directory at main: the recorded listing of the criteria overlay where
+	// the repository has one, a made-up one where the sandbox has none.
+	if rec := sandbox.Contents(t, sc.scenario, sc.repo, overlayDir, "main"); rec.Recorded && rec.Status == 200 && len(rec.Dir) > 0 {
+		fx.Dir = overlayDir
+		for _, e := range rec.Dir {
+			fx.Entries = append(fx.Entries, core.DirEntry{Name: e.Name, Dir: e.Dir})
+		}
+	} else {
+		fx.Dir, fx.Entries = "app/src", []core.DirEntry{{Name: "main", Dir: true}, {Name: "README.md"}}
+		route(200, repoPath+"/contents/app/src", main, nil, `[{"name":"main","type":"dir"},{"name":"README.md","type":"file"}]`)
+	}
 
 	// A search that completes, where the recorded one is not the point.
 	if !sc.searchFails {

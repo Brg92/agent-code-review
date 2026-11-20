@@ -44,9 +44,14 @@ func TestFilesGetMissingFileOfAReadableRepository(t *testing.T) {
 			t.Errorf("Get(%s) = %q, %v, %v, want not found and no error", path, got, found, err)
 		}
 	}
+	// A missing directory of the same repository, too, and still one read.
+	entries, err := p.Files().List(ctx, key("core-lib", 1), "main", ".github/skills/core-lib-code-review/references")
+	if err != nil || len(entries) != 0 {
+		t.Errorf("List() of a missing directory = %+v, %v, want no entries and no error", entries, err)
+	}
 	repo := "/repos/" + sandbox.Owner + "/core-lib"
 	if n := replay.Count("GET", repo); n != 1 {
-		t.Errorf("the repository was read %d times, want once: %v", n, replay.Requests())
+		t.Errorf("the repository was read %d times for three missing paths, want once: %v", n, replay.Requests())
 	}
 	// A file that exists does not need the repository.
 	other, _, _ := onReplay(t, "S6")
@@ -70,6 +75,18 @@ func TestFilesList(t *testing.T) {
 	got, err = p.Files().List(ctx, key("sample-app", 1), "main", ".github/skills")
 	if err != nil || len(got) != 0 {
 		t.Errorf("List() of a missing directory = %+v, %v, want no entries and no error", got, err)
+	}
+}
+
+func TestFilesListOfTheCriteriaOverlay(t *testing.T) {
+	p, _, _ := onReplay(t, "S1")
+	want := sandbox.Contents(t, "S1", "sample-app", ".agent-code-review", "main")
+	if !want.Recorded || want.Status != 200 || len(want.Dir) != 2 {
+		t.Fatalf("recording: %+v", want)
+	}
+	got, err := p.Files().List(context.Background(), key("sample-app", 2), "main", ".agent-code-review")
+	if wantEntries := []core.DirEntry{{Name: "config.json"}, {Name: "criteria.md"}}; err != nil || !reflect.DeepEqual(got, wantEntries) {
+		t.Errorf("List() = %+v, %v, want %+v", got, err, wantEntries)
 	}
 }
 

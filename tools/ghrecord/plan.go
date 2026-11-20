@@ -39,9 +39,11 @@ type PullRequestFile struct {
 	Patch            *string `json:"patch"`
 }
 
-// criteriaPaths are the review criteria files read from the target branch.
-// FollowUps adds the legacy skill file, which is named after the repository.
+// criteriaPaths are the review criteria files and directories read from the
+// target branch. FollowUps adds the legacy skill, which is named after the
+// repository.
 var criteriaPaths = []string{
+	".agent-code-review",
 	".agent-code-review/config.json",
 	".agent-code-review/criteria.md",
 	".github/mr-review.json",
@@ -55,6 +57,11 @@ func paged(path string) Request {
 func contents(t Target, path, ref string) Request {
 	return Request{Path: t.repoPath() + "/contents/" + path, Query: map[string]string{"ref": ref}}
 }
+
+// RepoRequest returns the request for the repository itself, which gives its
+// default branch and tells a missing file from a repository the token cannot
+// see.
+func RepoRequest(t Target) Request { return Request{Path: t.repoPath()} }
 
 // PullRequestRequest returns the request for the pull request itself.
 func PullRequestRequest(t Target) Request {
@@ -87,7 +94,8 @@ func FollowUps(t Target, pr PullRequest, files []PullRequestFile) []Request {
 	for _, p := range criteriaPaths {
 		reqs = append(reqs, contents(t, p, pr.Base.Ref))
 	}
-	reqs = append(reqs, contents(t, ".github/skills/"+t.Repo+"-code-review/SKILL.md", pr.Base.Ref))
+	skill := ".github/skills/" + t.Repo + "-code-review"
+	reqs = append(reqs, contents(t, skill+"/SKILL.md", pr.Base.Ref), contents(t, skill+"/references", pr.Base.Ref))
 	for _, f := range files {
 		if f.Patch == nil {
 			continue

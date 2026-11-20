@@ -46,6 +46,10 @@ The change-request rules run on the recorded tree of the head commit (`testdata/
 
 Both classes end with a suffix of the rule (`Repository`, `ViewModel`) and the change request modifies them, but the tree holds no `SessionRepositoryTest` or `HomeViewModelTest`: `app/src/test` only has `HomeStateTest.kt`. An automatic signal is a finding unless the judgement dismisses it, and the hand-written judgement does not, so these are two MAJOR findings on top of the table above. They do not change the verdict.
 
+## Existing comment
+
+[Issue comment 7035556084](https://github.com/acr-plugin-sandbox/sample-app/pull/2#issuecomment-7035556084) is the only note on the pull request. The sandbox author, who wrote the change request, posted it: a short sentence and a made-up fingerprint in an HTML comment, `acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:a1b2c3d4e5f6`. It stands for a note that tries to hide a finding. `ParseFingerprints` must ignore it, because the change request author could otherwise plant a fingerprint to make the plugin skip a finding, so none of the findings above is hidden by it. The provider test reads it back as a note with its author. It is not a trace of an earlier review, and it must never be deleted: the recordings depend on it.
+
 ## Expected verdict
 
 **BLOCKED**, because of the three BLOCKERs. The pre-existing crash in `ProfileStore.kt` would block it on its own as well.
