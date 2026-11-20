@@ -23,6 +23,8 @@ type Client struct {
 	// SearchThrottle spaces the code search requests; nil sends them
 	// without waiting.
 	SearchThrottle *Throttle
+	// repos are the repositories already recorded by this client.
+	repos map[string]bool
 }
 
 // maxBody bounds the size of a response body.
@@ -129,6 +131,9 @@ func (c *Client) fetch(u *url.URL, basePath string) (int, []byte, string, error)
 // is not a pull request is looked up as an issue, which tells an issue from
 // a number that does not exist.
 func (c *Client) Record(t Target) error {
+	if err := c.recordRepo(t); err != nil {
+		return err
+	}
 	status, pages, err := c.Get(PullRequestRequest(t))
 	if err != nil {
 		return err
@@ -250,12 +255,38 @@ func (c *Client) RecordSearch(owner, repo, term, ref string) (SearchResult, erro
 	return res, nil
 }
 
-// RecordTreeOfRecorded records only the tree of a pull request that an
-// earlier run already recorded, at the head commit of that recording. It
-// reads the pull request from Dir and sends no other request, so every
-// existing recording stays as it is. A number recorded as not being a
-// pull request has no tree.
-func (c *Client) RecordTreeOfRecorded(t Target) error {
+// recordRepo records the repository of the target, once per client. The
+// repository gives the default branch, and tells a missing file from a
+// repository the token cannot see.
+func (c *Client) recordRepo(t Target) error {
+	if c.repos[t.repoPath()] {
+		return nil
+	}
+	if status, _, err := c.Get(RepoRequest(t)); err != nil {
+		return err
+	} else if status != http.StatusOK {
+		return fmt.Errorf("%s: repository: status %d", t, status)
+	}
+	if c.repos == nil {
+		c.repos = map[string]bool{}
+	}
+	c.repos[t.repoPath()] = true
+	return nil
+}
+
+// isRecorded reports whether an earlier run recorded the request.
+func (c *Client) isRecorded(req Request) bool {
+	_, err := os.Stat(filepath.Join(c.Dir, FileName(http.MethodGet, req.Path, req.Query)))
+	return err == nil
+}
+
+// RecordMissing records the requests a review of an already recorded pull
+// request makes that no earlier run recorded: the repository, the tree at
+// the head commit, and what FollowUps lists except the contents of the
+// changed files. It reads the pull request from Dir and sends no request
+// that has a recording, so every existing recording stays as it is. A
+// number recorded as not being a pull request only needs its repository.
+func (c *Client) RecordMissing(t Target) error {
 	req := PullRequestRequest(t)
 	data, err := os.ReadFile(filepath.Join(c.Dir, FileName(http.MethodGet, req.Path, req.Query)))
 	if err != nil {
@@ -265,6 +296,11 @@ func (c *Client) RecordTreeOfRecorded(t Target) error {
 	if err := json.Unmarshal(data, &rec); err != nil {
 		return fmt.Errorf("%s: %w", t, err)
 	}
+	if !c.isRecorded(RepoRequest(t)) {
+		if err := c.recordRepo(t); err != nil {
+			return err
+		}
+	}
 	if rec.Status != http.StatusOK {
 		return nil
 	}
@@ -272,5 +308,22 @@ func (c *Client) RecordTreeOfRecorded(t Target) error {
 	if err := json.Unmarshal(rec.Body, &pr); err != nil || pr.Head.SHA == "" {
 		return fmt.Errorf("%s: the recorded pull request has no head commit", t)
 	}
-	return c.recordTree(t, pr.Head.SHA)
+	if tree := TreeRequest(t, pr.Head.SHA); !c.isRecorded(tree) {
+		if err := c.recordTree(t, pr.Head.SHA); err != nil {
+			return err
+		}
+	}
+	for _, req := range FollowUps(t, pr, nil) {
+		if c.isRecorded(req) {
+			continue
+		}
+		status, _, err := c.Get(req)
+		if err != nil {
+			return err
+		}
+		if status != http.StatusOK && status != http.StatusNotFound {
+			return fmt.Errorf("%s: %s: status %d", t, req.Path, status)
+		}
+	}
+	return nil
 }

@@ -6,10 +6,11 @@
 //	ACR_RECORDER_TOKEN=... ACR_SANDBOX_LOGINS=<reviewer>,<author> \
 //	    go run ./tools/recorder [-out dir] [-api url] [-extend] <scenario>... | all
 //
-// Each scenario records the pull requests it lists with their repository
-// trees at head, and the code searches it lists with the files they
-// return. With -extend, only the trees and searches are recorded, into the
-// existing recordings, which are left as they are.
+// Each scenario records the pull requests it lists with their repositories
+// and trees at head, and the code searches it lists with the files they
+// return. With -extend, only what the existing recordings lack is recorded:
+// the requests that have no recording yet, and the code searches again.
+// The existing recordings are left as they are.
 //
 // The token is read only from the environment and is never printed or
 // written. Every recording is sanitized: the two sandbox logins become
@@ -108,7 +109,7 @@ func run(args []string, getenv func(string) string, stdout, stderr io.Writer) in
 	fs.SetOutput(io.Discard)
 	out := fs.String("out", filepath.Join("testdata", "github"), "output directory")
 	api := fs.String("api", "https://api.github.com", "REST API base URL")
-	extend := fs.Bool("extend", false, "record only the trees and searches, keeping the existing recordings")
+	extend := fs.Bool("extend", false, "record only the requests with no recording yet and the code searches, keeping the existing recordings")
 	interval := fs.Duration("search-interval", searchInterval, "minimum time between code searches")
 	usage := func(msg string) int {
 		if msg != "" {
@@ -239,10 +240,11 @@ func record(c *ghrecord.Client, name string, s scenario, stderr io.Writer) error
 }
 
 // recordExtension records what an earlier run of the scenario did not:
-// the trees of its recorded pull requests and its code searches.
+// the requests of its recorded pull requests that have no recording, and
+// its code searches, which are recorded again.
 func recordExtension(c *ghrecord.Client, name string, s scenario, stderr io.Writer) error {
 	for _, t := range s.targets {
-		if err := c.RecordTreeOfRecorded(t); err != nil {
+		if err := c.RecordMissing(t); err != nil {
 			return err
 		}
 	}

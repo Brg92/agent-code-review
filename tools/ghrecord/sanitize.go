@@ -202,11 +202,22 @@ func (s *Sanitizer) value(v any) any {
 			s.replaceUser(v, login)
 		}
 		for k, e := range v {
+			if k == cloneTokenField {
+				// A repository response carries a token for cloning it,
+				// whatever its format.
+				if _, ok := e.(string); ok {
+					v[k] = ""
+					continue
+				}
+			}
 			v[k] = s.value(e)
 		}
 	}
 	return v
 }
+
+// cloneTokenField is the repository field that holds a short-lived token.
+const cloneTokenField = "temp_clone_token"
 
 // replaceUser rewrites the identifying fields of a user object whose login
 // belongs to a real identity. Fields that are absent stay absent.

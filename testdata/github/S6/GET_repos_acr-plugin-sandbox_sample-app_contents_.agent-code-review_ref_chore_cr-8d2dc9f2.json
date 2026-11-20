@@ -1,0 +1,45 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review",
+  "query": {
+    "ref": "chore/criteria-s6-invalid-overlay-base"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"eec4a98a20b75be052493ad3e213b188005e158b\""
+  },
+  "body": [
+    {
+      "_links": {
+        "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/7ae9e07b11b5f0a542dc342ce4bf7f42d6690265",
+        "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/chore/criteria-s6-invalid-overlay-base/.agent-code-review/config.json",
+        "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json?ref=chore/criteria-s6-invalid-overlay-base"
+      },
+      "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/chore/criteria-s6-invalid-overlay-base/.agent-code-review/config.json",
+      "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/7ae9e07b11b5f0a542dc342ce4bf7f42d6690265",
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/chore/criteria-s6-invalid-overlay-base/.agent-code-review/config.json",
+      "name": "config.json",
+      "path": ".agent-code-review/config.json",
+      "sha": "7ae9e07b11b5f0a542dc342ce4bf7f42d6690265",
+      "size": 67,
+      "type": "file",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json?ref=chore/criteria-s6-invalid-overlay-base"
+    },
+    {
+      "_links": {
+        "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+        "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/chore/criteria-s6-invalid-overlay-base/.agent-code-review/criteria.md",
+        "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/criteria.md?ref=chore/criteria-s6-invalid-overlay-base"
+      },
+      "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/chore/criteria-s6-invalid-overlay-base/.agent-code-review/criteria.md",
+      "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/chore/criteria-s6-invalid-overlay-base/.agent-code-review/criteria.md",
+      "name": "criteria.md",
+      "path": ".agent-code-review/criteria.md",
+      "sha": "c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+      "size": 339,
+      "type": "file",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/criteria.md?ref=chore/criteria-s6-invalid-overlay-base"
+    }
+  ]
+}

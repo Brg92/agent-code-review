@@ -1,0 +1,45 @@
+{
+  "method": "GET",
+  "path": "/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review",
+  "query": {
+    "ref": "main"
+  },
+  "status": 200,
+  "headers": {
+    "ETag": "\"5e70c6cc7e548e6ca6f59c320e1da56be0d42ff7\""
+  },
+  "body": [
+    {
+      "_links": {
+        "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/69bd9f0665823459d567abfd18683db611eed1ac",
+        "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/main/.agent-code-review/config.json",
+        "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json?ref=main"
+      },
+      "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/main/.agent-code-review/config.json",
+      "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/69bd9f0665823459d567abfd18683db611eed1ac",
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/main/.agent-code-review/config.json",
+      "name": "config.json",
+      "path": ".agent-code-review/config.json",
+      "sha": "69bd9f0665823459d567abfd18683db611eed1ac",
+      "size": 94,
+      "type": "file",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/config.json?ref=main"
+    },
+    {
+      "_links": {
+        "git": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+        "html": "https://github.com/acr-plugin-sandbox/sample-app/blob/main/.agent-code-review/criteria.md",
+        "self": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/criteria.md?ref=main"
+      },
+      "download_url": "https://raw.githubusercontent.com/acr-plugin-sandbox/sample-app/main/.agent-code-review/criteria.md",
+      "git_url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/git/blobs/c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+      "html_url": "https://github.com/acr-plugin-sandbox/sample-app/blob/main/.agent-code-review/criteria.md",
+      "name": "criteria.md",
+      "path": ".agent-code-review/criteria.md",
+      "sha": "c4cef72d88238f6ede3e2c0510ab8b3162482ffa",
+      "size": 339,
+      "type": "file",
+      "url": "https://api.github.com/repos/acr-plugin-sandbox/sample-app/contents/.agent-code-review/criteria.md?ref=main"
+    }
+  ]
+}

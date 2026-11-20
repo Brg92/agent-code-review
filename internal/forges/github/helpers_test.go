@@ -55,11 +55,6 @@ func testOptions(c *clock) Options {
 func onReplay(t *testing.T, scenario string) (*Provider, *sandbox.Replay, *tokens) {
 	t.Helper()
 	r := sandbox.NewReplay(t, scenario)
-	// The repository endpoint is not in the recordings: this is the one
-	// synthetic response the recorded scenarios need, for the default branch.
-	for _, repo := range []string{"sample-app", "core-lib", "kmp-shared", "feature-lib"} {
-		r.Add(sandbox.Route{Path: "/repos/" + sandbox.Owner + "/" + repo, Status: 200, Body: `{"default_branch":"main"}`})
-	}
 	tok := &tokens{token: canary}
 	p, err := newProvider("github.com", r.URL(), tok, testOptions(&clock{now: epoch}))
 	if err != nil {

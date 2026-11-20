@@ -13,6 +13,7 @@ func TestTargetRequests(t *testing.T) {
 		got  Request
 		want Request
 	}{
+		{"repository", RepoRequest(target), Request{Path: "/repos/o/core"}},
 		{"pull request", PullRequestRequest(target), Request{Path: "/repos/o/core/pulls/3"}},
 		{"issue", IssueRequest(target), Request{Path: "/repos/o/core/issues/3"}},
 		{"files", FilesRequest(target), Request{Path: "/repos/o/core/pulls/3/files", Query: map[string]string{"per_page": "100"}}},
@@ -62,11 +63,13 @@ func TestFollowUps(t *testing.T) {
 		{Path: "/repos/o/core/issues/3/comments", Query: page},
 		{Path: "/repos/o/core/commits/headsha/check-runs", Query: page},
 		{Path: "/repos/o/core/commits/headsha/status"},
+		atBase(".agent-code-review"),
 		atBase(".agent-code-review/config.json"),
 		atBase(".agent-code-review/criteria.md"),
 		atBase(".github/mr-review.json"),
 		atBase(".github/skills"),
 		atBase(".github/skills/core-code-review/SKILL.md"),
+		atBase(".github/skills/core-code-review/references"),
 		atSHA("src/Added.kt", "headsha"),
 		atSHA("src/Removed.kt", "basesha"),
 		atSHA("src/Changed.kt", "headsha"),
