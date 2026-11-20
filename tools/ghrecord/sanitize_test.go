@@ -112,6 +112,41 @@ func TestSanitizeJSON(t *testing.T) {
 `,
 		},
 		{
+			name: "repository: the organization stays, a clone token goes",
+			in: `{"full_name":"org/app","owner":{"login":"org","id":3,"type":"Organization"},` +
+				`"temp_clone_token":"ABCDEF","default_branch":"main"}`,
+			want: `{
+  "default_branch": "main",
+  "full_name": "org/app",
+  "owner": {
+    "id": 3,
+    "login": "org",
+    "type": "Organization"
+  },
+  "temp_clone_token": ""
+}
+`,
+		},
+		{
+			name: "issue comment: author, avatar and mentions",
+			in: `[{"id":9,"user":{"login":"real-author","id":987654,"avatar_url":"https://avatars.githubusercontent.com/u/987654?v=4",` +
+				`"type":"User"},"body":"Thanks @RealReviewer.","html_url":"https://github.com/o/r/pull/2#issuecomment-9"}]`,
+			want: `[
+  {
+    "body": "Thanks @sandbox-reviewer.",
+    "html_url": "https://github.com/o/r/pull/2#issuecomment-9",
+    "id": 9,
+    "user": {
+      "avatar_url": "https://avatars.githubusercontent.com/u/1002?v=4",
+      "id": 1002,
+      "login": "sandbox-author",
+      "type": "User"
+    }
+  }
+]
+`,
+		},
+		{
 			name: "strings everywhere",
 			in:   `{"body":"cc @RealReviewer","commit":{"author":{"email":"x@corp.test"}}}`,
 			want: `{
