@@ -27,6 +27,21 @@
     ],
     "ignored": []
   },
+  "ci": {
+    "state": "failing",
+    "checks": [
+      {
+        "name": "unit",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "name": "lint",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
   "rules": [
     {
       "id": "global-scope",

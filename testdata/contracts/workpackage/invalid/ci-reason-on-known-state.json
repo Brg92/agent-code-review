@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "runId": "20261102-110000-s3",
+  "cr": "github:github.com/acr-plugin-sandbox/core-lib#1",
+  "url": "https://github.com/acr-plugin-sandbox/core-lib/pull/1",
+  "title": "Reorganize session files",
+  "description": "Moves the token codec and the status badge into their own packages, drops the legacy SharedPreferences store, adds `SessionExpiry` and a badge background.",
+  "headSha": "1bb2c03af22c5360e04698de42d0833c0387b499",
+  "baseSha": "d83c3b464e4cb6a40e366f2a7bed9964d91c62f5",
+  "baseRef": "main",
+  "criteria": {
+    "source": "legacy",
+    "profile": "library",
+    "profileReason": "kind in .github/mr-review.json",
+    "packs": [
+      "android"
+    ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "views",
+        "reason": "android default"
+      }
+    },
+    "files": [
+      ".github/skills/core-lib-code-review/SKILL.md",
+      ".github/mr-review.json"
+    ],
+    "ignored": []
+  },
+  "ci": {
+    "state": "passing",
+    "reason": "error",
+    "checks": []
+  },
+  "rules": [
+    {
+      "id": "logic-defect",
+      "severity": "MAJOR",
+      "title": "A change removes input validation",
+      "source": "core",
+      "needsJudgement": true
+    },
+    {
+      "id": "style.redundant-if",
+      "severity": "MINOR",
+      "title": "An if/else only returns its condition",
+      "source": "repository",
+      "needsJudgement": false
+    }
+  ],
+  "checklist": {
+    "sections": [
+      {
+        "rules": [
+          "logic-defect"
+        ]
+      }
+    ],
+    "repository": [
+      "style.redundant-if"
+    ]
+  },
+  "files": [
+    {
+      "path": "src/main/java/com/example/core/session/SessionExpiry.kt",
+      "status": "added",
+      "language": "kotlin",
+      "placement": "inline"
+    },
+    {
+      "path": "src/main/java/com/example/core/session/LegacySessionStore.kt",
+      "status": "removed",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -1,2 +0,0 @@\n-package com.example.core.session\n-\n"
+    },
+    {
+      "path": "src/main/java/com/example/core/session/SessionManager.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline"
+    },
+    {
+      "path": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
+      "previousPath": "src/main/java/com/example/core/session/TokenCodec.kt",
+      "status": "renamed",
+      "language": "kotlin",
+      "placement": "inline"
+    }
+  ],
+  "signals": [],
+  "notVerified": [],
+  "relatedChanges": [],
+  "cascade": {
+    "ancestors": []
+  },
+  "parts": {
+    "total": 1,
+    "changeRequestSignals": [],
+    "files": [
+      [
+        "src/main/java/com/example/core/session/SessionExpiry.kt",
+        "src/main/java/com/example/core/session/LegacySessionStore.kt",
+        "src/main/java/com/example/core/session/SessionManager.kt",
+        "src/main/java/com/example/core/session/codec/TokenCodec.kt"
+      ]
+    ]
+  },
+  "judgementPath": "cr/core-lib-1/judgement.json"
+}

@@ -92,6 +92,7 @@ func packageInput(t *testing.T, files ...core.PackageFileInput) core.WorkPackage
 		Profile: "app", ProfileReason: "set in .agent-code-review/config.json",
 		Dimensions:    map[string]core.DimensionChoice{"ui-toolkit": {Value: "compose", Reason: "set in .agent-code-review/config.json"}},
 		Criteria:      crit,
+		CI:            core.CI{State: core.CINone, Checks: []core.Check{}},
 		JudgementPath: "acr-plugin-sandbox_sample-app-9-aaaaaaaa/judgement.json",
 	}
 }
@@ -425,4 +426,60 @@ func buildPackage(t *testing.T, in core.WorkPackageInput) (core.WorkPackage, cor
 		t.Fatal(err)
 	}
 	return wp, review
+}
+
+func TestBuildWorkPackageCI(t *testing.T) {
+	failure := "failure"
+	tests := []struct {
+		name string
+		ci   core.CI
+	}{
+		{"none", core.CI{State: core.CINone, Checks: []core.Check{}}},
+		{"failing", core.CI{State: core.CIFailing, Checks: []core.Check{{Name: "unit", Status: "completed", Conclusion: &failure}, {Name: "lint", Status: "queued"}}}},
+		{"unknown", core.CI{State: core.CIUnknown, Reason: "forbidden", Detail: "needs checks: read", Checks: []core.Check{}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in := packageInput(t, modified(t, "A.kt", 20, 3))
+			in.CI = tt.ci
+			wp, _ := buildPackage(t, in)
+			checkWorkPackage(t, wp)
+			if !reflect.DeepEqual(wp.CI, tt.ci) {
+				t.Errorf("ci %+v, want %+v", wp.CI, tt.ci)
+			}
+		})
+	}
+	t.Run("checks are never null", func(t *testing.T) {
+		in := packageInput(t, modified(t, "A.kt", 20, 3))
+		in.CI = core.CI{State: core.CINone}
+		wp, _ := buildPackage(t, in)
+		data := checkWorkPackage(t, wp)
+		if !strings.Contains(string(data), `"ci":{"state":"none","checks":[]}`) {
+			t.Errorf("work package ci: %s", data)
+		}
+	})
+}
+
+func TestBuildWorkPackageRefusesAnInvalidCI(t *testing.T) {
+	tests := []struct {
+		name string
+		ci   core.CI
+	}{
+		{"no state", core.CI{}},
+		{"unknown state", core.CI{State: "green"}},
+		{"unknown without a reason", core.CI{State: core.CIUnknown}},
+		{"reason on a known state", core.CI{State: core.CIPassing, Reason: "error"}},
+		{"unknown reason", core.CI{State: core.CIUnknown, Reason: "timeout"}},
+		{"checks on unknown", core.CI{State: core.CIUnknown, Reason: "error", Checks: []core.Check{{Name: "a", Status: "queued"}}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in := packageInput(t, modified(t, "A.kt", 20, 3))
+			in.CI = tt.ci
+			var ce *core.CIError
+			if _, _, err := core.BuildWorkPackage(in); !errors.As(err, &ce) {
+				t.Errorf("error = %v, want a *CIError", err)
+			}
+		})
+	}
 }

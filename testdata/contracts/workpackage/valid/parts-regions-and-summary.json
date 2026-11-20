@@ -36,6 +36,16 @@
       }
     ]
   },
+  "ci": {
+    "state": "pending",
+    "checks": [
+      {
+        "name": "instrumented",
+        "status": "in_progress",
+        "conclusion": null
+      }
+    ]
+  },
   "rules": [
     {
       "id": "logic-defect",

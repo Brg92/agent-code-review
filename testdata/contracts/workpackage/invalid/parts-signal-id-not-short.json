@@ -36,6 +36,10 @@
       }
     ]
   },
+  "ci": {
+    "state": "none",
+    "checks": []
+  },
   "rules": [
     {
       "id": "logic-defect",

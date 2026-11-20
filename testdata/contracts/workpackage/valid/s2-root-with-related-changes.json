@@ -26,6 +26,16 @@
     ],
     "ignored": []
   },
+  "ci": {
+    "state": "passing",
+    "checks": [
+      {
+        "name": "unit",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
   "rules": [
     {
       "id": "run-blocking-prod",

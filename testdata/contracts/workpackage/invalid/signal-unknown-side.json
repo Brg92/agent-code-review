@@ -26,6 +26,10 @@
     ],
     "ignored": []
   },
+  "ci": {
+    "state": "none",
+    "checks": []
+  },
   "rules": [
     {
       "id": "uses-removed-api",

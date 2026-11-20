@@ -214,6 +214,7 @@ func buildScenario(t *testing.T, cr scenarioCR, budget int) (core.WorkPackage, c
 		URL:   "https://github.com/" + key.Project + "/pull/" + strconv.Itoa(key.Number),
 		Title: cr.name(), Description: "Recorded scenario " + cr.scen + ".", HeadSHA: pull.HeadSHA, BaseSHA: pull.BaseSHA, BaseRef: "main",
 		Files: files, Ruleset: rs, Profile: profile.Name, ProfileReason: profileReason(profile), Dimensions: choices, Criteria: crit,
+		CI:          core.CI{State: core.CINone, Checks: []core.Check{}},
 		FileSignals: fileSignals, ChangeRequestSignals: res.Signals, NotVerified: notVerified, Ancestors: ancestors,
 		JudgementPath: strings.ReplaceAll(key.Project, "/", "_") + "/judgement.json", PartBudget: budget,
 	})
