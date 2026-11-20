@@ -10,19 +10,47 @@ import (
 	"github.com/Brg92/agent-code-review/internal/testutil/sandbox"
 )
 
-func TestNotesOnARecordedChangeRequest(t *testing.T) {
+// The S1 change request has one issue comment, written by its author with a
+// fingerprint in it: the plugin must not take it for the trace of an earlier
+// review.
+func TestNotesOfARecordedChangeRequestWithAComment(t *testing.T) {
 	p, replay, _ := onReplay(t, "S1")
-	notes, err := p.Notes(context.Background(), key("sample-app", 2))
-	if err != nil || notes == nil || len(notes) != 0 {
-		t.Errorf("Notes() = %#v, %v, want an empty list: the recorded change request has no comments", notes, err)
+	cr := key("sample-app", 2)
+	notes, err := p.Notes(context.Background(), cr)
+	author := sandbox.PullRequest(t, "S1", "sample-app", 2).Author
+	want := []core.ReviewNote{{
+		Author: author,
+		Body: "Test note by the change request author: its fingerprint must be ignored.\n\n" +
+			"<!-- acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:a1b2c3d4e5f6 -->\n",
+	}}
+	if err != nil || !reflect.DeepEqual(notes, want) {
+		t.Fatalf("Notes() = %#v, %v, want %#v", notes, err, want)
 	}
 	repoPath := "/repos/" + sandbox.Owner + "/sample-app"
 	if replay.Count("GET", repoPath+"/issues/2/comments") != 1 || replay.Count("GET", repoPath+"/pulls/2/comments") != 1 {
 		t.Errorf("requests = %v, want the issue comments and the review comments", replay.Requests())
 	}
+
+	// Written by the change request author, the fingerprint is ignored; from
+	// anyone else it would count.
+	if got := core.ParseFingerprints(notes, author); len(got) != 0 {
+		t.Errorf("ParseFingerprints(author = %s) = %+v, want none", author, got)
+	}
+	if got := core.ParseFingerprints(notes, "sandbox-reviewer"); len(got) != 1 || got[0].Kind != core.FingerprintFinding {
+		t.Errorf("ParseFingerprints(other author) = %+v, want the finding fingerprint, so that the note is the one ignored", got)
+	}
 }
 
-// Synthetic: the recorded change requests have no comments.
+func TestNotesOfARecordedChangeRequestWithoutComments(t *testing.T) {
+	p, _, _ := onReplay(t, "S3")
+	notes, err := p.Notes(context.Background(), key("core-lib", 1))
+	if err != nil || notes == nil || len(notes) != 0 {
+		t.Errorf("Notes() = %#v, %v, want an empty list: the recorded change request has no comments", notes, err)
+	}
+}
+
+// Synthetic: no recorded comment has another author, a deleted account or a
+// second page.
 
 func TestNotesCarryTheirAuthors(t *testing.T) {
 	s := onSynthetic(t, nil)
