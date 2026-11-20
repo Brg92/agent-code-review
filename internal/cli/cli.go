@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/Brg92/agent-code-review/internal/auth"
+	"github.com/Brg92/agent-code-review/internal/forges/base"
+	"github.com/Brg92/agent-code-review/internal/forges/github"
 	"github.com/Brg92/agent-code-review/internal/version"
 )
 
@@ -16,6 +19,8 @@ const (
 	exitUnexpected    = 1
 	exitUsage         = 2
 	exitAuth          = 6
+	exitPlatform      = 7
+	exitState         = 8
 	exitUnsafeStorage = 10
 	exitInterrupted   = 130
 )
@@ -24,6 +29,9 @@ const usage = `usage: agent-code-review <command>
 
 commands:
   version | --version            print the version
+  review [--verbose] <pull request>
+                                 collect a pull request and its related changes
+  next [--verbose] [--run <id>]  print the next part to judge
   auth login [--host <host>]     store a token read from stdin
   auth status [--host <host>]    say whether a token is available, and from where
   auth logout [--host <host>]    remove the stored token
@@ -38,6 +46,15 @@ type env struct {
 	term           terminal
 	// notify relays interrupt signals to c until the returned stop is called.
 	notify func(c chan<- os.Signal) (stop func())
+
+	// The rest has a default, which tests replace: the clock, the source
+	// of the random part of run ids, the reader of the platform, and where
+	// the user cache and configuration live.
+	now           func() time.Time
+	random        io.Reader
+	newReader     func(host string, tokens github.Resolver, opts github.Options) (base.Reader, error)
+	userCacheDir  func() (string, error)
+	userConfigDir func() (string, error)
 }
 
 // Run executes the command in args (program name excluded) and returns its exit code.
@@ -60,6 +77,10 @@ func run(args []string, e env) int {
 		return exitOK
 	case len(args) >= 1 && args[0] == "auth":
 		return runAuth(args[1:], e)
+	case len(args) >= 1 && args[0] == "review":
+		return runReview(args[1:], e)
+	case len(args) >= 1 && args[0] == "next":
+		return runNext(args[1:], e)
 	}
 	fmt.Fprint(e.stderr, usage)
 	return exitUsage

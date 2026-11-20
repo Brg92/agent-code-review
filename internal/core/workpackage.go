@@ -26,12 +26,17 @@ const (
 // the not verified reasons, such as binary, that the caller gives.
 const (
 	ReasonPatchUnavailable = "patch-unavailable"
-	ReasonRenamedUnchanged = "renamed-without-changes"
-	ReasonCopiedUnchanged  = "copied-without-changes"
+	// ReasonContentUnavailable is the reason of a file whose contents the
+	// platform did not give.
+	ReasonContentUnavailable = "content-unavailable"
+	ReasonRenamedUnchanged   = "renamed-without-changes"
+	ReasonCopiedUnchanged    = "copied-without-changes"
 )
 
 // WorkPackage is everything the agent needs to judge one change request.
-// Its JSON form is defined by schemas/workpackage.schema.json.
+// Its JSON form is defined by schemas/workpackage.schema.json. CI is the
+// state of the checks on the head commit when it was collected; finalize
+// copies it into the findings.
 type WorkPackage struct {
 	Schema         int              `json:"schema"`
 	RunID          string           `json:"runId"`
@@ -43,6 +48,7 @@ type WorkPackage struct {
 	BaseSHA        string           `json:"baseSha"`
 	BaseRef        string           `json:"baseRef"`
 	Criteria       PackageCriteria  `json:"criteria"`
+	CI             CI               `json:"ci"`
 	Rules          []PackageRule    `json:"rules"`
 	Checklist      PackageChecklist `json:"checklist"`
 	Files          []PackageFile    `json:"files"`
@@ -65,6 +71,10 @@ type PackageCriteria struct {
 	// Files are the criteria files read on the target branch.
 	Files   []string      `json:"files"`
 	Ignored []IgnoredItem `json:"ignored"`
+	// Notes are the notes of reading the criteria, for the summary of the
+	// report: criteria edited by the change request that are not applied, an
+	// absence of criteria, the items ignored. finalize copies them.
+	Notes []string `json:"notes"`
 }
 
 // PackageRule is a rule that applies, as the work package lists it.
@@ -169,6 +179,8 @@ type WorkPackageInput struct {
 	Profile, ProfileReason string
 	Dimensions             map[string]DimensionChoice
 	Criteria               RepoCriteria
+	// CI is the state of the checks on HeadSHA, read once by the review.
+	CI CI
 	// FileSignals and ChangeRequestSignals are the signals of the rule
 	// engine on each file and on the whole change request.
 	FileSignals, ChangeRequestSignals []rules.Signal
@@ -241,7 +253,8 @@ func checkPaths(in WorkPackageInput) error {
 // BuildWorkPackage builds the work package of a change request and the
 // review its judgement is validated and finalized against, from the same
 // files, rules and signals. It reads nothing: everything comes from in. A
-// path with a control character gives a *PathError.
+// path with a control character gives a *PathError, and a CI state that
+// the contracts do not allow a *CIError.
 //
 // A file of at most WholeFileLines lines at head is included whole; a
 // larger one in regions, each hunk with ContextLines lines around it,
@@ -252,6 +265,9 @@ func checkPaths(in WorkPackageInput) error {
 // alone.
 func BuildWorkPackage(in WorkPackageInput) (WorkPackage, Review, error) {
 	if err := checkPaths(in); err != nil {
+		return WorkPackage{}, Review{}, err
+	}
+	if err := in.CI.Validate(); err != nil {
 		return WorkPackage{}, Review{}, err
 	}
 	whole, context, budget := orDefault(in.WholeFileLines, DefaultWholeFileLines), orDefault(in.ContextLines, DefaultContextLines),
@@ -268,8 +284,9 @@ func BuildWorkPackage(in WorkPackageInput) (WorkPackage, Review, error) {
 		HeadSHA: in.HeadSHA, BaseSHA: in.BaseSHA, BaseRef: in.BaseRef,
 		Criteria: PackageCriteria{
 			Source: in.Criteria.Source, Profile: in.Profile, ProfileReason: in.ProfileReason, Packs: nonNil(in.Criteria.Packs),
-			Dimensions: map[string]DimensionChoice{}, Files: nonNil(in.Criteria.Files), Ignored: append([]IgnoredItem{}, in.Ruleset.Ignored...),
+			Dimensions: map[string]DimensionChoice{}, Files: nonNil(in.Criteria.Files), Ignored: append([]IgnoredItem{}, in.Ruleset.Ignored...), Notes: nonNil(in.Criteria.Notes),
 		},
+		CI:    CI{State: in.CI.State, Reason: in.CI.Reason, Detail: in.CI.Detail, Checks: append([]Check{}, in.CI.Checks...)},
 		Rules: []PackageRule{}, Files: []PackageFile{}, Signals: signals,
 		NotVerified: append([]UnverifiedFile{}, in.NotVerified...), RelatedChanges: append([]RelatedChange{}, in.RelatedChanges...),
 		Cascade: PackageCascade{Ancestors: append([]Ancestor{}, in.Ancestors...)}, JudgementPath: in.JudgementPath,

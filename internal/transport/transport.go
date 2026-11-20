@@ -60,6 +60,11 @@ type Config struct {
 	Now   func() time.Time
 	Sleep func(ctx context.Context, d time.Duration) error
 
+	// Observe, if set, is called for each request the client finishes and
+	// for each attempt it retries, for the diagnostics of the caller. It
+	// must not block.
+	Observe func(Event)
+
 	// base replaces the network round tripper in tests.
 	base http.RoundTripper
 }
@@ -91,6 +96,7 @@ type Client struct {
 	now                     func() time.Time
 	sleep                   func(context.Context, time.Duration) error
 	cache                   *etagCache
+	observe                 func(Event)
 }
 
 // New returns a Client for cfg.
@@ -129,6 +135,7 @@ func New(cfg Config) (*Client, error) {
 		now:         cfg.Now,
 		sleep:       cfg.Sleep,
 		cache:       newETagCache(DefaultCacheBytes),
+		observe:     cfg.Observe,
 	}
 	switch {
 	case c.maxRetries == 0:
@@ -247,7 +254,14 @@ func (c *Client) Get(ctx context.Context, path, accept string) (*Response, error
 	return c.get(ctx, u, accept)
 }
 
-func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response, error) {
+func (c *Client) get(ctx context.Context, u *url.URL, accept string) (resp *Response, err error) {
+	start := c.now()
+	status, attempts := 0, 0
+	if c.observe != nil {
+		defer func() {
+			c.observe(Event{Method: http.MethodGet, Path: u.EscapedPath(), Status: status, Duration: c.now().Sub(start), Attempts: attempts, Outcome: outcomeOf(err)})
+		}()
+	}
 	token, err := c.tokenValue(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("transport: token: %w", err)
@@ -257,7 +271,12 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 	cached, haveCached := c.cache.get(key)
 	shortTermRetries := 0
 	for attempt := 0; ; attempt++ {
+		attemptStart := c.now()
+		attempts, status = attempt+1, 0
 		resp, err := c.attempt(ctx, u, accept, token, cached.etag, secrets)
+		if resp != nil {
+			status = resp.StatusCode
+		}
 		last := attempt >= c.maxRetries
 		var delay time.Duration
 		switch {
@@ -298,6 +317,9 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (*Response,
 			delay = d
 		default:
 			return nil, c.statusError(u, resp, secrets)
+		}
+		if c.observe != nil {
+			c.observe(Event{Method: http.MethodGet, Path: u.EscapedPath(), Status: status, Duration: c.now().Sub(attemptStart), Attempts: attempts, Outcome: OutcomeRetry})
 		}
 		if err := c.sleep(ctx, delay); err != nil {
 			return nil, err

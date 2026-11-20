@@ -102,3 +102,28 @@ func TestParsePositionsAndURLFlag(t *testing.T) {
 		t.Errorf("Parse() = %+v, want %+v", got, want)
 	}
 }
+
+// TestParseFromWithoutAProject: a reference read against a key that names
+// no project, as when the root of a review is given by the user, reads the
+// links and the references that carry their project, and never panics.
+func TestParseFromWithoutAProject(t *testing.T) {
+	from := core.Key{Forge: core.GitLab, Host: "gitlab.com"}
+	tests := []struct {
+		line string
+		want []string
+	}{
+		{"- [ ] https://gitlab.com/acme/lib/-/merge_requests/21", []string{"gitlab:gitlab.com/acme/lib#21"}},
+		{"- [ ] group/app!4", []string{"gitlab:gitlab.com/group/app#4"}},
+		{"- [ ] !4", nil},
+		{"- [ ] app!4", nil},
+	}
+	for _, tt := range tests {
+		var got []string
+		for _, r := range (Registry{}).Parse(tt.line, from) {
+			got = append(got, r.Key.String())
+		}
+		if !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("Parse(%q) = %v, want %v", tt.line, got, tt.want)
+		}
+	}
+}

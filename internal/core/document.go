@@ -81,6 +81,34 @@ type CI struct {
 	Checks []Check `json:"checks"`
 }
 
+// CIError reports a CI state that breaks the findings and work package
+// contracts.
+type CIError struct{ Problem string }
+
+func (e *CIError) Error() string { return "ci: " + e.Problem }
+
+// Validate returns a *CIError when the state is not one the contracts
+// allow: a known state, a reason (forbidden or error) if and only if the
+// state is unknown, and no checks when it is unknown.
+func (c CI) Validate() error {
+	switch c.State {
+	case CIPassing, CIFailing, CIPending, CINone:
+		if c.Reason != "" {
+			return &CIError{"a reason is only for the unknown state"}
+		}
+	case CIUnknown:
+		if c.Reason != "forbidden" && c.Reason != "error" {
+			return &CIError{"the unknown state needs the reason forbidden or error"}
+		}
+		if len(c.Checks) > 0 {
+			return &CIError{"the unknown state has no checks"}
+		}
+	default:
+		return &CIError{"unknown state " + string(c.State)}
+	}
+	return nil
+}
+
 // Check is one check on the head commit.
 type Check struct {
 	Name string `json:"name"`
