@@ -90,7 +90,7 @@ type Run struct {
 // file) does not: it is listed in the work package.
 func Collect(ctx context.Context, d Deps, root core.Key) (*Run, error) {
 	d.Log.SetCommand("review")
-	c := &collector{d: d, root: root, metas: map[string]core.ChangeRequest{}, changes: map[string][]core.FileChange{}, analyses: map[string]*analysis{}}
+	c := &collector{d: d, root: root, metas: map[string]core.ChangeRequest{}, changes: map[string][]core.FileChange{}, analyses: map[string]*analysis{}, gone: map[string]bool{}}
 	run, err := c.run(ctx)
 	if err != nil {
 		var f *Failure
@@ -110,9 +110,13 @@ type collector struct {
 	metas    map[string]core.ChangeRequest
 	changes  map[string][]core.FileChange
 	analyses map[string]*analysis
-	runDir   string
-	runID    string
-	entries  []core.Entry
+	// gone are the related change requests that cannot be read, and
+	// written the directories the attempt in progress made.
+	gone    map[string]bool
+	written []string
+	runDir  string
+	runID   string
+	entries []core.Entry
 }
 
 func (c *collector) host() string { return c.root.Host }
@@ -168,8 +172,63 @@ func (c *collector) run(ctx context.Context) (*Run, error) {
 		limits = core.DefaultLimits()
 	}
 
+	// A related change request that cannot be read is skipped as not-found
+	// and the cascade is resolved again without it, so that what it listed
+	// and the count of the change requests reviewed stay consistent.
+	for {
+		run, err := c.attempt(ctx, reg, limits, rootCrit, now)
+		var gone *unreadableError
+		if !errors.As(err, &gone) {
+			return run, err
+		}
+		c.drop(gone)
+	}
+}
+
+// drop records a related change request that cannot be read, and throws
+// away what the attempt that met it wrote.
+func (c *collector) drop(gone *unreadableError) {
+	c.gone[lower(gone.key)] = true
+	c.d.Log.SetCR(gone.key)
+	c.d.Log.NotVerified("read the change request", base.ReasonOf(gone.err))
+	for _, dir := range c.written {
+		_ = os.RemoveAll(dir)
+	}
+	c.written = nil
+	c.analyses = map[string]*analysis{}
+}
+
+// unreadableError is a related change request the platform says is gone or
+// that the token cannot read. The root is never one: it stops the review.
+type unreadableError struct {
+	key core.Key
+	err error
+}
+
+func (e *unreadableError) Error() string {
+	return "cannot read " + e.key.String() + ": " + e.err.Error()
+}
+
+func (e *unreadableError) Unwrap() error { return e.err }
+
+// skipGone is the cascade source with the change requests that cannot be
+// read left out: they are nothing, as the cascade defines it.
+type skipGone struct {
+	src  cascade.Source
+	gone map[string]bool
+}
+
+func (s skipGone) Get(ctx context.Context, k core.Key) (cascade.Item, error) {
+	if s.gone[lower(k)] {
+		return cascade.Item{Kind: cascade.KindNotFound}, nil
+	}
+	return s.src.Get(ctx, k)
+}
+
+// attempt resolves the cascade and collects every change request in it.
+func (c *collector) attempt(ctx context.Context, reg refs.Registry, limits core.Limits, rootCrit core.RepoCriteria, now time.Time) (*Run, error) {
 	c.d.Log.SetCR(core.Key{})
-	res, err := cascade.Resolve(ctx, c.d.Reader.Changes(), reg, c.root, limits)
+	res, err := cascade.Resolve(ctx, skipGone{c.d.Reader.Changes(), c.gone}, reg, c.root, limits)
 	if err != nil {
 		return nil, classify(err, c.host(), "could not resolve the cascade of "+c.root.String(), c.root.String()+", Related Changes")
 	}
@@ -243,10 +302,20 @@ func (c *collector) meta(ctx context.Context, k core.Key, what string) (core.Cha
 	c.d.Log.SetCR(k)
 	m, err := c.d.Reader.ChangeRequest(ctx, k)
 	if err != nil {
+		if c.unreadable(k, err) {
+			return core.ChangeRequest{}, &unreadableError{key: k, err: err}
+		}
 		return core.ChangeRequest{}, classify(err, c.host(), "could not read "+what+" "+k.String(), k.String()+", read the change request")
 	}
 	c.metas[id] = m
 	return m, nil
+}
+
+// unreadable reports whether err says that the related change request k is
+// gone or cannot be read by this token, which skips it. Any other failure,
+// and any failure of the root, stops the review.
+func (c *collector) unreadable(k core.Key, err error) bool {
+	return !k.Same(c.root) && (errors.Is(err, base.ErrNotFound) || errors.Is(err, base.ErrForbidden))
 }
 
 // writeFile writes data to path for the user only.

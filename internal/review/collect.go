@@ -35,6 +35,9 @@ func (c *collector) changed(ctx context.Context, k core.Key) ([]core.FileChange,
 	c.d.Log.SetCR(k)
 	files, err := c.d.Reader.ChangedFiles(ctx, k)
 	if err != nil {
+		if c.unreadable(k, err) {
+			return nil, &unreadableError{key: k, err: err}
+		}
 		return nil, classify(err, c.host(), "could not read the changed files of "+k.String(), k.String()+", read the changed files")
 	}
 	c.changes[lower(k)] = files
@@ -60,6 +63,8 @@ func (c *collector) criteria(ctx context.Context, m core.ChangeRequest) (core.Re
 	case errors.As(err, &invalid):
 		c.d.Log.NotVerified("read criteria "+invalid.File+" on "+m.TargetBranch, "criteria-invalid")
 		return core.IgnoreInvalidCriteria(m.Key, m.TargetBranch, invalid), nil
+	case err != nil && c.unreadable(m.Key, err):
+		return core.RepoCriteria{}, &unreadableError{key: m.Key, err: err}
 	case err != nil:
 		return core.RepoCriteria{}, classify(err, c.host(), "could not read the criteria of "+m.Key.String()+" on "+m.TargetBranch, m.Key.String()+", read the criteria")
 	}
@@ -306,6 +311,7 @@ func (c *collector) collectOne(ctx context.Context, e core.Entry, crit *core.Rep
 	if err != nil {
 		return Package{}, err
 	}
+	c.written = append(c.written, dir)
 	name := filepath.Base(dir)
 	var related []core.RelatedChange
 	for _, o := range c.entries {

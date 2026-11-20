@@ -148,8 +148,10 @@ func TestCollectFailureKinds(t *testing.T) {
 			KindPlatform, "list-truncated", "split it"},
 		{"a file cannot be read", map[forgecontract.Call]error{{Op: forgecontract.OpFilesGet, Project: pk, Ref: headApp}: &base.Error{Kind: base.ErrTransport, Op: "file", Err: errors.New("status 500")}},
 			KindPlatform, "transport, status 500", "check the network"},
-		{"a related change request cannot be read", map[forgecontract.Call]error{{Op: forgecontract.OpChangeRequest, Project: key(t, libName).ProjectKey()}: &base.Error{Kind: base.ErrNotFound, Op: "change request"}},
-			KindPlatform, "not-found", "check the reference"},
+		{"a related change request cannot be reached", map[forgecontract.Call]error{{Op: forgecontract.OpChangeRequest, Project: key(t, libName).ProjectKey()}: &base.Error{Kind: base.ErrTransport, Op: "change request"}},
+			KindPlatform, "transport", "check the network"},
+		{"a related change request is rate limited", map[forgecontract.Call]error{{Op: forgecontract.OpChangedFiles, Project: key(t, libName).ProjectKey()}: &base.Error{Kind: base.ErrRateLimited, Op: "changed files"}},
+			KindPlatform, "rate-limited", "run the command again later"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
