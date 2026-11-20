@@ -73,7 +73,6 @@ func TestCollectFailsOnWhatItCannotRead(t *testing.T) {
 	}{
 		{"the cascade", map[forgecontract.Call]error{{Op: forgecontract.OpChange, Project: lib.ProjectKey()}: &base.Error{Kind: base.ErrTransport}}, "could not resolve the cascade"},
 		{"the criteria", map[forgecontract.Call]error{{Op: forgecontract.OpFilesGet, Project: app.ProjectKey(), Ref: "main"}: &base.Error{Kind: base.ErrTransport}}, "could not read the criteria"},
-		{"a file at base", map[forgecontract.Call]error{{Op: forgecontract.OpFilesGet, Project: app.ProjectKey(), Ref: baseApp}: &base.Error{Kind: base.ErrTransport}}, "could not read " + greeter},
 		{"the files of a related change request", map[forgecontract.Call]error{{Op: forgecontract.OpChangedFiles, Project: lib.ProjectKey()}: &base.Error{Kind: base.ErrTransport}}, "could not read the changed files of " + libName},
 	}
 	for _, tt := range tests {

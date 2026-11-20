@@ -26,8 +26,11 @@ const (
 // the not verified reasons, such as binary, that the caller gives.
 const (
 	ReasonPatchUnavailable = "patch-unavailable"
-	ReasonRenamedUnchanged = "renamed-without-changes"
-	ReasonCopiedUnchanged  = "copied-without-changes"
+	// ReasonContentUnavailable is the reason of a file whose contents the
+	// platform did not give.
+	ReasonContentUnavailable = "content-unavailable"
+	ReasonRenamedUnchanged   = "renamed-without-changes"
+	ReasonCopiedUnchanged    = "copied-without-changes"
 )
 
 // WorkPackage is everything the agent needs to judge one change request.

@@ -146,11 +146,8 @@ func profileReason(p packs.Profile) string {
 // is not there has no lines.
 func (c *collector) lines(ctx context.Context, k core.Key, ref, p string) ([]string, error) {
 	data, found, err := c.d.Reader.Files().Get(ctx, k, ref, p)
-	if err != nil {
-		return nil, classify(err, c.host(), "could not read "+p+" of "+k.String(), k.String()+", read a file")
-	}
-	if !found {
-		return nil, nil
+	if err != nil || !found {
+		return nil, err
 	}
 	return core.SplitLines(string(data)), nil
 }
@@ -264,19 +261,22 @@ func (c *collector) collectOne(ctx context.Context, e core.Entry, crit *core.Rep
 		default:
 			in.Language = a.Language.ID
 			assigned = a.File("", nil)
+			var readErr error
 			if diff.Status != core.FileRemoved && diff.Visible() {
-				if f.Head, err = c.lines(ctx, k, m.HeadSHA, fc.Path); err != nil {
-					return Package{}, err
-				}
+				f.Head, readErr = c.lines(ctx, k, m.HeadSHA, fc.Path)
 			}
-			if diff.Status != core.FileAdded && diff.Visible() {
+			if readErr == nil && diff.Status != core.FileAdded && diff.Visible() {
 				old := fc.Path
 				if fc.OldPath != "" {
 					old = fc.OldPath
 				}
-				if f.Base, err = c.lines(ctx, k, m.BaseSHA, old); err != nil {
-					return Package{}, err
-				}
+				f.Base, readErr = c.lines(ctx, k, m.BaseSHA, old)
+			}
+			if readErr != nil {
+				// The file is left out of the rules, and listed.
+				c.d.Log.NotVerified("read "+fc.Path, core.ReasonContentUnavailable)
+				notVerified = append(notVerified, core.UnverifiedFile{Path: fc.Path, Reason: core.ReasonContentUnavailable, Detail: whyOf(readErr)})
+				f.Head, f.Base, in.Language, assigned = nil, nil, "", rules.File{}
 			}
 			if len(f.Head) > 0 {
 				res := rules.Run(rs.ForFile(a.Context(profile.Name, dims)), a.File(strings.Join(f.Head, "\n")+"\n", diff.AddedLines()), rules.Options{})

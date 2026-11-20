@@ -1,6 +1,7 @@
 package review
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -126,5 +127,38 @@ func TestSkippedChangeRequestFreesItsPlaceInTheCount(t *testing.T) {
 	want := []string{app.String() + " collected ", lib.String() + " skipped not-found", extra.String() + " collected "}
 	if strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Errorf("entries %v, want %v", got, want)
+	}
+}
+
+// A changed file whose content cannot be read is not verified and left out
+// of the rules; the review goes on.
+func TestContentThatCannotBeReadIsNotVerified(t *testing.T) {
+	app := key(t, appName)
+	pk := app.ProjectKey()
+	// The criteria name the packs, the profile and the dimension, so that
+	// nothing reads the repository at head before the changed files.
+	config := `{"schema": 1, "packs": ["android"], "profile": "app", "dimensions": {"ui-toolkit": "compose"}}`
+	for _, ref := range []struct{ name, ref string }{{"at head", headApp}, {"at base", baseApp}} {
+		t.Run(ref.name, func(t *testing.T) {
+			fake := fakeCascade(t)
+			fake.Repos[pk+"@main"][core.ConfigFile] = config
+			fake.Fail[forgecontract.Call{Op: forgecontract.OpFilesGet, Project: pk, Ref: ref.ref}] = &base.Error{Kind: base.ErrTransport, Op: "file", Err: errors.New("status 500")}
+			d, _, verbose := deps(t, fake)
+			run := collect(t, d, appName)
+			wp := readWorkPackage(t, run, app)
+			if len(wp.NotVerified) != 1 || wp.NotVerified[0].Path != greeter || wp.NotVerified[0].Reason != "content-unavailable" ||
+				wp.NotVerified[0].Detail != "transport, status 500" {
+				t.Errorf("not verified %+v", wp.NotVerified)
+			}
+			if len(wp.Files) != 1 || wp.Files[0].Code != nil || len(wp.Signals) != 0 {
+				t.Errorf("the file is in the rules: %+v, %d signals", wp.Files, len(wp.Signals))
+			}
+			if !strings.Contains(verbose.String(), "\tnot-verified: content-unavailable\n") {
+				t.Errorf("run.log:\n%s", verbose.String())
+			}
+			if len(run.Packages) != 2 {
+				t.Errorf("%d packages", len(run.Packages))
+			}
+		})
 	}
 }
