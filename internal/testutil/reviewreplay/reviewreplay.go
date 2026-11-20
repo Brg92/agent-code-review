@@ -3,10 +3,9 @@
 // recordings lack, and a token to read them with. It is test support code
 // only.
 //
-// The recordings lack three kinds of answer, which this package adds as
-// synthetic routes: the default branch of each repository, the contents of
-// the build files that the trees list, and the 404 of directories the
-// sandbox repositories do not have.
+// The recordings lack two kinds of answer, which this package adds as
+// synthetic routes: the contents of the build files that the trees list,
+// and the 404 of directories the sandbox repositories do not have.
 package reviewreplay
 
 import (
@@ -37,16 +36,12 @@ func (Tokens) Resolve(ctx context.Context, host string) (auth.Token, error) {
 
 // New starts a replay of the recordings of the scenarios, the first one
 // served as it is and the others added to it: a cascade walks into pull
-// requests of several scenarios, as S2 reaches the one of S4. The default
-// branch of each sandbox repository is answered too.
+// requests of several scenarios, as S2 reaches the one of S4.
 func New(t testing.TB, scenarios ...string) *sandbox.Replay {
 	t.Helper()
 	r := sandbox.NewReplay(t, scenarios[0])
 	for _, extra := range scenarios[1:] {
 		addRecordings(t, r, extra)
-	}
-	for _, repo := range []string{"sample-app", "core-lib", "kmp-shared", "feature-lib"} {
-		r.Add(sandbox.Route{Path: "/repos/" + sandbox.Owner + "/" + repo, Status: 200, Body: `{"default_branch":"main"}`})
 	}
 	return r
 }
