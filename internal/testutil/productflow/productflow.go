@@ -80,6 +80,9 @@ func Collect(t testing.TB, scenario, repo string, number int) Flow {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// The work directory comes first: cleanups run last in, first out, and
+	// Windows cannot remove a directory that holds an open log.
+	work := t.TempDir()
 	c := &clock{at: time.Date(2026, 11, 20, 12, 0, 0, 0, time.UTC)}
 	log := runlog.New(c.Now, io.Discard)
 	t.Cleanup(func() { _ = log.Close() })
@@ -93,7 +96,7 @@ func Collect(t testing.TB, scenario, repo string, number int) Flow {
 		Reader:     reader,
 		Registries: []refs.Registry{github.Registry{}, gitlab.Registry{}},
 		Packs:      set,
-		WorkDir:    t.TempDir(),
+		WorkDir:    work,
 		KeepDays:   state.DefaultKeepDays,
 		Now:        c.Now,
 		Random:     rand.New(rand.NewSource(1)),
