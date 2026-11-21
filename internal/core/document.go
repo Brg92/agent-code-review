@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 )
 
 // Document is the findings document of one finalized change request: the
@@ -192,4 +193,34 @@ func nonNil[T any](s []T) []T {
 		return []T{}
 	}
 	return s
+}
+
+// Header returns what the findings document of the change request holds
+// besides the result of finalizing, as the work package recorded it when
+// the change request was collected: the checks and the criteria, notes
+// included, are copied, not read again.
+func (w WorkPackage) Header() Header {
+	files := make([]string, 0, len(w.Files))
+	for _, f := range w.Files {
+		files = append(files, f.Path)
+	}
+	c := w.Criteria
+	return Header{
+		Title: w.Title, BaseRef: w.BaseRef, Files: files, NotVerified: slices.Clone(w.NotVerified), CI: w.CI,
+		Criteria: Criteria{Source: c.Source, Profile: c.Profile, ProfileReason: c.ProfileReason, Packs: c.Packs, Dimensions: c.Dimensions, Notes: c.Notes},
+	}
+}
+
+// EncodeDocument returns the JSON of a findings document as it is stored
+// in the run's work directory: two-space indent, no HTML escaping, a final
+// newline.
+func EncodeDocument(d Document) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(d); err != nil {
+		return nil, fmt.Errorf("encode findings: %w", err)
+	}
+	return buf.Bytes(), nil
 }
