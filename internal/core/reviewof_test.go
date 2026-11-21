@@ -292,7 +292,7 @@ func TestReviewOfShowsOnlyWhatTheWorkPackageShows(t *testing.T) {
 func TestValidateJudgementRefusesLinesTheAgentWasNotShown(t *testing.T) {
 	in := bigAndSmall(t)
 	// A file the platform gave no patch of: nothing of it was shown.
-	in.Files = append(in.Files, core.PackageFileInput{File: core.ChangedFile{Diff: core.FileDiff{Path: "app/src/main/kotlin/Gen.kt", Status: core.FileModified}}})
+	in.Files = append(in.Files, core.PackageFileInput{File: core.ChangedFile{Diff: core.FileDiff{Path: "app/src/main/kotlin/Gen.kt", Status: core.FileModified}, Head: numbered(60)}})
 	wp, _, err := core.BuildWorkPackage(in)
 	if err != nil {
 		t.Fatal(err)
@@ -320,7 +320,8 @@ func TestValidateJudgementRefusesLinesTheAgentWasNotShown(t *testing.T) {
 		{"a line of a file shown whole", at(small, core.Right, 0, 9), "", ""},
 		{"a removed line", at(big, core.Left, 0, 100), "", ""},
 		{"a range inside a region", at(big, core.Right, 95, 105), "", ""},
-		{"a file with nothing shown", at(gen, core.Right, 0, 40), "", ""},
+		{"a file with nothing shown", at(gen, core.Right, 0, 40), "/findings/0/line", "line 40 of " + gen + " was not shown to the agent: nothing of the file was"},
+		{"a range in a file with nothing shown", at(gen, core.Right, 38, 40), "/findings/0/line", "line 40 of " + gen + " was not shown to the agent"},
 		{"a line far from the regions", at(big, core.Right, 0, 7), "/findings/0/line", "line 7 of " + big + " was not shown to the agent"},
 		{"the line after a region", at(big, core.Right, 0, 121), "/findings/0/line", "line 121 of " + big + " was not shown to the agent"},
 		{"an unchanged line on the left", at(big, core.Left, 0, 110), "/findings/0/line", "line 110 of " + big + " was not shown to the agent"},
@@ -349,5 +350,45 @@ func TestValidateJudgementRefusesLinesTheAgentWasNotShown(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+// TestSignalOnAFileWithNoShownLineKeepsItsLineText: the agent was shown no
+// line of a file the platform gave no patch of, but the engine read it, and
+// its signal carries the text of its line, which the fingerprint starts from.
+func TestSignalOnAFileWithNoShownLineKeepsItsLineText(t *testing.T) {
+	const gen = "app/src/main/kotlin/Gen.kt"
+	build := func(line int, text string) (core.WorkPackage, core.Result) {
+		head := numbered(60)
+		head[line-1] = text
+		in := packageInput(t, core.PackageFileInput{File: core.ChangedFile{Diff: core.FileDiff{Path: gen, Status: core.FileModified}, Head: head, Base: head}, Language: "kotlin"})
+		in.FileSignals = []rules.Signal{{RuleID: "mobile-lines", Severity: "MINOR", Path: gen, Line: line, Column: 1, Origin: rules.OriginExisting}}
+		wp, orig, err := core.BuildWorkPackage(in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if wp.Files[0].Placement != core.Summary || wp.Files[0].Code != nil || wp.Signals[0].LineText != text {
+			t.Fatalf("file %+v, signals %+v", wp.Files[0], wp.Signals)
+		}
+		set, _ := syntheticSet(t)
+		r, err := core.ReviewOf(wp, set)
+		if err != nil {
+			t.Fatal(err)
+		}
+		j := core.Judgement{Schema: 1, CR: wp.CR.String(), HeadSHA: wp.HeadSHA, Findings: []core.JudgedFinding{}, PreExisting: []core.JudgedFinding{}}
+		res, err := core.Finalize(r, j)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want, err := core.Finalize(orig, j); err != nil || !reflect.DeepEqual(res, want) {
+			t.Errorf("finalized differently from the collection: %v\n got %+v\nwant %+v", err, res, want)
+		}
+		return wp, res
+	}
+	_, a := build(40, "val token = legacy()")
+	_, moved := build(45, "val token = legacy()")
+	if len(a.PreExisting) != 1 || a.PreExisting[0].ID != core.FindingFingerprint("mobile-lines", gen, core.NormalizeLine("val token = legacy()"), 0) ||
+		a.PreExisting[0].ID != moved.PreExisting[0].ID {
+		t.Errorf("findings %+v then %+v", a.PreExisting, moved.PreExisting)
 	}
 }

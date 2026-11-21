@@ -2,9 +2,11 @@ package core_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/Brg92/agent-code-review/internal/core"
@@ -178,16 +180,22 @@ func TestScenarioS4(t *testing.T) {
 	if res.Verdict != core.OK || len(res.Findings)+len(res.PreExisting) != 0 {
 		t.Errorf("verdict %s with %d findings, want OK with none", res.Verdict, len(res.Findings))
 	}
-	// A finding on the generated file, whose patch the platform omitted,
-	// can only go to the summary.
-	res = finalize(t, "S4", "feature-lib", 1, func(j *core.Judgement) {
-		j.Findings = []core.JudgedFinding{{
-			Rule: "global-scope", Severity: core.Blocker, Path: "src/main/java/com/example/feature/catalog/IconCatalog.kt", Side: core.Right, Line: 3,
-			Title: "t", Why: "w", Fix: "f", References: []core.Reference{},
-		}}
-	})
-	if got := anchor(res.Findings[0]); got != "summary" {
-		t.Errorf("finding on IconCatalog.kt is %s, want summary", got)
+	// The agent was shown no line of the generated file, whose patch the
+	// platform omitted: a finding on it is refused, with its pointer.
+	j := scenario.Judgement(t, "S4", "feature-lib", 1)
+	const path = "src/main/java/com/example/feature/catalog/IconCatalog.kt"
+	j.Findings = []core.JudgedFinding{{
+		Rule: "global-scope", Severity: core.Blocker, Path: path, Side: core.Right, Line: 3,
+		Title: "t", Why: "w", Fix: "f", References: []core.Reference{},
+	}}
+	review := scenario.Review(t, "feature-lib", 1, "S4")
+	for i := range review.Files {
+		review.Files[i].Head, review.Files[i].Base = nil, nil // as the work package shows it
+	}
+	var verr core.ValidationError
+	if err := core.ValidateJudgement(review, j); !errors.As(err, &verr) || len(verr) != 1 || verr[0].Pointer != "/findings/0/line" ||
+		!strings.Contains(verr[0].Message, "line 3 of "+path+" was not shown to the agent") {
+		t.Errorf("errors: %v", err)
 	}
 }
 

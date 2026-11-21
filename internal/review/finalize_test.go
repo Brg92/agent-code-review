@@ -314,3 +314,19 @@ func TestFinalizeRefusesAFindingOnALineTheAgentWasNotShown(t *testing.T) {
 		t.Errorf("a line of a region was refused:\n%s", got)
 	}
 }
+
+// TestFinalizeRefusesAFindingOnAFileTheAgentWasShownNothingOf: a file with
+// no patch is in the summary; what could not be checked goes in
+// notVerified or questions.
+func TestFinalizeRefusesAFindingOnAFileTheAgentWasShownNothingOf(t *testing.T) {
+	m, work := collectedRun(t)
+	const path = "src/main/java/com/example/feature/catalog/IconCatalog.kt"
+	j := validJudgementOf(m.LibWP)
+	j.Findings = []core.JudgedFinding{{Rule: "logic-defect", Severity: core.Major, Path: path, Side: core.Right, Line: 3, Title: "t", Why: "w", Fix: "f", References: []core.Reference{}}}
+	writeJudgementOf(t, m.LibJudgement, j)
+	_, _, _, err := finalize(t, work, "")
+	f := asFailure(t, err, KindValidation)
+	if got := strings.Join(f.Details, "\n"); !strings.Contains(got, "/findings/0/line: line 3 of "+path+" was not shown to the agent: nothing of the file was") {
+		t.Errorf("errors:\n%s", got)
+	}
+}

@@ -109,8 +109,10 @@ func (v *validator) finding(at string, f JudgedFinding, preExisting bool) {
 		v.add(at+"/startLine", "startLine %d is after line %d", f.StartLine, f.Line)
 	}
 	pastEnd := linesKnown && f.Line > len(lines)
-	if changed && sideOK && !pastEnd && f.Line >= 1 && f.StartLine >= 0 && f.StartLine <= f.Line && file.showsLines() {
+	if changed && sideOK && !pastEnd && f.Line >= 1 && f.StartLine >= 0 && f.StartLine <= f.Line {
 		switch {
+		case !file.shown(f.Side, f.Line) && !file.showsLines():
+			v.add(at+"/line", "line %d of %s was not shown to the agent: nothing of the file was (no patch); say what could not be checked in notVerified or questions", f.Line, f.Path)
 		case !file.shown(f.Side, f.Line):
 			v.add(at+"/line", "line %d of %s was not shown to the agent: judge the lines of the diff and of the code of the work package", f.Line, f.Path)
 		case f.StartLine > 0:

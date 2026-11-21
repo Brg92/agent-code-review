@@ -210,9 +210,9 @@ func fingerprint(r Review, all []*Finding) error {
 // lineText is the text of a line of a changed file: from the file version
 // of the side when it is known, else from the regions of the work package,
 // else from the diff, else from a signal on that line, which carries its
-// text. A line whose text none of them has is an error, except in a file
-// the agent was shown no line of: its text is not known to anyone, and the
-// judgement may still say something about the file as a whole.
+// text. A line whose text none of them has is an error, in every file: a
+// judgement cannot reach it, because it only has findings on lines the
+// agent was shown.
 func lineText(r Review, path string, side Side, line int) (string, error) {
 	file, _ := r.file(path)
 	if text, ok := file.textAt(side, line); ok {
@@ -222,9 +222,6 @@ func lineText(r Review, path string, side Side, line int) (string, error) {
 		if s.Path == path && s.sideOrRight() == side && s.Line == line {
 			return s.LineText, nil
 		}
-	}
-	if !file.showsLines() {
-		return "", nil
 	}
 	return "", fmt.Errorf("the text of line %d of %s is unknown", line, path)
 }
