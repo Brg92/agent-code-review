@@ -61,12 +61,12 @@ func collectedRun(t testing.TB) (madeRun, string) {
 	return m, work
 }
 
-func finalize(t testing.TB, work, runID string) (*Finalized, error, *Opened, *runlog.Log) {
+func finalize(t testing.TB, work, runID string) (*Finalized, *Opened, *runlog.Log, error) {
 	t.Helper()
 	o, log, _ := open(t, work, runID)
 	log.SetCommand("finalize")
 	f, err := Finalize(o, finalizeDeps(t), log)
-	return f, err, o, log
+	return f, o, log, err
 }
 
 func asFailure(t testing.TB, err error, kind Kind) *Failure {
@@ -89,7 +89,7 @@ func loadState(t testing.TB, m madeRun) *state.State {
 
 func TestFinalizeWritesTheFindingsAndTheReports(t *testing.T) {
 	m, work := collectedRun(t)
-	f, err, _, log := finalize(t, work, "")
+	f, _, _, err := finalize(t, work, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,6 @@ func TestFinalizeWritesTheFindingsAndTheReports(t *testing.T) {
 	if !strings.Contains(readLog(t, m), "\tfinalize\tgithub:github.com/acme/app#7\tfinalize\t-\t-\t-\tok\n") {
 		t.Errorf("run.log:\n%s", readLog(t, m))
 	}
-	_ = log
 }
 
 func readLog(t testing.TB, m madeRun) string {
@@ -166,7 +165,7 @@ func TestFinalizeIsAllOrNothing(t *testing.T) {
 	worse.Notes = []string{" "}
 	writeJudgementOf(t, m.LibJudgement, worse)
 
-	_, err, _, _ := finalize(t, work, "")
+	_, _, _, err := finalize(t, work, "")
 	f := asFailure(t, err, KindValidation)
 	got := strings.Join(f.Details, "\n")
 	for _, want := range []string{
@@ -176,10 +175,6 @@ func TestFinalizeIsAllOrNothing(t *testing.T) {
 		if !strings.Contains(got, want) {
 			t.Errorf("the errors do not hold %q:\n%s", want, got)
 		}
-	}
-	if strings.Index(got, "acme/app#7") > strings.Index(got, "acme/lib#3") && strings.Index(got, "acme/lib#3") >= 0 {
-		// Review order: related first, the root last.
-		t.Logf("order:\n%s", got)
 	}
 	report := f.Report()
 	if !strings.Contains(report, "\n  problems:\n") || !strings.Contains(report, "    github:github.com/acme/lib#3") {
@@ -205,7 +200,7 @@ func TestFinalizeListsAMissingJudgementWithTheOtherErrors(t *testing.T) {
 	bad := validJudgementOf(m.AppWP)
 	bad.Schema = 2
 	writeJudgementOf(t, m.AppJudgement, bad)
-	_, err, _, _ := finalize(t, work, "")
+	_, _, _, err := finalize(t, work, "")
 	f := asFailure(t, err, KindValidation)
 	got := strings.Join(f.Details, "\n")
 	if !strings.Contains(got, "missing judgement for github:github.com/acme/lib#3, run agent-code-review next") || !strings.Contains(got, "/schema:") {
@@ -217,7 +212,7 @@ func TestFinalizeListsAJudgementThatDoesNotParse(t *testing.T) {
 	m, work := collectedRun(t)
 	writeJudgement(t, m.AppJudgement, `{"schema":1,"unknown":true}`)
 	writeJudgement(t, m.LibJudgement, `not json`)
-	_, err, _, _ := finalize(t, work, "")
+	_, _, _, err := finalize(t, work, "")
 	f := asFailure(t, err, KindValidation)
 	got := strings.Join(f.Details, "\n")
 	if strings.Count(got, "/: decode judgement:") != 2 {
@@ -227,14 +222,14 @@ func TestFinalizeListsAJudgementThatDoesNotParse(t *testing.T) {
 
 func TestFinalizeTwiceAndInTheWrongPhase(t *testing.T) {
 	m, work := collectedRun(t)
-	if _, err, _, _ := finalize(t, work, ""); err != nil {
+	if _, _, _, err := finalize(t, work, ""); err != nil {
 		t.Fatal(err)
 	}
 	before, err := os.ReadFile(filepath.Join(m.Dir, state.FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err, _, _ = finalize(t, work, "")
+	_, _, _, err = finalize(t, work, "")
 	f := asFailure(t, err, KindState)
 	if !strings.Contains(f.Why, "finalized") || !strings.Contains(f.Hint, "review") {
 		t.Errorf("failure %+v", f)
@@ -246,7 +241,7 @@ func TestFinalizeTwiceAndInTheWrongPhase(t *testing.T) {
 
 	work2 := t.TempDir()
 	makeRun(t, work2, now, state.Resolved)
-	_, err, _, _ = finalize(t, work2, "")
+	_, _, _, err = finalize(t, work2, "")
 	if f := asFailure(t, err, KindState); !strings.Contains(f.Why, "resolved") {
 		t.Errorf("failure %+v", f)
 	}
@@ -258,7 +253,7 @@ func TestFinalizeDamagedRun(t *testing.T) {
 		if err := os.WriteFile(filepath.Join(filepath.Dir(m.AppJudgement), state.WorkPackageFile), []byte("{"), 0o600); err != nil {
 			t.Fatal(err)
 		}
-		_, err, _, _ := finalize(t, work, "")
+		_, _, _, err := finalize(t, work, "")
 		asFailure(t, err, KindState)
 	})
 	t.Run("judgement path", func(t *testing.T) {
@@ -272,7 +267,7 @@ func TestFinalizeDamagedRun(t *testing.T) {
 		if err := os.WriteFile(filepath.Join(filepath.Dir(m.AppJudgement), state.WorkPackageFile), data, 0o600); err != nil {
 			t.Fatal(err)
 		}
-		_, err, _, _ = finalize(t, work, "")
+		_, _, _, err = finalize(t, work, "")
 		asFailure(t, err, KindState)
 	})
 	t.Run("a rule no loaded pack defines", func(t *testing.T) {

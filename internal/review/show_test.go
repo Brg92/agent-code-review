@@ -29,7 +29,7 @@ func showDeps(home string) ShowDeps {
 func finalizedRun(t testing.TB) (madeRun, string) {
 	t.Helper()
 	m, work := collectedRun(t)
-	if _, err, _, _ := finalize(t, work, ""); err != nil {
+	if _, _, _, err := finalize(t, work, ""); err != nil {
 		t.Fatal(err)
 	}
 	return m, work
@@ -172,7 +172,7 @@ func TestShowAPublishedRun(t *testing.T) {
 	cm := makeRun(t, collected, now, state.Collected)
 	writeJudgementOf(t, cm.AppJudgement, validJudgementOf(cm.AppWP))
 	writeJudgementOf(t, cm.LibJudgement, validJudgementOf(cm.LibWP))
-	if _, err, _, _ := finalize(t, collected, ""); err != nil {
+	if _, _, _, err := finalize(t, collected, ""); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{state.FindingsFile} {
