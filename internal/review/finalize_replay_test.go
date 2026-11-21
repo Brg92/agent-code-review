@@ -56,19 +56,13 @@ func checkFindings(t *testing.T, path string) {
 }
 
 // recordedFlow is the flow of the commands on a recorded scenario: review
-// on the replay, the hand-written judgement of each change request, then
+// on the replay, the scenario judgement of each change request, then
 // finalize.
 type recordedFlow struct {
 	run       *Run
 	opened    *Opened
 	finalized *Finalized
 	deps      Deps
-}
-
-// judgementFixture is the file of testdata/review/judgements that judges
-// k in scenario.
-func judgementFixture(scenario string, k core.Key) string {
-	return strings.ToLower(scenario) + "-" + strings.TrimPrefix(k.Project, sandbox.Owner+"/") + "-" + strconv.Itoa(k.Number) + ".json"
 }
 
 func finalizeRecorded(t *testing.T, d Deps, scenario string, root core.Key) recordedFlow {
@@ -78,7 +72,7 @@ func finalizeRecorded(t *testing.T, d Deps, scenario string, root core.Key) reco
 		t.Fatal(err)
 	}
 	for _, p := range run.Packages {
-		data, err := os.ReadFile(filepath.Join("..", "..", "testdata", "review", "judgements", judgementFixture(scenario, p.CR)))
+		data, err := os.ReadFile(filepath.Join("..", "..", filepath.FromSlash(scenarioJudgementFile(scenario, p.CR))))
 		if err != nil {
 			t.Fatal(err)
 		}

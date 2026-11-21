@@ -12,7 +12,7 @@ import (
 	"github.com/Brg92/agent-code-review/internal/forges/github"
 	"github.com/Brg92/agent-code-review/internal/forges/gitlab"
 	"github.com/Brg92/agent-code-review/internal/refs"
-	"github.com/Brg92/agent-code-review/internal/testutil/scenario"
+	"github.com/Brg92/agent-code-review/internal/testutil/productflow"
 )
 
 func causeList(causes []cascade.Cause) []string {
@@ -123,21 +123,19 @@ func TestCascadeVerdictNeedsEveryReviewedVerdict(t *testing.T) {
 }
 
 // TestCascadeVerdictS2 finalizes every change request of the S2 cascade
-// with its scenario judgement: core-lib S2 and S1 are BLOCKED, so the
+// through the product flow, with its scenario judgement: core-lib S2 and S1 are BLOCKED, so the
 // cascade is BLOCKED, and it still reports what made it incomplete.
 func TestCascadeVerdictS2(t *testing.T) {
 	res, err := cascade.Resolve(context.Background(), loadRecorded(t, "S2", "S4"), refs.Compose(github.Registry{}, gitlab.Registry{}), k(t, sandbox+"sample-app#7"), core.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
+	flow := productflow.Collect(t, "S2", "sample-app", 7)
 	verdicts := map[core.Key]core.Verdict{}
 	var each []string
 	for _, cr := range res.Order {
 		repo := cr.Project[strings.LastIndex(cr.Project, "/")+1:]
-		fin, err := core.Finalize(scenario.Review(t, repo, cr.Number, "S2", "S4"), scenario.Judgement(t, "S2", repo, cr.Number))
-		if err != nil {
-			t.Fatalf("%s: %v", cr, err)
-		}
+		fin := flow.Of(t, repo, cr.Number).Finalize(t, nil)
 		verdicts[cr] = fin.Verdict
 		each = append(each, short(cr)+" "+string(fin.Verdict))
 	}

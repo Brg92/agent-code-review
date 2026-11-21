@@ -9,11 +9,6 @@
       "id": "s1",
       "decision": "dismiss",
       "reason": "platformName() is a display string that is meant to differ per platform: the Android name now carries the manufacturer, and the iOS name has no such field."
-    },
-    {
-      "id": "s2",
-      "decision": "confirm",
-      "severity": "BLOCKER"
     }
   ]
 }

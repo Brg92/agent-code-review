@@ -1,10 +1,10 @@
 package core_test
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -13,6 +13,7 @@ import (
 	"github.com/Brg92/agent-code-review/internal/lexer"
 	"github.com/Brg92/agent-code-review/internal/packs"
 	"github.com/Brg92/agent-code-review/internal/rules"
+	"github.com/Brg92/agent-code-review/internal/testutil/productflow"
 	"github.com/Brg92/agent-code-review/internal/testutil/sandbox"
 	"github.com/Brg92/agent-code-review/internal/testutil/scenario"
 )
@@ -333,8 +334,9 @@ func sideOf(s core.Signal) core.Side {
 // TestScenarioJudgementsDecideTheirSignals checks that every signal of the
 // change-request rules that needs judgement is decided in the hand-written
 // judgement of its change request. The signals of single files, such as
-// missing-kdoc, are out of its scope: the judgements of S1 to S6 predate
-// the packs and decide none of them (see TestScenarioJudgementsRoundTrip).
+// missing-kdoc, are out of its scope: the judgements decide them by the ids
+// of the work package review builds, which the guard in internal/review
+// validates.
 func TestScenarioJudgementsDecideTheirSignals(t *testing.T) {
 	for _, tt := range crWants {
 		t.Run(tt.cr.name(), func(t *testing.T) {
@@ -360,17 +362,12 @@ type completeSearch struct{}
 
 func (completeSearch) Search(project, ref, term string) ([]rules.Match, error) { return nil, nil }
 
-// TestScenarioS7 runs the judgements of S7 on the recorded trees.
+// TestScenarioS7 runs the judgements of S7: from the recordings, as the
+// product does, and kmp-shared with a code search that works.
 func TestScenarioS7(t *testing.T) {
 	// sample-app: the judgement decides the signals and is valid; the
 	// change request is OK with two MAJOR findings.
-	_, review := changeRequestSignals(t, s7App, scenario.RecordedSearch(t, "S7"))
-	j := scenario.Judgement(t, "S7", "sample-app", 8)
-	res, err := core.Finalize(review, j)
-	if err != nil {
-		t.Fatal(err)
-	}
-	checkContract(t, res)
+	res := finalize(t, "S7", "sample-app", 8, nil)
 	if res.Verdict != core.OK || len(res.Findings) != 2 || len(res.Dismissed) != 0 {
 		t.Errorf("sample-app#8: verdict %s, %d findings, %d dismissed; want OK, 2, 0", res.Verdict, len(res.Findings), len(res.Dismissed))
 	}
@@ -380,24 +377,38 @@ func TestScenarioS7(t *testing.T) {
 		}
 	}
 
-	// kmp-shared with the recorded search: the expect cannot be searched,
-	// so there is no signal s2 and the judgement that decides it is not
-	// valid for this review, for that reason only.
-	_, review = changeRequestSignals(t, s7KMP, scenario.RecordedSearch(t, "S7"))
-	j = scenario.Judgement(t, "S7", "kmp-shared", 3)
-	var verr core.ValidationError
-	if err := core.ValidateJudgement(review, j); !errors.As(err, &verr) || len(verr) != 1 || verr[0].Pointer != "/signals/1/id" {
-		t.Errorf("kmp-shared#3 with the recorded search: %v, want only /signals/1/id (no signal s2)", err)
+	// kmp-shared from the recordings: the expect cannot be searched, so
+	// there is no signal for it, only the file it is in, not verified. The
+	// judgement dismisses the asymmetry and the change request is OK.
+	flow := productflow.Collect(t, "S7", "kmp-shared", 3).Of(t, "kmp-shared", 3)
+	for _, s := range flow.Review.Signals {
+		if s.Rule == "kmp-expect-without-actual" {
+			t.Errorf("signal %s: the recorded search cannot give it", s.ID)
+		}
+	}
+	const deviceInfo = "shared/src/commonMain/kotlin/com/example/shared/DeviceInfo.kt"
+	if !slices.ContainsFunc(flow.WorkPackage.NotVerified, func(n core.UnverifiedFile) bool {
+		return n.Path == deviceInfo && n.Reason == "search-unavailable"
+	}) {
+		t.Errorf("not verified %+v, want %s with search-unavailable", flow.WorkPackage.NotVerified, deviceInfo)
+	}
+	res = flow.Finalize(t, nil)
+	checkContract(t, res)
+	if res.Verdict != core.OK || len(res.Findings) != 0 || len(res.Dismissed) != 1 {
+		t.Errorf("kmp-shared#3 from the recordings: verdict %s, %d findings, %d dismissed; want OK, 0, 1", res.Verdict, len(res.Findings), len(res.Dismissed))
 	}
 
 	// With a search that works, the expect without an iOS actual is a
-	// BLOCKER candidate that the judgement confirms; the asymmetry is
-	// dismissed.
+	// BLOCKER candidate, s2, that the judgement confirms (the product has
+	// no such signal to decide, so the test adds the decision); the
+	// asymmetry stays dismissed.
 	res2, review := changeRequestSignals(t, s7KMP, completeSearch{})
 	if len(res2.NotVerified) != 0 || len(res2.Signals) != 2 || res2.Signals[1].RuleID != "kmp-expect-without-actual" {
 		t.Fatalf("kmp-shared#3 with a working search: %+v", res2)
 	}
-	res, err = core.Finalize(review, j)
+	j := flow.Judgement
+	j.Signals = append(append([]core.SignalDecision{}, j.Signals...), core.SignalDecision{ID: "s2", Decision: core.Confirm, Severity: core.Blocker})
+	res, err := core.Finalize(review, j)
 	if err != nil {
 		t.Fatal(err)
 	}

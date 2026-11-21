@@ -15,7 +15,7 @@
       "references": []
     },
     {
-      "rule": "style.redundant-if",
+      "rule": "expression-body",
       "severity": "MINOR",
       "path": "src/main/java/com/example/core/session/SessionExpiry.kt",
       "side": "RIGHT",
@@ -28,5 +28,12 @@
       "references": []
     }
   ],
-  "preExisting": []
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s1",
+      "decision": "dismiss",
+      "reason": "SessionExpiry is internal to the module and isExpired() says what it does."
+    }
+  ]
 }

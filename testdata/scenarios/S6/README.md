@@ -33,7 +33,10 @@ The base branch `chore/criteria-s6-invalid-overlay-base` has a `config.json` wit
 - `"profile": "spaceship"`;
 - `"variants": "free"`, a string instead of an array.
 
-Expected: the review stops before judging, with a criteria validation error: exit code 3. The error names the file and each invalid field. There is no silent fallback to the defaults.
+Expected: the review goes on. The change request is reviewed with the default criteria, and the invalid file is listed under "Repository criteria ignored" in the brief, with the reason of each invalid field (`/profile`, `/schema`, `/variants`). The report notes it as well. There is no error and no exit code 3.
+- **Criteria:** the default ones; the profile `app` comes from the `android` pack.
+- **Findings and signals:** none; the hand-written judgement is empty.
+- **Verdict:** OK.
 
 ## C: legacy criteria
 
@@ -57,10 +60,10 @@ Expected:
 
 ## Change-request signals
 
-The change-request rules run on the recorded trees of the head commits (`testdata/github/S6/`). B is not reviewed: its criteria are invalid.
+The change-request rules run on the recorded trees of the head commits (`testdata/github/S6/`). B is reviewed with the default criteria and gives no signal.
 
 | Change request | Rule | File | Result |
 | --- | --- | --- | --- |
 | `core-lib#2` | `missing-tests` | `SessionManager.kt` | automatic MAJOR, not dismissed |
 
-A (`ProfileStore` has no suffix of the rule) and D (`Greeting`) give no signal.
+A (`ProfileStore` has no suffix of the rule), B and D (`Greeting`) give no signal.

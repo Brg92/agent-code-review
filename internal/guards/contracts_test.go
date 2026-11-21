@@ -25,7 +25,7 @@ const structureOnlyPrefix = "structure-"
 // moreValidExamples lists files outside testdata/contracts that must match
 // a schema.
 var moreValidExamples = map[string][]string{
-	"judgement":     {"testdata/scenarios/*/judgements/*.json", "testdata/workpackage/*-judgement.json"},
+	"judgement":     {"testdata/scenarios/*/judgements/*.json"},
 	"lexer-table":   {"packs/*/lexer/*.json", "testdata/packs/*/lexer/*.json"},
 	"pack-manifest": {"packs/*/manifest.json", "testdata/packs/*/manifest.json"},
 	"rules-catalog": {"internal/rules/core.json", "packs/*/rules.json", "testdata/packs/*/rules.json"},
@@ -228,15 +228,20 @@ func TestInvalidOverlayNamesEveryField(t *testing.T) {
 }
 
 // TestJudgementRulesAreCataloged keeps the rule ids of the scenario
-// judgements in step with the example rules catalog.
+// judgements in step with the rules the product ships: the core rules and
+// the rules of the packs.
 func TestJudgementRulesAreCataloged(t *testing.T) {
-	catalog := readJSON(t, filepath.Join(repoRoot, "testdata", "contracts", "rules-catalog", "valid", "android.json"))
 	known := map[string]bool{}
-	rules, _ := catalog["rules"].([]any)
-	for _, r := range rules {
-		rule, _ := r.(map[string]any)
-		id, _ := rule["id"].(string)
-		known[id] = true
+	for _, f := range globAll(t, "internal/rules/core.json", "packs/*/rules.json") {
+		rules, _ := readJSON(t, f)["rules"].([]any)
+		for _, r := range rules {
+			rule, _ := r.(map[string]any)
+			id, _ := rule["id"].(string)
+			known[id] = true
+		}
+	}
+	if len(known) == 0 {
+		t.Fatal("no rules read")
 	}
 	for _, f := range globAll(t, moreValidExamples["judgement"]...) {
 		j := readJSON(t, f)
@@ -245,7 +250,7 @@ func TestJudgementRulesAreCataloged(t *testing.T) {
 			for _, item := range list {
 				finding, _ := item.(map[string]any)
 				if id, _ := finding["rule"].(string); !known[id] {
-					t.Errorf("%s: rule %q is not in the rules catalog", f, id)
+					t.Errorf("%s: rule %q is in no catalog the product ships", f, id)
 				}
 			}
 		}

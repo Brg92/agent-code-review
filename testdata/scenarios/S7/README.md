@@ -48,9 +48,12 @@ The detectors run on the recorded tree and the recorded code search. A scenario 
 
 The detector looks for an `actual` of `deviceModel` for iOS and needs a code search of the target branch. GitHub's code search does not serve the sandbox repositories: for `deviceModel repo:acr-plugin-sandbox/kmp-shared` it returned `total_count` 0 and `incomplete_results` true, as it did for every sandbox search, so the recording holds no file. An empty incomplete result proves nothing, so the detector reports the file as not verified (`search-unavailable`) and raises no signal. The last row of the table is that case.
 
-With a working index the search finds nothing, since `deviceModel` does not exist on `main`, and the detector signals the `expect` (`s2`, BLOCKER): the Android `actual` is in the change request, and iOS has files (`Platform.ios.kt`) but no `actual`. The judgement confirms it, and the scenario test shows that outcome by answering the search with a complete empty result.
+With a working index the search finds nothing, since `deviceModel` does not exist on `main`, and the detector signals the `expect` (`s2`, BLOCKER): the Android `actual` is in the change request, and iOS has files (`Platform.ios.kt`) but no `actual`.
+
+The hand-written judgement follows what the product builds from the recordings, so it decides only `s1` (dismissed) and has nothing to say about the `expect`. The scenario test shows the other outcome: it answers the search with a complete empty result, which gives `s2`, and adds the confirmation of `s2` (BLOCKER) to the judgement.
 
 ## Expected verdicts
 
 - **sample-app#8:** OK. Two MAJOR findings: the variant asymmetry and the missing test of `AvatarMapper`.
-- **kmp-shared#3:** BLOCKED when the search works, because of the missing iOS `actual`. With the recorded search, OK with `DeviceInfo.kt` not verified.
+- **kmp-shared#3, from the recordings:** OK. There is no signal for the `expect`, and `DeviceInfo.kt` is not verified (`search-unavailable`); the only signal, the asymmetry, is dismissed.
+- **kmp-shared#3, with a working search:** BLOCKED, because of the missing iOS `actual`: `s2` is raised and confirmed.

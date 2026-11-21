@@ -1,3 +1,5 @@
 agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#3 "Increase home screen padding"
-Packs: android (profile app: set in .agent-code-review/config.json · ui-toolkit compose: androidx.compose in app/build.gradle.kts)
+Packs: android (profile app: set in the repository criteria · ui-toolkit compose: android: **/build.gradle.kts contains "androidx.compose")
 No findings on 2 changed files, reviewed at head 4dc88fff. Pipeline: pending on head: instrumented. Verdict: OK.
+Not verified:
+  - .github/workflows/checks.yml — unsupported-language: no pack covers .yml files
