@@ -18,9 +18,11 @@ const (
 	exitOK            = 0
 	exitUnexpected    = 1
 	exitUsage         = 2
+	exitValidation    = 3
 	exitAuth          = 6
 	exitPlatform      = 7
 	exitState         = 8
+	exitPath          = 9
 	exitUnsafeStorage = 10
 	exitInterrupted   = 130
 )
@@ -32,6 +34,11 @@ commands:
   review [--verbose] <pull request>
                                  collect a pull request and its related changes
   next [--verbose] [--run <id>]  print the next part to judge
+  finalize [--verbose] [--run <id>]
+                                 validate the judgements and write the reports
+  show [--verbose] [--run <id>] [<cr>]
+                                 print the summary of the cascade, or a report
+  show --save [<folder>] [<cr>]  save a report outside any git work tree
   auth login [--host <host>]     store a token read from stdin
   auth status [--host <host>]    say whether a token is available, and from where
   auth logout [--host <host>]    remove the stored token
@@ -55,6 +62,8 @@ type env struct {
 	newReader     func(host string, tokens github.Resolver, opts github.Options) (base.Reader, error)
 	userCacheDir  func() (string, error)
 	userConfigDir func() (string, error)
+	// userHomeDir is where reports are saved when no folder is named.
+	userHomeDir func() (string, error)
 }
 
 // Run executes the command in args (program name excluded) and returns its exit code.
@@ -81,6 +90,10 @@ func run(args []string, e env) int {
 		return runReview(args[1:], e)
 	case len(args) >= 1 && args[0] == "next":
 		return runNext(args[1:], e)
+	case len(args) >= 1 && args[0] == "finalize":
+		return runFinalize(args[1:], e)
+	case len(args) >= 1 && args[0] == "show":
+		return runShow(args[1:], e)
 	}
 	fmt.Fprint(e.stderr, usage)
 	return exitUsage

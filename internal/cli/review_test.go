@@ -441,7 +441,7 @@ func TestEnvironmentFailures(t *testing.T) {
 			t.Fatal(err)
 		}
 		r := runWith(t, e, "review", "o/r#7")
-		if r.code != exitUnexpected || !strings.Contains(r.stderr, "invalid user configuration") || !strings.Contains(r.stderr, "/keepDays") {
+		if r.code != exitValidation || !strings.Contains(r.stderr, "invalid user configuration") || !strings.Contains(r.stderr, "/keepDays") {
 			t.Errorf("code %d, stderr:\n%s", r.code, r.stderr)
 		}
 		failShape(t, r.stderr, false)
