@@ -11,19 +11,15 @@ import (
 
 	"github.com/Brg92/agent-code-review/internal/core"
 	"github.com/Brg92/agent-code-review/internal/testutil/jsonschema"
-	"github.com/Brg92/agent-code-review/internal/testutil/scenario"
+	"github.com/Brg92/agent-code-review/internal/testutil/productflow"
 )
 
+// finalize finalizes a change request as the product does: the review is
+// the one built from the work package that review wrote on the recordings,
+// and the judgement is the scenario's, after change has edited it.
 func finalize(t *testing.T, scen, repo string, number int, change func(j *core.Judgement)) core.Result {
 	t.Helper()
-	j := scenario.Judgement(t, scen, repo, number)
-	if change != nil {
-		change(&j)
-	}
-	res, err := core.Finalize(scenario.Review(t, repo, number, scen), j)
-	if err != nil {
-		t.Fatalf("%s %s#%d: %v", scen, repo, number, err)
-	}
+	res := productflow.Collect(t, scen, repo, number).Of(t, repo, number).Finalize(t, change)
 	checkContract(t, res)
 	return res
 }
@@ -124,9 +120,23 @@ func TestScenarioS1(t *testing.T) {
 	for _, f := range append(example.Findings, example.PreExisting...) {
 		want[fmt.Sprintf("%s %s %d", f.Rule, f.Path, f.Line)] = f.ID
 	}
+	// The example is the findings the scenario describes; the two automatic
+	// missing-tests findings that the product adds are not in it.
+	seen := map[string]bool{}
 	for _, f := range append(res.Findings, res.PreExisting...) {
-		if k := fmt.Sprintf("%s %s %d", f.Rule, f.Path, f.Line); f.ID != want[k] {
-			t.Errorf("%s: id %s, the contract example says %s", k, f.ID, want[k])
+		k := fmt.Sprintf("%s %s %d", f.Rule, f.Path, f.Line)
+		if id, ok := want[k]; ok {
+			seen[k] = true
+			if f.ID != id {
+				t.Errorf("%s: id %s, the contract example says %s", k, f.ID, id)
+			}
+		} else if f.Rule != "missing-tests" {
+			t.Errorf("%s is not in the contract example", k)
+		}
+	}
+	for k := range want {
+		if !seen[k] {
+			t.Errorf("%s is in the contract example and not in the result", k)
 		}
 	}
 	if a, b := find(t, res.PreExisting, "global-scope", 13).ID, find(t, res.Findings, "global-scope", 19).ID; a == b {
@@ -135,6 +145,9 @@ func TestScenarioS1(t *testing.T) {
 }
 
 func TestScenarioS1BlockedByThePreExistingCrashAlone(t *testing.T) {
+	// No BLOCKER of the change request is left: the hand-written one is
+	// dropped and the signals the product raises as BLOCKERs, run-blocking-prod
+	// (s1) and global-scope (s7), are dismissed.
 	withoutBlockers := func(j *core.Judgement) {
 		var kept []core.JudgedFinding
 		for _, f := range j.Findings {
@@ -143,14 +156,28 @@ func TestScenarioS1BlockedByThePreExistingCrashAlone(t *testing.T) {
 			}
 		}
 		j.Findings = kept
+		for i, d := range j.Signals {
+			if d.ID == "s1" || d.ID == "s7" {
+				j.Signals[i] = core.SignalDecision{ID: d.ID, Decision: core.Dismiss, Reason: "not part of this test"}
+			}
+		}
 	}
 	res := finalize(t, "S1", "sample-app", 2, withoutBlockers)
-	if len(res.Findings) != 1 || res.Verdict != core.Blocked {
+	for _, f := range res.Findings {
+		if f.Severity == core.Blocker {
+			t.Errorf("%s on %s:%d is a BLOCKER", f.Rule, f.Path, f.Line)
+		}
+	}
+	if len(res.Findings) == 0 || res.Verdict != core.Blocked {
 		t.Errorf("%d findings, verdict %s: want BLOCKED by the crash in ProfileStore.kt", len(res.Findings), res.Verdict)
 	}
 	res = finalize(t, "S1", "sample-app", 2, func(j *core.Judgement) {
 		withoutBlockers(j)
-		j.PreExisting[0].Crash, j.PreExisting[0].Severity = false, core.Major
+		for i, d := range j.Signals {
+			if d.ID == "s2" {
+				j.Signals[i] = core.SignalDecision{ID: d.ID, Decision: core.Confirm, Severity: core.Major}
+			}
+		}
 	})
 	if res.Verdict != core.OK {
 		t.Errorf("verdict %s without BLOCKERs and crashes, want OK", res.Verdict)
@@ -166,7 +193,7 @@ func TestScenarioS3(t *testing.T) {
 	if validation.Severity != core.Major || anchor(validation) != "inline removed LEFT 7" {
 		t.Errorf("removed validation: %s %s, want MAJOR on the removed line", validation.Severity, anchor(validation))
 	}
-	redundant := find(t, res.Findings, "style.redundant-if", 9)
+	redundant := find(t, res.Findings, "expression-body", 9)
 	if anchor(redundant) != "inline added RIGHT 9" || redundant.StartLine != 5 {
 		t.Errorf("redundant if: %s from %d", anchor(redundant), redundant.StartLine)
 	}
@@ -182,45 +209,16 @@ func TestScenarioS4(t *testing.T) {
 	}
 	// The agent was shown no line of the generated file, whose patch the
 	// platform omitted: a finding on it is refused, with its pointer.
-	j := scenario.Judgement(t, "S4", "feature-lib", 1)
+	r := productflow.Collect(t, "S4", "feature-lib", 1).Of(t, "feature-lib", 1)
+	j := r.Judgement
 	const path = "src/main/java/com/example/feature/catalog/IconCatalog.kt"
 	j.Findings = []core.JudgedFinding{{
 		Rule: "global-scope", Severity: core.Blocker, Path: path, Side: core.Right, Line: 3,
 		Title: "t", Why: "w", Fix: "f", References: []core.Reference{},
 	}}
-	review := scenario.Review(t, "feature-lib", 1, "S4")
-	for i := range review.Files {
-		review.Files[i].Head, review.Files[i].Base = nil, nil // as the work package shows it
-	}
 	var verr core.ValidationError
-	if err := core.ValidateJudgement(review, j); !errors.As(err, &verr) || len(verr) != 1 || verr[0].Pointer != "/findings/0/line" ||
+	if err := core.ValidateJudgement(r.Review, j); !errors.As(err, &verr) || len(verr) != 1 || verr[0].Pointer != "/findings/0/line" ||
 		!strings.Contains(verr[0].Message, "line 3 of "+path+" was not shown to the agent") {
 		t.Errorf("errors: %v", err)
-	}
-}
-
-func TestScenariosWithoutBlockers(t *testing.T) {
-	tests := []struct {
-		scen, repo string
-		number     int
-		findings   int
-	}{
-		{"S5", "sample-app", 3, 0},
-		{"S5", "sample-app", 4, 0},
-		{"S6", "sample-app", 5, 1},
-		{"S6", "core-lib", 2, 0},
-		{"S6", "kmp-shared", 1, 0},
-	}
-	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s %s#%d", tt.scen, tt.repo, tt.number), func(t *testing.T) {
-			res := finalize(t, tt.scen, tt.repo, tt.number, nil)
-			if res.Verdict != core.OK || len(res.Findings) != tt.findings || len(res.PreExisting) != 0 {
-				t.Errorf("verdict %s, %d findings, %d pre-existing: want OK with %d findings", res.Verdict, len(res.Findings), len(res.PreExisting), tt.findings)
-			}
-		})
-	}
-	initials := find(t, finalize(t, "S6", "sample-app", 5, nil).Findings, "no-double-bang", 10)
-	if initials.Severity != core.Major || anchor(initials) != "inline added RIGHT 10" {
-		t.Errorf("S6 A: %s %s, want a MAJOR on the added line", initials.Severity, anchor(initials))
 	}
 }

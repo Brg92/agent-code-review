@@ -3,7 +3,6 @@ package core_test
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"flag"
 	"os"
 	"path/filepath"
@@ -339,80 +338,5 @@ func TestScenarioWorkPackageFiles(t *testing.T) {
 	lib, _ := buildScenario(t, s2Lib, 0)
 	if len(lib.Cascade.Ancestors) != 1 || lib.Criteria.Profile != "library" || len(lib.Parts.ChangeRequestSignals) != 1 {
 		t.Errorf("core-lib below sample-app: ancestors %+v, profile %s, change-request signals %q", lib.Cascade.Ancestors, lib.Criteria.Profile, lib.Parts.ChangeRequestSignals)
-	}
-}
-
-// TestScenarioJudgementsRoundTrip checks the hand-written judgements of
-// S1 and of the S2 root against the review built with their work
-// packages. They predate the packs: they report as findings what the
-// signals point at, and decide no signal. Without the signals they are
-// valid; with them, each finding on a signal and each signal that needs
-// judgement is an error, exactly. The judgements in testdata/workpackage
-// are the same review written for the work package: they decide the
-// signals and are valid.
-func TestScenarioJudgementsRoundTrip(t *testing.T) {
-	const s1Dir = "app/src/main/java/com/example/sample/"
-	tests := []struct {
-		cr      scenarioCR
-		decided string
-		errors  []string
-		verdict core.Verdict
-		counts  [2]int
-	}{
-		{s1, "s1-sample-app-2-judgement.json", []string{
-			"/findings/0: repeats signal s1; decide the signal instead",
-			"/findings/1: repeats signal s6; decide the signal instead",
-			"/findings/2: repeats signal s7; decide the signal instead",
-			"/preExisting/0: repeats signal s2; decide the signal instead",
-			"/preExisting/1: repeats signal s4; decide the signal instead",
-			"/signals: signal s2 (no-double-bang at " + s1Dir + "data/ProfileStore.kt:8) needs judgement: confirm or dismiss it",
-			"/signals: signal s3 (missing-kdoc at " + s1Dir + "data/ProfileStore.kt:10) needs judgement: confirm or dismiss it",
-			"/signals: signal s5 (missing-kdoc at " + s1Dir + "data/SessionRepository.kt:18) needs judgement: confirm or dismiss it",
-			"/signals: signal s7 (no-double-bang at " + s1Dir + "data/SessionRepository.kt:20) needs judgement: confirm or dismiss it",
-		}, core.Blocked, [2]int{5, 2}},
-		{s2Root, "s2-sample-app-7-judgement.json", []string{
-			"/signals: signal s2 (missing-kdoc at " + s1Dir + "data/SessionRepository.kt:20) needs judgement: confirm or dismiss it",
-			"/signals: signal s3 (missing-kdoc at " + s1Dir + "ui/HomeViewModel.kt:36) needs judgement: confirm or dismiss it",
-		}, core.OK, [2]int{0, 1}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.cr.name(), func(t *testing.T) {
-			_, review := buildScenario(t, tt.cr, 0)
-			j := scenario.Judgement(t, tt.cr.scen, tt.cr.repo, tt.cr.number)
-			withoutSignals := review
-			withoutSignals.Signals = nil
-			if err := core.ValidateJudgement(withoutSignals, j); err != nil {
-				t.Errorf("without signals: %v", err)
-			}
-			var verr core.ValidationError
-			if err := core.ValidateJudgement(review, j); !errors.As(err, &verr) {
-				t.Fatalf("with signals: %v, want a validation error", err)
-			}
-			var got []string
-			for _, e := range verr {
-				got = append(got, e.Pointer+": "+e.Message)
-			}
-			if strings.Join(got, "\n") != strings.Join(tt.errors, "\n") {
-				t.Errorf("errors\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(tt.errors, "\n"))
-			}
-			data, err := os.ReadFile(filepath.Join("..", "..", "testdata", "workpackage", tt.decided))
-			if err != nil {
-				t.Fatal(err)
-			}
-			decided, err := core.DecodeJudgement(data)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err := core.ValidateJudgement(review, decided); err != nil {
-				t.Errorf("the judgement that decides the signals: %v", err)
-			}
-			res, err := core.Finalize(review, decided)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if res.Verdict != tt.verdict || len(res.Findings) != tt.counts[0] || len(res.PreExisting) != tt.counts[1] {
-				t.Errorf("verdict %s, %d findings, %d pre-existing; want %s, %d, %d", res.Verdict, len(res.Findings), len(res.PreExisting), tt.verdict, tt.counts[0], tt.counts[1])
-			}
-		})
 	}
 }

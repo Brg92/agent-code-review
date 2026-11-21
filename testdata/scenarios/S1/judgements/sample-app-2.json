@@ -4,39 +4,6 @@
   "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
   "findings": [
     {
-      "rule": "run-blocking-prod",
-      "severity": "BLOCKER",
-      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
-      "side": "RIGHT",
-      "line": 13,
-      "title": "runBlocking in onCreate blocks the main thread",
-      "why": "onCreate waits until the session refresh completes, which can freeze the app or trigger an ANR.",
-      "fix": "Launch the refresh in `lifecycleScope` instead.",
-      "references": []
-    },
-    {
-      "rule": "global-scope",
-      "severity": "BLOCKER",
-      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
-      "side": "RIGHT",
-      "line": 19,
-      "title": "prefetch() launches in GlobalScope",
-      "why": "The work is never cancelled and outlives its caller.",
-      "fix": "Make `prefetch()` a suspend function or take a `CoroutineScope`.",
-      "references": []
-    },
-    {
-      "rule": "no-double-bang",
-      "severity": "MAJOR",
-      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
-      "side": "RIGHT",
-      "line": 20,
-      "title": "`!!` on a session that can be null",
-      "why": "`current()` returns null when nobody is signed in, so `!!` throws a NullPointerException inside the coroutine.",
-      "fix": "Return early when there is no session.",
-      "references": []
-    },
-    {
       "rule": "logic-defect",
       "severity": "BLOCKER",
       "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
@@ -48,29 +15,61 @@
       "references": []
     }
   ],
-  "preExisting": [
+  "preExisting": [],
+  "signals": [
     {
-      "rule": "no-double-bang",
+      "id": "s1",
+      "decision": "confirm"
+    },
+    {
+      "id": "s2",
+      "decision": "confirm",
       "severity": "BLOCKER",
-      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
-      "side": "RIGHT",
-      "line": 8,
-      "title": "displayName() asserts a stored name with `!!`",
-      "why": "`displayName()` throws a NullPointerException when no name has been stored, which crashes the app.",
-      "fix": "Return a default name, or make `displayName()` return `String?`.",
-      "references": [],
       "crash": true
     },
     {
-      "rule": "global-scope",
-      "severity": "BLOCKER",
-      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
-      "side": "RIGHT",
-      "line": 13,
-      "title": "warmUp() launches in GlobalScope",
-      "why": "The work is never cancelled.",
-      "fix": "Launch it in a scope owned by the caller.",
-      "references": []
+      "id": "s3",
+      "decision": "dismiss",
+      "reason": "hasDisplayName() says what it returns; a comment would repeat the name."
+    },
+    {
+      "id": "s4",
+      "decision": "confirm"
+    },
+    {
+      "id": "s5",
+      "decision": "confirm"
+    },
+    {
+      "id": "s6",
+      "decision": "dismiss",
+      "reason": "prefetch() is internal to the app; the app profile asks no KDoc for it."
+    },
+    {
+      "id": "s7",
+      "decision": "confirm"
+    },
+    {
+      "id": "s8",
+      "decision": "confirm",
+      "severity": "MAJOR"
+    },
+    {
+      "id": "s9",
+      "decision": "confirm"
     }
+  ],
+  "questions": [
+    {
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 18,
+      "text": "Should prefetch() start again after a configuration change?"
+    }
+  ],
+  "notes": [
+    "The overlay of main makes every runBlocking outside tests a BLOCKER."
+  ],
+  "notVerified": [
+    "Whether SessionManager.refresh() can return null for a signed-in user."
   ]
 }

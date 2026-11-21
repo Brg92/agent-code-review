@@ -3,5 +3,17 @@
   "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
   "headSha": "f9d862f3e8993cf66d4ae780856ef358b7e91d32",
   "findings": [],
-  "preExisting": []
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s1",
+      "decision": "dismiss",
+      "reason": "The class is internal to the module; its name says what it counts."
+    },
+    {
+      "id": "s2",
+      "decision": "dismiss",
+      "reason": "A plain property of an internal class."
+    }
+  ]
 }

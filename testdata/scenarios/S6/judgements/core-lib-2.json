@@ -3,5 +3,12 @@
   "cr": "github:github.com/acr-plugin-sandbox/core-lib#2",
   "headSha": "cf8b045f0b98cb84fc91415adb4b6753cc431896",
   "findings": [],
-  "preExisting": []
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s2",
+      "decision": "dismiss",
+      "reason": "isSignedIn() says what it returns; a comment would repeat the name."
+    }
+  ]
 }

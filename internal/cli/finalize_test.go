@@ -45,7 +45,7 @@ func copyFile(t *testing.T, from []string, to string) {
 
 func TestFinalizeThenShowOnS1(t *testing.T) {
 	e, work, runDir, judgement := reviewedS1(t)
-	copyFile(t, []string{"testdata", "review", "judgements", "s1-sample-app-2.json"}, judgement)
+	copyFile(t, []string{"testdata", "scenarios", "S1", "judgements", "sample-app-2.json"}, judgement)
 
 	r := runWith(t, e, "finalize")
 	if r.code != exitOK || r.stderr != "" {
@@ -108,7 +108,7 @@ func TestFinalizeThenShowOnS1(t *testing.T) {
 
 func TestShowSave(t *testing.T) {
 	e, _, _, judgement := reviewedS1(t)
-	copyFile(t, []string{"testdata", "review", "judgements", "s1-sample-app-2.json"}, judgement)
+	copyFile(t, []string{"testdata", "scenarios", "S1", "judgements", "sample-app-2.json"}, judgement)
 	if r := runWith(t, e, "finalize"); r.code != exitOK {
 		t.Fatalf("finalize: %d\n%s", r.code, r.stderr)
 	}
@@ -145,7 +145,7 @@ func TestShowSave(t *testing.T) {
 
 func TestShowSaveRefusals(t *testing.T) {
 	e, _, _, judgement := reviewedS1(t)
-	copyFile(t, []string{"testdata", "review", "judgements", "s1-sample-app-2.json"}, judgement)
+	copyFile(t, []string{"testdata", "scenarios", "S1", "judgements", "sample-app-2.json"}, judgement)
 	if r := runWith(t, e, "finalize"); r.code != exitOK {
 		t.Fatalf("finalize: %d\n%s", r.code, r.stderr)
 	}
@@ -248,7 +248,7 @@ func TestFinalizeAndShowUsage(t *testing.T) {
 
 func TestVerboseOnFinalizeAndShow(t *testing.T) {
 	e, work, runDir, judgement := reviewedS1(t)
-	copyFile(t, []string{"testdata", "review", "judgements", "s1-sample-app-2.json"}, judgement)
+	copyFile(t, []string{"testdata", "scenarios", "S1", "judgements", "sample-app-2.json"}, judgement)
 	f := runWith(t, e, "finalize", "--verbose")
 	if f.code != exitOK || !strings.Contains(f.stderr, "\tfinalize\tgithub:github.com/"+s1Root+"\tfinalize\t") {
 		t.Fatalf("finalize --verbose: code %d\n%s", f.code, f.stderr)
