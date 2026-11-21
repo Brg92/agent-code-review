@@ -30,6 +30,13 @@ const (
 	// KindState is a run that is missing, in a phase the command does not
 	// fit, or whose state file cannot be read.
 	KindState
+	// KindValidation is a file the agent wrote that does not match its
+	// schema or the work package: every problem is in Details.
+	KindValidation
+	// KindPath is a path the command may not use: a folder for saved
+	// reports inside a git work tree, with "..", or that cannot be
+	// written.
+	KindPath
 )
 
 // Failure is why a command stopped. Its report has a fixed shape: what
@@ -44,6 +51,10 @@ type Failure struct {
 	Why string
 	// Hint is what the user can do about it.
 	Hint string
+	// Details are the lines of the problems the failure lists, one per
+	// line, in the order the report shows them; a line is indented by the
+	// report.
+	Details []string
 	// LogPath is the run log, when a run exists.
 	LogPath string
 	// Err is the cause.
@@ -68,6 +79,15 @@ func (f *Failure) Report() string {
 	fmt.Fprintf(&b, "agent-code-review: %s\n", oneLine(f.What))
 	fmt.Fprintf(&b, "  where: %s\n", orNone(oneLine(f.Where)))
 	fmt.Fprintf(&b, "  why: %s\n", orNone(oneLine(f.Why)))
+	if len(f.Details) > 0 {
+		b.WriteString("  problems:\n")
+		for _, d := range f.Details {
+			// The indentation is the caller's; the text is one line, whatever
+			// it was made from.
+			text := strings.TrimLeft(d, " ")
+			fmt.Fprintf(&b, "    %s%s\n", d[:len(d)-len(text)], oneLine(text))
+		}
+	}
 	fmt.Fprintf(&b, "  what to do: %s\n", orNone(oneLine(f.Hint)))
 	if f.LogPath != "" {
 		fmt.Fprintf(&b, "  log: %s\n", f.LogPath)
