@@ -44,6 +44,9 @@ func replayDeps(t testing.TB, scenarios ...string) (Deps, string, *sandbox.Repla
 // replayDepsOn is replayDeps over a replay server that is already set up.
 func replayDepsOn(t testing.TB, r *sandbox.Replay) (Deps, string, *sandbox.Replay, *verboseLog) {
 	t.Helper()
+	// The work directory comes first: cleanups run last in, first out, and
+	// Windows cannot remove a directory that holds an open log.
+	work := t.TempDir()
 	verbose := &verboseLog{}
 	clock := &fakeClock{at: now}
 	log := runlog.New(clock.Now, verbose)
@@ -54,7 +57,6 @@ func replayDepsOn(t testing.TB, r *sandbox.Replay) (Deps, string, *sandbox.Repla
 	if err != nil {
 		t.Fatal(err)
 	}
-	work := t.TempDir()
 	return Deps{
 		Reader:     reader,
 		Registries: []refs.Registry{github.Registry{}, gitlab.Registry{}},
