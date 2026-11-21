@@ -12,6 +12,7 @@ Profile: app (<<<UNTRUSTED-0a1b2c3d set in .agent-code-review/config.json UNTRUS
 Dimension: ui-toolkit compose (<<<UNTRUSTED-0a1b2c3d androidx.compose in app/build.gradle.kts UNTRUSTED-0a1b2c3d>>>)
 Packs: mobile
 Criteria: overlay on <<<UNTRUSTED-0a1b2c3d main UNTRUSTED-0a1b2c3d>>>: <<<UNTRUSTED-0a1b2c3d .agent-code-review/config.json UNTRUSTED-0a1b2c3d>>>, <<<UNTRUSTED-0a1b2c3d .agent-code-review/criteria.md UNTRUSTED-0a1b2c3d>>>
+CI: passing
 Cascade: below github:github.com/acr-plugin-sandbox/core-lib#4 <<<UNTRUSTED-0a1b2c3d Split the loader UNTRUSTED-0a1b2c3d>>>
 Related: github:github.com/acr-plugin-sandbox/core-lib#4 <<<UNTRUSTED-0a1b2c3d Split the loader UNTRUSTED-0a1b2c3d>>> (acr-plugin-sandbox_core-lib-4-eeeeeeee/workpackage.json)
 

@@ -24,7 +24,14 @@
     "files": [
       ".github/mr-review.json"
     ],
-    "ignored": []
+    "ignored": [],
+    "notes": []
+  },
+  "ci": {
+    "state": "unknown",
+    "reason": "forbidden",
+    "detail": "checks: read is missing from the token",
+    "checks": []
   },
   "rules": [
     {

@@ -72,6 +72,7 @@ func briefInput(t *testing.T, files ...core.PackageFileInput) core.WorkPackageIn
 		Files: files, Ruleset: briefRuleset(t, crit), Profile: "app", ProfileReason: "set in .agent-code-review/config.json",
 		Dimensions:     map[string]core.DimensionChoice{"ui-toolkit": {Value: "compose", Reason: "androidx.compose in app/build.gradle.kts"}},
 		Criteria:       crit,
+		CI:             core.CI{State: core.CIPassing, Checks: []core.Check{{Name: "unit", Status: "completed", Conclusion: briefConclusion("success")}}},
 		Ancestors:      []core.Ancestor{{CR: briefKey(t, "core-lib", 4), Title: "Split the loader"}},
 		RelatedChanges: []core.RelatedChange{{CR: briefKey(t, "core-lib", 4), Title: "Split the loader", WorkPackage: "acr-plugin-sandbox_core-lib-4-eeeeeeee/workpackage.json"}},
 		JudgementPath:  "acr-plugin-sandbox_sample-app-12-cccccccc/judgement.json",
@@ -86,6 +87,61 @@ func briefSignals(in *core.WorkPackageInput) {
 	in.ChangeRequestSignals = []rules.Signal{{RuleID: "uses-removed-api", NeedsJudgement: true, Path: "app/src/main/java/com/example/screens/HomeScreen.kt",
 		Side: rules.SideLeft, Line: 3, Column: 5, Origin: "mr",
 		References: []rules.Reference{{Project: "github:github.com/acr-plugin-sandbox/core-lib", Ref: "main", Path: "src/main/java/com/example/core/Loader.kt", Line: 8}}}}
+}
+
+func briefConclusion(s string) *string { return &s }
+
+func TestBriefCI(t *testing.T) {
+	tests := []struct {
+		name string
+		ci   core.CI
+		want string
+	}{
+		{"passing", core.CI{State: core.CIPassing, Checks: []core.Check{{Name: "unit", Status: "completed", Conclusion: briefConclusion("success")}}}, "CI: passing"},
+		{"none", core.CI{State: core.CINone, Checks: []core.Check{}}, "CI: none"},
+		{"failing lists what did not pass", core.CI{State: core.CIFailing, Checks: []core.Check{
+			{Name: "unit", Status: "completed", Conclusion: briefConclusion("failure")},
+			{Name: "lint", Status: "completed", Conclusion: briefConclusion("success")},
+			{Name: "ui", Status: "in_progress"}}}, "CI: failing (<<<UNTRUSTED-0a1b2c3d unit: failure UNTRUSTED-0a1b2c3d>>>, <<<UNTRUSTED-0a1b2c3d ui: in_progress UNTRUSTED-0a1b2c3d>>>)"},
+		{"pending", core.CI{State: core.CIPending, Checks: []core.Check{{Name: "ui", Status: "queued"}}}, "CI: pending (<<<UNTRUSTED-0a1b2c3d ui: queued UNTRUSTED-0a1b2c3d>>>)"},
+		{"unknown", core.CI{State: core.CIUnknown, Reason: "forbidden", Detail: "needs checks: read", Checks: []core.Check{}}, "CI: unknown, forbidden (<<<UNTRUSTED-0a1b2c3d needs checks: read UNTRUSTED-0a1b2c3d>>>)"},
+		{"unknown without detail", core.CI{State: core.CIUnknown, Reason: "error", Checks: []core.Check{}}, "CI: unknown, error"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in := briefInput(t, screenFile(t, "app/src/main/java/com/example/screens/HomeScreen.kt", 6, 3))
+			in.CI = tt.ci
+			wp := buildBriefPackage(t, in)
+			got, err := BriefWithToken(wp, 1, testToken)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains("\n"+got, "\n"+tt.want+"\n") {
+				t.Errorf("brief has no line %q:\n%s", tt.want, got)
+			}
+		})
+	}
+}
+
+func TestBriefShowsTheCriteriaNotes(t *testing.T) {
+	in := briefInput(t, screenFile(t, "app/src/main/java/com/example/screens/HomeScreen.kt", 6, 3))
+	ignored := core.IgnoredItem{Item: "`Bad Id` (.agent-code-review/criteria.md:9)", Reason: "the id is not kebab-case"}
+	in.Criteria.Ignored = []core.IgnoredItem{ignored}
+	in.Criteria.Notes = []string{"Criteria changed in this change request are not applied: .agent-code-review/config.json. The criteria of main are used.", ignored.Note()}
+	in.Ruleset = briefRuleset(t, in.Criteria)
+	wp := buildBriefPackage(t, in)
+	got, err := BriefWithToken(wp, 1, testToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "Criteria note: <<<UNTRUSTED-0a1b2c3d Criteria changed in this change request are not applied: .agent-code-review/config.json. The criteria of main are used. UNTRUSTED-0a1b2c3d>>>\n"
+	if !strings.Contains(got, want) {
+		t.Errorf("no %q in:\n%s", want, got)
+	}
+	// An ignored item is listed once, under the criteria ignored.
+	if strings.Count(got, "Bad Id") != 1 {
+		t.Errorf("the ignored item is listed more than once:\n%s", got)
+	}
 }
 
 func TestBriefSmall(t *testing.T) {

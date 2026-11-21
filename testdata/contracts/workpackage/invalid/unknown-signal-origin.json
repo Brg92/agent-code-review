@@ -24,7 +24,12 @@
     "files": [
       ".agent-code-review/criteria.md"
     ],
-    "ignored": []
+    "ignored": [],
+    "notes": []
+  },
+  "ci": {
+    "state": "none",
+    "checks": []
   },
   "rules": [
     {

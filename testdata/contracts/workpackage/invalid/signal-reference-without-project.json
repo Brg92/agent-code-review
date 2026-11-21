@@ -24,7 +24,12 @@
     "files": [
       ".github/mr-review.json"
     ],
-    "ignored": []
+    "ignored": [],
+    "notes": []
+  },
+  "ci": {
+    "state": "none",
+    "checks": []
   },
   "rules": [
     {

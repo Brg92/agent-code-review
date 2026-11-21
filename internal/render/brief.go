@@ -182,6 +182,13 @@ func briefHeader(b *briefWriter, wp core.WorkPackage) {
 	}
 	b.line(fmt.Sprintf("Packs: %s", strings.Join(c.Packs, ", ")))
 	b.line(criteria)
+	for _, n := range c.Notes {
+		// An ignored item is listed once, under the criteria ignored.
+		if !strings.HasPrefix(n, core.IgnoredPrefix) {
+			b.line("Criteria note: " + b.data("criteria note", n))
+		}
+	}
+	b.line(briefCI(b, wp.CI))
 	if len(wp.Cascade.Ancestors) == 0 {
 		b.line("Cascade: root")
 	} else {
@@ -241,6 +248,37 @@ func briefHeader(b *briefWriter, wp core.WorkPackage) {
 			b.line(line)
 		}
 	}
+}
+
+// briefCI writes the state of the checks on the head commit, with the
+// checks that did not succeed when the state is failing or pending, or the
+// reason and detail when the checks could not be read. Check names and the
+// detail come from the platform: they are data.
+func briefCI(b *briefWriter, ci core.CI) string {
+	line := "CI: " + string(ci.State)
+	switch ci.State {
+	case core.CIUnknown:
+		line += ", " + oneLine(ci.Reason)
+		if ci.Detail != "" {
+			line += " (" + b.data("ci detail", ci.Detail) + ")"
+		}
+	case core.CIFailing, core.CIPending:
+		var open []string
+		for _, c := range ci.Checks {
+			outcome := c.Status
+			if c.Conclusion != nil {
+				outcome = *c.Conclusion
+			}
+			if outcome == "success" {
+				continue
+			}
+			open = append(open, b.data("ci check", c.Name+": "+outcome))
+		}
+		if len(open) > 0 {
+			line += " (" + strings.Join(open, ", ") + ")"
+		}
+	}
+	return line
 }
 
 // briefRule writes a rule of the checklist: its id, severity, whether its

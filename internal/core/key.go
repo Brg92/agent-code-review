@@ -132,6 +132,20 @@ func (k Key) ProjectKey() string {
 	return fmt.Sprintf("%s:%s/%s", k.Forge, k.Host, k.Project)
 }
 
+// URL returns the address of the change request in a browser, which is the
+// same on every host of a forge: https://<host>/<project>/pull/<n> on
+// GitHub and https://<host>/<project>/-/merge_requests/<n> on GitLab. The
+// zero key has none.
+func (k Key) URL() string {
+	switch k.Forge {
+	case GitHub:
+		return fmt.Sprintf("https://%s/%s/pull/%d", k.Host, k.Project, k.Number)
+	case GitLab:
+		return fmt.Sprintf("https://%s/%s/-/merge_requests/%d", k.Host, k.Project, k.Number)
+	}
+	return ""
+}
+
 // IsZero reports whether k is the zero key.
 func (k Key) IsZero() bool { return k == Key{} }
 

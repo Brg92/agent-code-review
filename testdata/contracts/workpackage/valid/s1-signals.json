@@ -25,7 +25,25 @@
       ".agent-code-review/config.json",
       ".agent-code-review/criteria.md"
     ],
-    "ignored": []
+    "ignored": [],
+    "notes": [
+      "Criteria changed in this change request are not applied: .agent-code-review/config.json. The criteria of main are used."
+    ]
+  },
+  "ci": {
+    "state": "failing",
+    "checks": [
+      {
+        "name": "unit",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "name": "lint",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
   },
   "rules": [
     {

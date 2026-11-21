@@ -26,8 +26,9 @@ Target repository layout (directories appear only when their first real file is 
 
 ```text
 cmd/agent-code-review/   entry point
-internal/                cli, state, core, cascade, lexer, symbols, rules, packs, render,
-                         refs, transport, auth, mcp, version, forges/{base,github,gitlab}
+internal/                cli, review, runlog, state, core, cascade, lexer, symbols, rules,
+                         packs, render, refs, transport, auth, mcp, version,
+                         forges/{base,github,gitlab}
 packs/                   stack packs (data)
 plugin/                  manifests, skills, agents, hooks, launchers
 schemas/                 JSON Schemas (schema: 1)

@@ -88,6 +88,35 @@ type CriteriaInput struct {
 	Changed []string
 }
 
+// defaultCriteria are the criteria of a repository that has none: the packs
+// alone.
+func defaultCriteria(project Key, ref string) RepoCriteria {
+	return RepoCriteria{
+		Schema: 1, Project: project.ProjectKey(), Ref: ref, Source: SourceDefault,
+		Packs: []string{}, Variants: []string{}, Dimensions: map[string]string{}, DisabledRules: []string{},
+		RuleOptions: map[string]map[string]int{}, Rules: []RepositoryRule{}, Noise: []string{}, PublicAPI: []string{},
+		Consumers: []string{}, SharedLibraries: []string{}, Files: []string{}, Notes: []string{},
+	}
+}
+
+// IgnoreInvalidCriteria is what a review uses when ReadCriteria fails with
+// a *CriteriaError: the criteria of a repository without any, with the
+// invalid file left out as an item that names every invalid field. A
+// repository whose configuration is broken is still reviewed, with the
+// packs alone.
+func IgnoreInvalidCriteria(project Key, ref string, e *CriteriaError) RepoCriteria {
+	c := defaultCriteria(project, ref)
+	fields := make([]string, len(e.Errors))
+	for i, f := range e.Errors {
+		fields[i] = f.Pointer + ": " + f.Message
+	}
+	c.ignore(IgnoredItem{
+		Item:   "`" + e.File + "`",
+		Reason: "the file is not valid, so none of the repository criteria apply: " + strings.Join(fields, "; "),
+	})
+	return c
+}
+
 // legacy layout paths.
 const (
 	legacySkills = ".github/skills"
@@ -100,12 +129,7 @@ const (
 // with a note, and the review goes on; a configuration file that is not
 // valid fails with a *CriteriaError, and a failed read with its error.
 func ReadCriteria(ctx context.Context, files Files, in CriteriaInput) (RepoCriteria, error) {
-	c := RepoCriteria{
-		Schema: 1, Project: in.Project.ProjectKey(), Ref: in.Ref, Source: SourceDefault,
-		Packs: []string{}, Variants: []string{}, Dimensions: map[string]string{}, DisabledRules: []string{},
-		RuleOptions: map[string]map[string]int{}, Rules: []RepositoryRule{}, Noise: []string{}, PublicAPI: []string{},
-		Consumers: []string{}, SharedLibraries: []string{}, Files: []string{}, Notes: []string{},
-	}
+	c := defaultCriteria(in.Project, in.Ref)
 	r := &reader{ctx: ctx, files: files, in: in}
 	reserved := map[string]bool{}
 	for _, rule := range in.Rules {

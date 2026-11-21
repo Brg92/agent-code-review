@@ -55,8 +55,8 @@ func (c CascadeConfig) Limits() Limits {
 }
 
 // CriteriaError reports a criteria file of the target branch that cannot
-// be used: every invalid field, by JSON pointer. The review stops on it,
-// without falling back to the defaults.
+// be used: every invalid field, by JSON pointer. A review goes on without
+// the criteria of the repository (see IgnoreInvalidCriteria).
 type CriteriaError struct {
 	File   string
 	Errors []FieldError

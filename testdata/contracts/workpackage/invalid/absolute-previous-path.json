@@ -24,7 +24,12 @@
     "files": [
       ".github/skills/core-lib-code-review/SKILL.md"
     ],
-    "ignored": []
+    "ignored": [],
+    "notes": []
+  },
+  "ci": {
+    "state": "none",
+    "checks": []
   },
   "rules": [
     {
