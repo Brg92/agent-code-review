@@ -1379,6 +1379,7 @@
       "path": "src/main/java/com/example/core/session/SessionManager.kt",
       "line": 7,
       "column": 7,
+      "lineText": "class SessionManager internal constructor(private val store: SessionStore) {",
       "origin": "mr",
       "needsJudgement": false
     },
@@ -1389,6 +1390,7 @@
       "path": "src/main/java/com/example/core/session/SessionManager.kt",
       "line": 24,
       "column": 51,
+      "lineText": "    suspend fun refresh(): Session? = withContext(Dispatchers.IO) {",
       "origin": "existing",
       "needsJudgement": false
     }

@@ -114,6 +114,9 @@ func numberSignals(files []ChangedFile, lists ...[]rules.Signal) ([]Signal, []in
 		if s.Side == rules.SideLeft {
 			sig.Side = Left
 		}
+		if i := at(s.Path); i < len(files) {
+			sig.LineText, _ = files[i].textAt(sig.sideOrRight(), s.Line)
+		}
 		for _, r := range s.References {
 			sig.References = append(sig.References, Reference{Project: r.Project, Ref: r.Ref, Path: r.Path, Line: r.Line})
 		}

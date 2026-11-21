@@ -24,3 +24,8 @@ Skipped:
   acr-plugin-sandbox/core-lib#9999             not found
 Not followed: https://github.com/acr-plugin-sandbox/kmp-shared/pull/1 (no checkbox)
 Overall: BLOCKED
+
+Next:
+  agent-code-review show <cr>       read the full report of a change request
+  agent-code-review show --save     save a report outside any git work tree
+  agent-code-review publish --plan  plan what to write to GitHub (not available yet)

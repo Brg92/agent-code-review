@@ -315,8 +315,8 @@ func TestSignalSeverityIsNullWhenJudged(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := `[{"id":"s1","rule":"empty-catch","severity":"BLOCKER","path":"a.kt","line":1,"column":1,"origin":"mr","needsJudgement":false},` +
-		`{"id":"s2","rule":"no-double-bang","severity":null,"path":"a.kt","line":2,"column":3,"origin":"existing","needsJudgement":true}]`
+	want := `[{"id":"s1","rule":"empty-catch","severity":"BLOCKER","path":"a.kt","line":1,"column":1,"lineText":"","origin":"mr","needsJudgement":false},` +
+		`{"id":"s2","rule":"no-double-bang","severity":null,"path":"a.kt","line":2,"column":3,"lineText":"","origin":"existing","needsJudgement":true}]`
 	if string(data) != want {
 		t.Errorf("got  %s\nwant %s", data, want)
 	}

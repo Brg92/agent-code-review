@@ -44,25 +44,40 @@ moving on.
 --verbose also writes the lines of run.log to stderr as they happen.
 `
 
-// options are the arguments of review and next.
+// options are the arguments of the commands that work on a run.
 type options struct {
 	verbose bool
 	run     string
 	part    int
 	partSet bool
+	save    bool
 	args    []string
 }
 
+// allowed are the flags besides --verbose a command takes.
+type allowed uint8
+
+const (
+	flagRun allowed = 1 << iota
+	flagPart
+	flagSave
+)
+
 // parseOptions reads the flags of a command wherever they are among its
-// arguments; withRun allows --run.
-func parseOptions(name string, args []string, withRun bool) (options, error) {
+// arguments; allow says which of --run, --part and --save it takes.
+func parseOptions(name string, args []string, allow allowed) (options, error) {
 	var o options
 	fs := flag.NewFlagSet(name, flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	fs.BoolVar(&o.verbose, "verbose", false, "")
-	if withRun {
+	if allow&flagRun != 0 {
 		fs.StringVar(&o.run, "run", "", "")
+	}
+	if allow&flagPart != 0 {
 		fs.IntVar(&o.part, "part", 0, "")
+	}
+	if allow&flagSave != 0 {
+		fs.BoolVar(&o.save, "save", false, "")
 	}
 	for {
 		if err := fs.Parse(args); err != nil {
@@ -108,6 +123,10 @@ func finish(e env, err error, log *runlog.Log) int {
 		return exitPlatform
 	case review.KindState:
 		return exitState
+	case review.KindValidation:
+		return exitValidation
+	case review.KindPath:
+		return exitPath
 	}
 	return exitUnexpected
 }
@@ -156,7 +175,7 @@ func (e env) userConfig() (state.UserConfig, error) {
 	}
 	cfg, err := state.LoadUserConfig(path)
 	if err != nil {
-		return state.UserConfig{}, &review.Failure{Kind: review.KindUnexpected, What: "the user configuration is not valid", Where: path, Why: err.Error(), Err: err,
+		return state.UserConfig{}, &review.Failure{Kind: review.KindValidation, What: "the user configuration is not valid", Where: path, Why: err.Error(), Err: err,
 			Hint: "fix the fields it names, or remove the file to use the defaults"}
 	}
 	return cfg, nil
@@ -199,7 +218,7 @@ func unsupportedHost(where string) error {
 
 // runReview collects a pull request and what it relates to.
 func runReview(args []string, e env) int {
-	o, err := parseOptions("review", args, false)
+	o, err := parseOptions("review", args, 0)
 	switch {
 	case err != nil:
 		return usageError(e, "review", err.Error(), reviewUsage)
@@ -253,7 +272,7 @@ func runReview(args []string, e env) int {
 
 // runNext serves the next part to judge.
 func runNext(args []string, e env) int {
-	o, err := parseOptions("next", args, true)
+	o, err := parseOptions("next", args, flagRun|flagPart)
 	switch {
 	case err != nil:
 		return usageError(e, "next", err.Error(), nextUsage)

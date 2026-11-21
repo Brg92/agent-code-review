@@ -259,7 +259,7 @@ func TestReportShortForm(t *testing.T) {
 	d.NotVerified, d.AgentNotVerified, d.Notes, d.Criteria.Notes = nil, nil, nil, nil
 	want := `agent-code-review v1.2.3 — acr-plugin-sandbox/sample-app#2 "Prefetch the session"
 Packs: android (profile app: set in config · ui-toolkit compose: found compose)
-No findings on 5 changed files. Pipeline: passing on head (2 checks). Verdict: OK.
+No findings on 5 changed files, reviewed at head 76ae5f13. Pipeline: passing on head (2 checks). Verdict: OK.
 `
 	if got := Report("1.2.3", d); got != want {
 		t.Errorf("got\n%s\nwant\n%s", got, want)

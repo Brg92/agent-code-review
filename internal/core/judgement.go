@@ -60,8 +60,12 @@ type Signal struct {
 	// declaration; empty for the RIGHT side.
 	Side Side `json:"side,omitempty"`
 	// Line is on Side.
-	Line           int    `json:"line"`
-	Column         int    `json:"column"`
+	Line   int `json:"line"`
+	Column int `json:"column"`
+	// LineText is the raw text of the line, without its line terminator, in
+	// the version its side refers to. The brief does not show it: finalize,
+	// which has no file contents, fingerprints findings with it.
+	LineText       string `json:"lineText"`
 	Origin         Origin `json:"origin"`
 	NeedsJudgement bool   `json:"needsJudgement"`
 	// References are the places in the code the signal relies on; a
@@ -89,6 +93,38 @@ func RulesOf(catalogs ...*rules.Catalog) map[string]*rules.Rule {
 type ChangedFile struct {
 	Diff       FileDiff
 	Base, Head []string
+	// HeadRegions are the lines of the HEAD version that are known when
+	// Head is not: the regions of a large file that a work package carries.
+	// The text of a line outside them is unknown.
+	HeadRegions []Region
+}
+
+// sideOrRight is the side of the signal, RIGHT by default.
+func (s Signal) sideOrRight() Side {
+	if s.Side == Left {
+		return Left
+	}
+	return Right
+}
+
+// textAt returns the text of a line of the side, and whether it is known:
+// from the contents of the file at that version, else from the regions of
+// the file the work package shows, else from the diff.
+func (f ChangedFile) textAt(side Side, line int) (string, bool) {
+	if lines, ok := f.lines(side); ok && line >= 1 && line <= len(lines) {
+		return lines[line-1], true
+	}
+	if side == Right && f.Head == nil {
+		for _, r := range f.HeadRegions {
+			if i := line - r.Start; i >= 0 && i < len(r.Lines) {
+				return r.Lines[i], true
+			}
+		}
+	}
+	if _, l, ok := f.Diff.lineAt(side, line); ok {
+		return l.Text, true
+	}
+	return "", false
 }
 
 // lines returns the lines of the side, and whether they are known.

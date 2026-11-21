@@ -135,6 +135,7 @@
       "path": "src/main/java/com/example/feature/ui/LongScreen.kt",
       "line": 400,
       "column": 141,
+      "lineText": "    val title = \"New\"",
       "origin": "mr",
       "needsJudgement": false
     },
@@ -145,6 +146,7 @@
       "path": "src/main/java/com/example/feature/ui/LongScreen.kt",
       "line": 400,
       "column": 5,
+      "lineText": "    val title = \"New\"",
       "origin": "mr",
       "needsJudgement": true
     }

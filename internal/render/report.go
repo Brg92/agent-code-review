@@ -73,7 +73,7 @@ func Report(version string, d core.Document) string {
 	b.line(headerLine(version, d))
 	b.line(packsLine(d.Criteria))
 	if short(d) {
-		b.line(fmt.Sprintf("No findings on %s. Pipeline: %s. Verdict: OK.", plural(len(d.Files), "changed file", "changed files"), pipeline(d.CI)))
+		b.line(fmt.Sprintf("No findings on %s, reviewed at head %s. Pipeline: %s. Verdict: OK.", plural(len(d.Files), "changed file", "changed files"), head8(d.HeadSHA), pipeline(d.CI)))
 		notVerified(&b, d)
 		notes(&b, d)
 		return b.String()

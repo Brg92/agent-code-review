@@ -103,6 +103,7 @@
       "path": "app/src/main/java/com/example/sample/MainActivity.kt",
       "line": 13,
       "column": 9,
+      "lineText": "        runBlocking { SessionManager.instance.refresh() }",
       "origin": "base",
       "needsJudgement": false
     },
@@ -113,6 +114,7 @@
       "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
       "line": 8,
       "column": 73,
+      "lineText": "    fun displayName(): String = prefs.getString(\"display_name\", null)!!",
       "origin": "existing",
       "needsJudgement": true
     },
@@ -123,6 +125,7 @@
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "line": 13,
       "column": 9,
+      "lineText": "        GlobalScope.launch {",
       "origin": "existing",
       "needsJudgement": false
     },
@@ -133,6 +136,7 @@
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "line": 19,
       "column": 9,
+      "lineText": "        GlobalScope.launch {",
       "origin": "mr",
       "needsJudgement": false
     },
@@ -143,6 +147,7 @@
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "line": 20,
       "column": 47,
+      "lineText": "            val user = sessionManager.current()!!.userName",
       "origin": "mr",
       "needsJudgement": true
     }

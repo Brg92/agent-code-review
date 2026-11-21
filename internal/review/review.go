@@ -62,6 +62,10 @@ type Package struct {
 	Parts int
 	// NotVerified is how many files could not be checked.
 	NotVerified int
+
+	// review is the review the work package was built with, with the
+	// whole files: what finalize rebuilds from the work package alone.
+	review core.Review
 }
 
 // Run is a collected review.
@@ -122,18 +126,25 @@ type collector struct {
 func (c *collector) host() string { return c.root.Host }
 
 func (c *collector) registry() (refs.Registry, error) {
+	return composeRegistry(c.d.Registries, c.root.Forge, c.root.String())
+}
+
+// composeRegistry makes the registry of the platform of a cascade: the one
+// of its forge reads the Related Changes, the others only recognise links
+// to be skipped.
+func composeRegistry(registries []refs.Registry, forge core.Forge, where string) (refs.Registry, error) {
 	var primary refs.Registry
 	var others []refs.Registry
-	for _, r := range c.d.Registries {
-		if primary == nil && r.Forge() == c.root.Forge {
+	for _, r := range registries {
+		if primary == nil && r.Forge() == forge {
 			primary = r
 			continue
 		}
 		others = append(others, r)
 	}
 	if primary == nil {
-		return nil, &Failure{Kind: KindUsage, What: "the platform of the change request is not supported", Where: c.root.String(),
-			Why: "no reference registry for " + string(c.root.Forge), Hint: "give a pull request of a platform this release reads"}
+		return nil, &Failure{Kind: KindUsage, What: "the platform of the change request is not supported", Where: where,
+			Why: "no reference registry for " + string(forge), Hint: "give a pull request of a platform this release reads"}
 	}
 	return refs.Compose(primary, others...), nil
 }

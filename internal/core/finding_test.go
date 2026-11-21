@@ -134,7 +134,6 @@ func TestFinalizeSuggestions(t *testing.T) {
 		{"single added line", "app/A.kt", Right, 0, 2, false, true, "inline", "added RIGHT 2"},
 		{"lines past the hunk", "app/A.kt", Right, 3, 5, false, false, "inline", "relocated RIGHT 4 for 5"},
 		{"left side", "app/Old.kt", Left, 0, 1, false, false, "inline", "removed LEFT 1"},
-		{"file without a patch", "app/Big.kt", Right, 0, 1, false, false, "summary", "none"},
 		// Existing code is never commented inline: its anchor stays, its
 		// suggestion becomes part of the fix.
 		{"pre-existing on lines of one hunk", "app/A.kt", Right, 2, 3, true, false, "summary", "context RIGHT 3"},
@@ -336,5 +335,42 @@ func TestRulesOfKeepsTheFirstRuleOfAnID(t *testing.T) {
 	got := RulesOf(a, b)
 	if len(got) != 2 || got["x"].Title != "from a" || got["y"].Title != "y" {
 		t.Errorf("RulesOf = %+v", got)
+	}
+}
+
+// TestUnknownLineTextIsAnError: the text of a line of a file that has
+// shown lines, but not this one, and that no signal carries, is never made
+// up as an empty text.
+func TestUnknownLineTextIsAnError(t *testing.T) {
+	d := mustFile(t, "app/A.kt", FileModified, "@@ -1,2 +1,2 @@\n a\n-b\n+c\n")
+	file := ChangedFile{Diff: d.Diff, HeadRegions: []Region{{Start: 1, Lines: []string{"a", "c"}}}}
+	r := Review{Files: []ChangedFile{file}, Signals: []Signal{{ID: "s1", Path: "app/A.kt", Line: 90, LineText: ""}, {ID: "s2", Path: "app/A.kt", Side: Left, Line: 91, LineText: "gone"}}}
+	tests := []struct {
+		path string
+		side Side
+		line int
+		want string
+		err  string
+	}{
+		{"app/A.kt", Right, 2, "c", ""},
+		{"app/A.kt", Left, 2, "b", ""},
+		{"app/A.kt", Right, 90, "", ""}, // the signal's line is known, and empty
+		{"app/A.kt", Left, 91, "gone", ""},
+		{"app/A.kt", Right, 50, "", "the text of line 50 of app/A.kt is unknown"},
+		{"app/A.kt", Left, 90, "", "the text of line 90 of app/A.kt is unknown"},
+	}
+	for _, tt := range tests {
+		got, err := lineText(r, tt.path, tt.side, tt.line)
+		if got != tt.want || (tt.err == "") != (err == nil) || err != nil && !strings.Contains(err.Error(), tt.err) {
+			t.Errorf("%s %s:%d = %q, %v; want %q, %q", tt.side, tt.path, tt.line, got, err, tt.want, tt.err)
+		}
+	}
+	// So is the text of a line of a file the agent was shown nothing of.
+	bare := Review{Files: []ChangedFile{{Diff: FileDiff{Path: "big.kt", Status: FileModified}}}, Signals: []Signal{{ID: "s1", Path: "big.kt", Line: 3, LineText: "known"}}}
+	if got, err := lineText(bare, "big.kt", Right, 9); got != "" || err == nil || !strings.Contains(err.Error(), "the text of line 9 of big.kt is unknown") {
+		t.Errorf("a file with no shown lines: %q, %v", got, err)
+	}
+	if got, err := lineText(bare, "big.kt", Right, 3); got != "known" || err != nil {
+		t.Errorf("the line of a signal in a file with no shown lines: %q, %v", got, err)
 	}
 }

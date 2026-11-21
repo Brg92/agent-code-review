@@ -134,7 +134,12 @@ Reports:
 - acr-plugin-sandbox/core-lib#3 — work/core-lib-3/report.txt
 - acr-plugin-sandbox/sample-app#7 — work/sample-app-7/report.txt
 
-` + summary
+` + summary + `
+Next:
+  agent-code-review show <cr>       read the full report of a change request
+  agent-code-review show --save     save a report outside any git work tree
+  agent-code-review publish --plan  plan what to write to GitHub (not available yet)
+`
 	if got != want {
 		t.Errorf("got\n%s\nwant\n%s", got, want)
 	}
@@ -148,7 +153,7 @@ func TestFinalNamesThePlatform(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasPrefix(got, "Review completed. Nothing was written to GitLab.\n") {
+	if !strings.HasPrefix(got, "Review completed. Nothing was written to GitLab.\n") || !strings.Contains(got, "publish --plan  plan what to write to GitLab (not available yet)\n") {
 		t.Errorf("got\n%s", got)
 	}
 }

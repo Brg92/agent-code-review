@@ -1,0 +1,15 @@
+Review completed. Nothing was written to GitHub.
+
+Reports:
+
+- acr-plugin-sandbox/sample-app#5 — <run>/acr-plugin-sandbox_sample-app-5-edf5ce35/report.txt
+
+Cascade — acr-plugin-sandbox/sample-app#5 · 1 reviewed · 0 skipped · 0 not followed
+
+  1. acr-plugin-sandbox/sample-app#5   OK        0 blocker · 1 major · 0 minor (+0 existing)
+Overall: OK
+
+Next:
+  agent-code-review show <cr>       read the full report of a change request
+  agent-code-review show --save     save a report outside any git work tree
+  agent-code-review publish --plan  plan what to write to GitHub (not available yet)

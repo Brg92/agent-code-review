@@ -1,0 +1,4 @@
+Cascade — acr-plugin-sandbox/sample-app#2 · 1 reviewed · 0 skipped · 0 not followed
+
+  1. acr-plugin-sandbox/sample-app#2   BLOCKED   3 blocker · 3 major · 0 minor (+2 existing, 1 crash)
+Overall: BLOCKED

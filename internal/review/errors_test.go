@@ -73,3 +73,19 @@ func TestClassifyReads(t *testing.T) {
 		t.Errorf("where %q", withOp.Where)
 	}
 }
+
+func TestFailureReportListsItsProblems(t *testing.T) {
+	f := &Failure{Kind: KindValidation, What: "the judgements are not valid", Where: "2 change requests", Why: "2 problems", Hint: "fix them",
+		Details: []string{"github:github.com/o/r#3 — /work/judgement.json", "  /findings/0/title: the title must be\none non-empty line", "  /notes/0: the note is empty"}}
+	want := "agent-code-review: the judgements are not valid\n" +
+		"  where: 2 change requests\n" +
+		"  why: 2 problems\n" +
+		"  problems:\n" +
+		"    github:github.com/o/r#3 — /work/judgement.json\n" +
+		"      /findings/0/title: the title must be one non-empty line\n" +
+		"      /notes/0: the note is empty\n" +
+		"  what to do: fix them\n"
+	if got := f.Report(); got != want {
+		t.Errorf("report:\n%s\nwant:\n%s", got, want)
+	}
+}
