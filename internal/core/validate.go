@@ -108,6 +108,20 @@ func (v *validator) finding(at string, f JudgedFinding, preExisting bool) {
 	case f.StartLine > f.Line:
 		v.add(at+"/startLine", "startLine %d is after line %d", f.StartLine, f.Line)
 	}
+	pastEnd := linesKnown && f.Line > len(lines)
+	if changed && sideOK && !pastEnd && f.Line >= 1 && f.StartLine >= 0 && f.StartLine <= f.Line && file.showsLines() {
+		switch {
+		case !file.shown(f.Side, f.Line):
+			v.add(at+"/line", "line %d of %s was not shown to the agent: judge the lines of the diff and of the code of the work package", f.Line, f.Path)
+		case f.StartLine > 0:
+			for n := f.StartLine; n < f.Line; n++ {
+				if !file.shown(f.Side, n) {
+					v.add(at+"/startLine", "line %d of %s was not shown to the agent: the finding runs from line %d to line %d", n, f.Path, f.StartLine, f.Line)
+					break
+				}
+			}
+		}
+	}
 	v.check(!blank(f.Title) && !strings.ContainsAny(f.Title, "\r\n"), at+"/title", "the title must be one non-empty line")
 	v.check(!blank(f.Why), at+"/why", "why is empty: say what goes wrong")
 	v.check(!blank(f.Fix), at+"/fix", "fix is empty: a finding without a fix is not a finding")

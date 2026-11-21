@@ -219,3 +219,28 @@ func lineText(r Review, path string, side Side, line int) string {
 	}
 	return ""
 }
+
+// shown reports whether line n of the side was shown to the agent: on the
+// RIGHT side every line of a file shown whole, the lines of its regions and
+// the added and context lines of its diff; on the LEFT side the removed and
+// context lines of its diff.
+func (f ChangedFile) shown(side Side, n int) bool {
+	if side == Right {
+		if n >= 1 && n <= len(f.Head) {
+			return true
+		}
+		for _, r := range f.HeadRegions {
+			if i := n - r.Start; i >= 0 && i < len(r.Lines) {
+				return true
+			}
+		}
+	}
+	_, _, ok := f.Diff.lineAt(side, n)
+	return ok
+}
+
+// showsLines reports whether the file shows any line to the agent: its
+// contents, regions of them, or a diff.
+func (f ChangedFile) showsLines() bool {
+	return len(f.Head) > 0 || len(f.HeadRegions) > 0 || f.Diff.Visible()
+}

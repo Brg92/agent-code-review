@@ -289,3 +289,28 @@ func TestFinalizeDamagedRun(t *testing.T) {
 		asFailure(t, err, KindUnexpected)
 	})
 }
+
+// TestFinalizeRefusesAFindingOnALineTheAgentWasNotShown: a validation
+// error like any other, with its pointer and the path and line it names.
+func TestFinalizeRefusesAFindingOnALineTheAgentWasNotShown(t *testing.T) {
+	m, work := collectedRun(t)
+	const path = "src/main/java/com/example/feature/ui/LongScreen.kt"
+	j := validJudgementOf(m.LibWP)
+	j.Findings = []core.JudgedFinding{
+		{Rule: "logic-defect", Severity: core.Major, Path: path, Side: core.Right, Line: 5, Title: "t", Why: "w", Fix: "f", References: []core.Reference{}},
+		{Rule: "logic-defect", Severity: core.Major, Path: path, Side: core.Right, StartLine: 3, Line: 380, Title: "t", Why: "w", Fix: "f", References: []core.Reference{}},
+		{Rule: "logic-defect", Severity: core.Major, Path: path, Side: core.Right, Line: 381, Title: "t", Why: "w", Fix: "f", References: []core.Reference{}},
+	}
+	writeJudgementOf(t, m.LibJudgement, j)
+	_, _, _, err := finalize(t, work, "")
+	f := asFailure(t, err, KindValidation)
+	got := strings.Join(f.Details, "\n")
+	for _, want := range []string{"/findings/0/line: line 5 of " + path + " was not shown to the agent", "/findings/1/startLine: line 3 of " + path + " was not shown to the agent"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("no %q in:\n%s", want, got)
+		}
+	}
+	if strings.Contains(got, "/findings/2/") {
+		t.Errorf("a line of a region was refused:\n%s", got)
+	}
+}

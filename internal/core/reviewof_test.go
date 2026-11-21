@@ -90,9 +90,10 @@ func TestReviewOfGivesTheFindingsOfTheOriginalReview(t *testing.T) {
 
 func wpCR(wp core.WorkPackage) string { return wp.CR.String() }
 
-// TestReviewOfKnowsTheLinesOfTheCodeItShows: a line past the end of a
-// file shown whole is refused as it is in the original review; a line of
-// a file shown in regions whose end is not known is not.
+// TestReviewOfKnowsTheLinesOfTheCodeItShows: a line past the end of a file
+// shown whole is refused as it is in the original review; the end of a
+// file shown in regions is not known, but what the work package does not
+// show is refused whatever the end.
 func TestReviewOfKnowsTheLinesOfTheCodeItShows(t *testing.T) {
 	wp, _, err := core.BuildWorkPackage(bigAndSmall(t))
 	if err != nil {
@@ -105,15 +106,16 @@ func TestReviewOfKnowsTheLinesOfTheCodeItShows(t *testing.T) {
 	}
 	small, big := "app/src/main/kotlin/Small.kt", "app/src/main/kotlin/Big.kt"
 	j := core.Judgement{
-		Schema: 1, CR: wp.CR.String(), HeadSHA: wp.HeadSHA,
+		Schema: 1, CR: wp.CR.String(), HeadSHA: wp.HeadSHA, PreExisting: []core.JudgedFinding{},
 		Findings: []core.JudgedFinding{judgedFinding(small, 11), judgedFinding(big, 400), judgedFinding(big, 7)},
 	}
-	err = core.ValidateJudgement(r, j)
-	ve, ok := err.(core.ValidationError)
-	if !ok || len(ve) != 1 || ve[0].Pointer != "/findings/0/line" || !strings.Contains(ve[0].Message, "past the end of "+small) {
-		t.Errorf("errors: %v", err)
+	ve, ok := core.ValidateJudgement(r, j).(core.ValidationError)
+	if !ok || len(ve) != 3 || ve[0].Pointer != "/findings/0/line" || !strings.Contains(ve[0].Message, "past the end of "+small) ||
+		ve[1].Pointer != "/findings/1/line" || ve[2].Pointer != "/findings/2/line" || !strings.Contains(ve[2].Message, "line 7 of "+big+" was not shown") {
+		t.Errorf("errors: %v", ve)
 	}
-	res, err := core.Finalize(r, core.Judgement{Schema: 1, CR: j.CR, HeadSHA: j.HeadSHA, Findings: j.Findings[1:]})
+	j.Findings = []core.JudgedFinding{judgedFinding(big, 110), judgedFinding(big, 300)}
+	res, err := core.Finalize(r, j)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,5 +190,71 @@ func TestReviewOfBadWorkPackage(t *testing.T) {
 	bad.Files[0].Diff, bad.Files[0].Status = "", "weird"
 	if _, err := core.ReviewOf(bad, set); err == nil {
 		t.Error("an unknown status was accepted")
+	}
+}
+
+// TestValidateJudgementRefusesLinesTheAgentWasNotShown: a finding is on
+// lines of the file the brief showed: all lines of a file shown whole, the
+// lines of its regions, and the lines of the diff of its side.
+func TestValidateJudgementRefusesLinesTheAgentWasNotShown(t *testing.T) {
+	in := bigAndSmall(t)
+	// A file the platform gave no patch of: nothing of it was shown.
+	in.Files = append(in.Files, core.PackageFileInput{File: core.ChangedFile{Diff: core.FileDiff{Path: "app/src/main/kotlin/Gen.kt", Status: core.FileModified}}})
+	wp, _, err := core.BuildWorkPackage(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	set, _ := syntheticSet(t)
+	r, err := core.ReviewOf(wp, set)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const big, small, gen = "app/src/main/kotlin/Big.kt", "app/src/main/kotlin/Small.kt", "app/src/main/kotlin/Gen.kt"
+	at := func(path string, side core.Side, start, line int) core.JudgedFinding {
+		f := judgedFinding(path, line)
+		f.Side, f.StartLine = side, start
+		return f
+	}
+	tests := []struct {
+		name    string
+		finding core.JudgedFinding
+		pointer string // empty: accepted
+		message string
+	}{
+		{"an added line", at(big, core.Right, 0, 100), "", ""},
+		{"a line of a region", at(big, core.Right, 0, 110), "", ""},
+		{"the first line of a region", at(big, core.Right, 0, 80), "", ""},
+		{"a line of a file shown whole", at(small, core.Right, 0, 9), "", ""},
+		{"a removed line", at(big, core.Left, 0, 100), "", ""},
+		{"a range inside a region", at(big, core.Right, 95, 105), "", ""},
+		{"a file with nothing shown", at(gen, core.Right, 0, 40), "", ""},
+		{"a line far from the regions", at(big, core.Right, 0, 7), "/findings/0/line", "line 7 of " + big + " was not shown to the agent"},
+		{"the line after a region", at(big, core.Right, 0, 121), "/findings/0/line", "line 121 of " + big + " was not shown to the agent"},
+		{"an unchanged line on the left", at(big, core.Left, 0, 110), "/findings/0/line", "line 110 of " + big + " was not shown to the agent"},
+		{"a range that starts outside", at(big, core.Right, 70, 100), "/findings/0/startLine", "line 70 of " + big + " was not shown to the agent"},
+		{"a range that crosses a gap", at(big, core.Right, 100, 290), "/findings/0/startLine", "line 121 of " + big + " was not shown to the agent"},
+	}
+	for _, tt := range tests {
+		for _, list := range []string{"findings", "preExisting"} {
+			t.Run(tt.name+" in "+list, func(t *testing.T) {
+				j := core.Judgement{Schema: 1, CR: wp.CR.String(), HeadSHA: wp.HeadSHA, Findings: []core.JudgedFinding{}, PreExisting: []core.JudgedFinding{}}
+				if list == "findings" {
+					j.Findings = []core.JudgedFinding{tt.finding}
+				} else {
+					j.PreExisting = []core.JudgedFinding{tt.finding}
+				}
+				err := core.ValidateJudgement(r, j)
+				if tt.pointer == "" {
+					if err != nil {
+						t.Errorf("refused: %v", err)
+					}
+					return
+				}
+				ve, ok := err.(core.ValidationError)
+				if !ok || len(ve) != 1 || ve[0].Pointer != strings.Replace(tt.pointer, "findings", list, 1) || !strings.Contains(ve[0].Message, tt.message) {
+					t.Errorf("errors %v, want %s: %s", err, tt.pointer, tt.message)
+				}
+			})
+		}
 	}
 }
