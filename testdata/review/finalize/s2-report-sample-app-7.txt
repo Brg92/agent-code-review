@@ -1,0 +1,27 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#7 "Show when the session expires"
+Packs: android (profile app: set in the repository criteria · ui-toolkit compose: android: **/build.gradle.kts contains "androidx.compose")
+Criteria: overlay .agent-code-review/ @main
+Scope: 2 changed files · head e9009ec0
+
+BLOCKER (0) — inline notes on publish
+
+MAJOR (2) — one issue on publish
+  [MAJOR]   app/src/main/java/com/example/sample/data/SessionRepository.kt:7 (relocated to 17) — Missing unit tests  [missing-tests]
+            why: The component has no unit test, so regressions in its logic cannot be detected before release.
+            fix: Add a unit test for the component under the module's `src/test` or `src/androidTest`.
+  [MAJOR]   app/src/main/java/com/example/sample/ui/HomeViewModel.kt:10 (relocated to 33) — Missing unit tests  [missing-tests]
+            why: The component has no unit test, so regressions in its logic cannot be detected before release.
+            fix: Add a unit test for the component under the module's `src/test` or `src/androidTest`.
+
+MINOR (0) — one issue on publish
+
+Existing code in touched files (1) — not written in this change request
+  [BLOCKER] app/src/main/java/com/example/sample/data/SessionRepository.kt:13 (relocated to 17) — Coroutine launched in GlobalScope  [global-scope]
+            why: The work outlives the component that started it and can never be cancelled, so it leaks and keeps running after the user leaves.
+            fix: Launch it in a scope tied to the component, such as `viewModelScope` or `lifecycleScope`, or take a `CoroutineScope` from the caller.
+
+Signals dismissed:
+  - missing-kdoc app/src/main/java/com/example/sample/data/SessionRepository.kt:20 — expiresAt() only forwards to SessionManager.expiresAt(), which documents it.
+  - missing-kdoc app/src/main/java/com/example/sample/ui/HomeViewModel.kt:36 — HomeState is a plain screen state whose properties name what they hold.
+Pipeline: passing on head (4 checks)
+Verdict: OK — nothing blocks; non-blocking findings go to issues on publish.

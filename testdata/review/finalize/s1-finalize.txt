@@ -1,0 +1,15 @@
+Review completed. Nothing was written to GitHub.
+
+Reports:
+
+- acr-plugin-sandbox/sample-app#2 — <run>/acr-plugin-sandbox_sample-app-2-76ae5f13/report.txt
+
+Cascade — acr-plugin-sandbox/sample-app#2 · 1 reviewed · 0 skipped · 0 not followed
+
+  1. acr-plugin-sandbox/sample-app#2   BLOCKED   3 blocker · 3 major · 0 minor (+2 existing, 1 crash)
+Overall: BLOCKED
+
+Next:
+  agent-code-review show <cr>       read the full report of a change request
+  agent-code-review show --save     save a report outside any git work tree
+  agent-code-review publish --plan  plan what to write to GitHub (not available yet)

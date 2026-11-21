@@ -276,3 +276,11 @@ func TestSaveRefusesAPathItMayNotUse(t *testing.T) {
 	_, err := Save(o, ShowDeps{Registries: d.Registries, Version: "1", Now: d.Now, HomeDir: func() (string, error) { return "", errors.New("no home") }}, log, "", "")
 	asFailure(t, err, KindPath)
 }
+
+// runlogFor is a run log that writes nowhere.
+func runlogFor(t testing.TB) *runlog.Log {
+	t.Helper()
+	l := runlog.New(func() time.Time { return now }, nil)
+	l.SetCommand("show")
+	return l
+}

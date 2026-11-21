@@ -1,0 +1,4 @@
+Cascade — acr-plugin-sandbox/sample-app#5 · 1 reviewed · 0 skipped · 0 not followed
+
+  1. acr-plugin-sandbox/sample-app#5   OK        0 blocker · 1 major · 0 minor (+0 existing)
+Overall: OK

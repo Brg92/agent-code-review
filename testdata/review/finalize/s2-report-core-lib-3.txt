@@ -1,0 +1,27 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/core-lib#3 "Replace legacyToken with expiresAt"
+Packs: android (profile library: set in the repository criteria · ui-toolkit both: android)
+Criteria: legacy .github/skills @main
+Scope: 1 changed file · head df06e9a9
+
+BLOCKER (1) — inline notes on publish
+  [BLOCKER] src/main/java/com/example/core/session/SessionManager.kt:39 — Removes legacyToken(), which a consumer still calls  [uses-removed-api]
+            why: `legacyToken()` is public API and is still called by a consumer: sample-app's `SessionRepository.authHeader()` on `main`, which the sample-app change in this cascade does not update. Removing it breaks that build.
+            fix: Migrate the consumer first, or keep the deprecated method for one more release.
+
+MAJOR (1) — one issue on publish
+  [MAJOR]   src/main/java/com/example/core/session/SessionManager.kt:7 (relocated to 34) — Missing unit tests  [missing-tests]
+            why: The component has no unit test, so regressions in its logic cannot be detected before release.
+            fix: Add a unit test for the component under the module's `src/test` or `src/androidTest`.
+
+MINOR (0) — one issue on publish
+
+Existing code in touched files (1) — not written in this change request
+  [MAJOR]   src/main/java/com/example/core/session/SessionManager.kt:24 (relocated to 34) — Dispatcher hard-coded  [hardcoded-dispatcher]
+            why: Tests cannot replace the dispatcher, so the code runs on real threads under test and becomes slow or flaky.
+            fix: Inject the dispatcher through the constructor and use it instead of naming `Dispatchers` in the code.
+
+Not verified:
+  - src/main/java/com/example/core/session/SessionManager.kt — search-unavailable: uses-removed-api: legacyToken
+Pipeline: passing on head (2 checks)
+Notes: Legacy criteria are in use: .github/skills and .github/mr-review.json.
+Verdict: BLOCKED — 1 blocker in the change to fix, then review again.

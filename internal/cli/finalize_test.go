@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -246,7 +247,7 @@ func TestFinalizeAndShowUsage(t *testing.T) {
 }
 
 func TestVerboseOnFinalizeAndShow(t *testing.T) {
-	e, _, runDir, judgement := reviewedS1(t)
+	e, work, runDir, judgement := reviewedS1(t)
 	copyFile(t, []string{"testdata", "review", "judgements", "s1-sample-app-2.json"}, judgement)
 	f := runWith(t, e, "finalize", "--verbose")
 	if f.code != exitOK || !strings.Contains(f.stderr, "\tfinalize\tgithub:github.com/"+s1Root+"\tfinalize\t") {
@@ -262,5 +263,23 @@ func TestVerboseOnFinalizeAndShow(t *testing.T) {
 	}
 	if !strings.HasSuffix(string(log), f.stderr+s.stderr) {
 		t.Errorf("--verbose differs from the end of run.log:\n%s", log)
+	}
+	// The token reached the platform and nothing else: not what the
+	// commands print, not a file they write.
+	for label, text := range map[string]string{"finalize stdout": f.stdout, "finalize stderr": f.stderr, "show stdout": s.stdout, "show stderr": s.stderr} {
+		noCanary(t, label, text)
+	}
+	err = filepath.WalkDir(work, func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		data, err := os.ReadFile(p)
+		if err == nil && strings.Contains(string(data), reviewreplay.Canary) {
+			t.Errorf("%s holds the token", p)
+		}
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 }

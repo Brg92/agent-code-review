@@ -1,0 +1,24 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#5 "Show profile initials"
+Packs: android (profile app: set in the repository criteria · ui-toolkit compose: android: **/build.gradle.kts contains "androidx.compose")
+Criteria: overlay .agent-code-review/ @main
+Scope: 2 changed files · head edf5ce35
+
+BLOCKER (0) — inline notes on publish
+
+MAJOR (1) — one issue on publish
+  [MAJOR]   app/src/main/java/com/example/sample/data/ProfileStore.kt:10 — Not-null assertion  [no-double-bang]
+            why: `!!` throws a NullPointerException as soon as the value is null, which crashes the app.
+            fix: Handle null with `?.`, `?:`, a smart cast or `requireNotNull` with a message.
+
+MINOR (0) — one issue on publish
+
+Existing code in touched files (0) — not written in this change request
+
+Signals dismissed:
+  - no-double-bang app/src/main/java/com/example/sample/data/ProfileStore.kt:8 — The line is not part of this change request.
+  - missing-kdoc app/src/main/java/com/example/sample/data/ProfileStore.kt:10 — initials() says what it returns.
+Not verified:
+  - .agent-code-review/config.json — unsupported-language: no pack covers .json files
+Pipeline: passing on head (4 checks)
+Notes: Criteria changed in this change request are not applied: .agent-code-review/config.json. The criteria of main are used.
+Verdict: OK — nothing blocks; non-blocking findings go to issues on publish.

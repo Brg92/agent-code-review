@@ -1,0 +1,20 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/kmp-shared#2 "Add a session countdown"
+Packs: kotlin-multiplatform, android (profile library: cascade dependency of github:github.com/acr-plugin-sandbox/core-lib#3 · ui-toolkit both: android)
+Criteria: defaults @main
+Scope: 1 changed file · head f9d862f3
+
+BLOCKER (0) — inline notes on publish
+
+MAJOR (0) — one issue on publish
+
+MINOR (0) — one issue on publish
+
+Existing code in touched files (0) — not written in this change request
+
+Signals dismissed:
+  - missing-kdoc shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt:3 — The class is internal to the module; its name says what it counts.
+  - missing-kdoc shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt:4 — A plain property of an internal class.
+no findings: shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt
+Pipeline: passing on head (2 checks)
+Notes: No repository criteria on main: only the pack and core rules apply.
+Verdict: OK — nothing blocks; non-blocking findings go to issues on publish.

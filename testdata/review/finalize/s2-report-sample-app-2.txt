@@ -1,0 +1,40 @@
+agent-code-review v0.0.0-dev — acr-plugin-sandbox/sample-app#2 "Prefetch the session on startup"
+Packs: android (profile app: set in the repository criteria · ui-toolkit compose: android: **/build.gradle.kts contains "androidx.compose")
+Criteria: overlay .agent-code-review/ @main
+Scope: 4 changed files · head 76ae5f13
+
+BLOCKER (3) — inline notes on publish
+  [BLOCKER] app/src/main/java/com/example/sample/MainActivity.kt:13 — runBlocking in production code  [run-blocking-prod]
+            why: The calling thread stops until the block completes; on the main thread this freezes the UI and can cause an ANR.
+            fix: Make the caller a suspend function, or launch the work in a lifecycle-aware scope.
+  [BLOCKER] app/src/main/java/com/example/sample/data/SessionRepository.kt:19 — Coroutine launched in GlobalScope  [global-scope]
+            why: The work outlives the component that started it and can never be cancelled, so it leaks and keeps running after the user leaves.
+            fix: Launch it in a scope tied to the component, such as `viewModelScope` or `lifecycleScope`, or take a `CoroutineScope` from the caller.
+  [BLOCKER] app/src/main/java/com/example/sample/ui/HomeViewModel.kt:27 (relocated to 16) — requireUser() always throws in refresh()  [logic-defect]
+            why: This change removes the `warmUp()` call from `init`, and nothing else calls `warmUp()`. `cachedUser` therefore stays null, and `requireUser()` always throws IllegalStateException when `refresh()` runs.
+            fix: Keep the `repository.warmUp()` call in `init`.
+
+MAJOR (3) — one issue on publish
+  [MAJOR]   app/src/main/java/com/example/sample/data/SessionRepository.kt:7 (relocated to 15) — Missing unit tests  [missing-tests]
+            why: The component has no unit test, so regressions in its logic cannot be detected before release.
+            fix: Add a unit test for the component under the module's `src/test` or `src/androidTest`.
+  [MAJOR]   app/src/main/java/com/example/sample/data/SessionRepository.kt:20 — Not-null assertion  [no-double-bang]
+            why: `!!` throws a NullPointerException as soon as the value is null, which crashes the app.
+            fix: Handle null with `?.`, `?:`, a smart cast or `requireNotNull` with a message.
+  [MAJOR]   app/src/main/java/com/example/sample/ui/HomeViewModel.kt:10 (relocated to 11) — Missing unit tests  [missing-tests]
+            why: The component has no unit test, so regressions in its logic cannot be detected before release.
+            fix: Add a unit test for the component under the module's `src/test` or `src/androidTest`.
+
+MINOR (0) — one issue on publish
+
+Existing code in touched files (1) — not written in this change request
+  [BLOCKER] app/src/main/java/com/example/sample/data/ProfileStore.kt:8 — Not-null assertion  [no-double-bang] [crash]
+            why: `!!` throws a NullPointerException as soon as the value is null, which crashes the app.
+            fix: Handle null with `?.`, `?:`, a smart cast or `requireNotNull` with a message.
+
+Signals dismissed:
+  - missing-kdoc app/src/main/java/com/example/sample/data/ProfileStore.kt:10 — hasDisplayName() says what it returns; a comment would repeat the name.
+  - [BLOCKER default] global-scope app/src/main/java/com/example/sample/data/SessionRepository.kt:13 — warmUp() is never called once this change request removes its caller.
+  - missing-kdoc app/src/main/java/com/example/sample/data/SessionRepository.kt:18 — prefetch() is internal to the app; the app profile asks no KDoc for it.
+Pipeline: passing on head (4 checks)
+Verdict: BLOCKED — 3 blockers in the change and 1 crashing defect in existing code to fix, then review again.
