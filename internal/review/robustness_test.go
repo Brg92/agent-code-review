@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -203,6 +204,9 @@ func TestNextOnADamagedRun(t *testing.T) {
 
 func TestOpenRunOnAWorkDirectoryThatCannotBeRead(t *testing.T) {
 	t.Run("runs is a file", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("listing a file as a directory says that nothing is there on Windows")
+		}
 		work := t.TempDir()
 		if err := os.WriteFile(filepath.Join(work, "runs"), nil, 0o600); err != nil {
 			t.Fatal(err)

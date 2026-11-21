@@ -47,6 +47,7 @@ func replayDepsOn(t testing.TB, r *sandbox.Replay) (Deps, string, *sandbox.Repla
 	verbose := &verboseLog{}
 	clock := &fakeClock{at: now}
 	log := runlog.New(clock.Now, verbose)
+	t.Cleanup(func() { _ = log.Close() })
 	reader, err := github.NewLoopback("github.com", r.URL(), reviewreplay.Tokens{}, github.Options{
 		Transport: transport.Config{Now: clock.Now, Sleep: clock.Sleep, Observe: log.Observe},
 	})

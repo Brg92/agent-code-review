@@ -128,6 +128,7 @@ func open(t testing.TB, work, runID string) (*Opened, *runlog.Log, *bytes.Buffer
 	t.Helper()
 	var verbose bytes.Buffer
 	log := runlog.New(func() time.Time { return now }, &verbose)
+	t.Cleanup(func() { _ = log.Close() })
 	log.SetCommand("next")
 	o, err := OpenRun(work, runID, log)
 	if err != nil {
@@ -470,6 +471,7 @@ func TestOpenRunAttachesTheRunLog(t *testing.T) {
 	work := t.TempDir()
 	m := makeRun(t, work, now, state.Collected)
 	log := runlog.New(func() time.Time { return now }, nil)
+	t.Cleanup(func() { _ = log.Close() })
 	if _, err := OpenRun(work, "", log); err != nil {
 		t.Fatal(err)
 	}

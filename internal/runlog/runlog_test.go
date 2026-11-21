@@ -26,6 +26,16 @@ func key(t *testing.T) core.Key {
 	return k
 }
 
+// attach attaches l to dir and closes it when the test ends: Windows cannot
+// remove a directory that holds an open file.
+func attach(t *testing.T, l *Log, dir string) {
+	t.Helper()
+	if err := l.Attach(dir); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = l.Close() })
+}
+
 func readLog(t *testing.T, dir string) string {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(dir, FileName))
@@ -38,9 +48,7 @@ func readLog(t *testing.T, dir string) string {
 func TestObserveWritesOneLinePerEvent(t *testing.T) {
 	dir := t.TempDir()
 	l := New(fixedClock, nil)
-	if err := l.Attach(dir); err != nil {
-		t.Fatal(err)
-	}
+	attach(t, l, dir)
 	l.SetCommand("review")
 	l.SetCR(key(t))
 	l.Observe(transport.Event{Method: "GET", Path: "/repos/acme/app/pulls/7/files", Status: 200, Duration: 120 * time.Millisecond, Attempts: 1, Outcome: transport.OutcomeOK})
@@ -57,9 +65,7 @@ func TestObserveWritesOneLinePerEvent(t *testing.T) {
 func TestEventsWithoutAChangeRequestOrAnAttempt(t *testing.T) {
 	dir := t.TempDir()
 	l := New(fixedClock, nil)
-	if err := l.Attach(dir); err != nil {
-		t.Fatal(err)
-	}
+	attach(t, l, dir)
 	l.SetCommand("next")
 	l.Event("serve part 2 of 3", "ok")
 	l.SetCR(key(t))
@@ -77,9 +83,7 @@ func TestEventsWithoutAChangeRequestOrAnAttempt(t *testing.T) {
 func TestFieldsNeverBreakTheLine(t *testing.T) {
 	dir := t.TempDir()
 	l := New(fixedClock, nil)
-	if err := l.Attach(dir); err != nil {
-		t.Fatal(err)
-	}
+	attach(t, l, dir)
 	l.Event("a\nb\tc\r\x1b[31m", "x\ny")
 	got := readLog(t, dir)
 	if strings.Count(got, "\n") != 1 || strings.Count(got, "\t") != 7 || strings.ContainsAny(got, "\r\x1b") {
@@ -91,9 +95,7 @@ func TestAttachAppends(t *testing.T) {
 	dir := t.TempDir()
 	for i := range 2 {
 		l := New(fixedClock, nil)
-		if err := l.Attach(dir); err != nil {
-			t.Fatal(err)
-		}
+		attach(t, l, dir)
 		l.SetCommand([]string{"review", "next"}[i])
 		l.Event("op", "ok")
 		if err := l.Close(); err != nil {
@@ -109,9 +111,7 @@ func TestAttachAppends(t *testing.T) {
 func TestLogIsPrivate(t *testing.T) {
 	dir := t.TempDir()
 	l := New(fixedClock, nil)
-	if err := l.Attach(dir); err != nil {
-		t.Fatal(err)
-	}
+	attach(t, l, dir)
 	info, err := os.Stat(l.Path())
 	if err != nil {
 		t.Fatal(err)
@@ -129,9 +129,7 @@ func TestVerboseWritesTheSameLines(t *testing.T) {
 	dir := t.TempDir()
 	var stderr bytes.Buffer
 	l := New(fixedClock, &stderr)
-	if err := l.Attach(dir); err != nil {
-		t.Fatal(err)
-	}
+	attach(t, l, dir)
 	l.SetCommand("review")
 	l.Event("op", "ok")
 	if got := readLog(t, dir); got != stderr.String() || got == "" {
@@ -171,9 +169,7 @@ func TestAttachFailure(t *testing.T) {
 func TestWriteErrorsDoNotStopTheRun(t *testing.T) {
 	dir := t.TempDir()
 	l := New(fixedClock, nil)
-	if err := l.Attach(dir); err != nil {
-		t.Fatal(err)
-	}
+	attach(t, l, dir)
 	if err := l.Close(); err != nil {
 		t.Fatal(err)
 	}

@@ -109,6 +109,9 @@ func deps(t testing.TB, reader base.Reader) (Deps, string, *bytes.Buffer) {
 	t.Helper()
 	work := t.TempDir()
 	var verbose bytes.Buffer
+	log := runlog.New(func() time.Time { return now }, &verbose)
+	// Windows cannot remove a directory that holds an open file.
+	t.Cleanup(func() { _ = log.Close() })
 	return Deps{
 		Reader:     reader,
 		Registries: []refs.Registry{github.Registry{}},
@@ -117,7 +120,7 @@ func deps(t testing.TB, reader base.Reader) (Deps, string, *bytes.Buffer) {
 		KeepDays:   state.DefaultKeepDays,
 		Now:        func() time.Time { return now },
 		Random:     rand.New(rand.NewSource(1)),
-		Log:        runlog.New(func() time.Time { return now }, &verbose),
+		Log:        log,
 	}, work, &verbose
 }
 
