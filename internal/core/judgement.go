@@ -107,16 +107,24 @@ func (s Signal) sideOrRight() Side {
 	return Right
 }
 
-// textOf returns the text of a line of the side from the contents of the
-// file, else from the diff; empty when neither has it.
-func (f ChangedFile) textOf(side Side, line int) string {
+// textAt returns the text of a line of the side, and whether it is known:
+// from the contents of the file at that version, else from the regions of
+// the file the work package shows, else from the diff.
+func (f ChangedFile) textAt(side Side, line int) (string, bool) {
 	if lines, ok := f.lines(side); ok && line >= 1 && line <= len(lines) {
-		return lines[line-1]
+		return lines[line-1], true
+	}
+	if side == Right && f.Head == nil {
+		for _, r := range f.HeadRegions {
+			if i := line - r.Start; i >= 0 && i < len(r.Lines) {
+				return r.Lines[i], true
+			}
+		}
 	}
 	if _, l, ok := f.Diff.lineAt(side, line); ok {
-		return l.Text
+		return l.Text, true
 	}
-	return ""
+	return "", false
 }
 
 // lines returns the lines of the side, and whether they are known.

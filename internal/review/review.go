@@ -62,6 +62,10 @@ type Package struct {
 	Parts int
 	// NotVerified is how many files could not be checked.
 	NotVerified int
+
+	// review is the review the work package was built with, with the
+	// whole files: what finalize rebuilds from the work package alone.
+	review core.Review
 }
 
 // Run is a collected review.

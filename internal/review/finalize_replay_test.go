@@ -2,6 +2,7 @@ package review
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -93,6 +94,7 @@ func finalizeRecorded(t *testing.T, d Deps, scenario string, root core.Key) reco
 	}
 	for _, p := range run.Packages {
 		checkFindings(t, filepath.Join(p.Dir, state.FindingsFile))
+		sameAsTheCollection(t, p)
 	}
 	return recordedFlow{run: run, opened: o, finalized: f, deps: d}
 }
@@ -197,4 +199,41 @@ func TestFinalizeRecordedS2Cascade(t *testing.T) {
 		t.Fatal(err)
 	}
 	golden(t, "finalize/s2-root-saved.txt", saved)
+}
+
+// sameAsTheCollection: finalizing from the work package alone, as the
+// command does, gives the findings, ids included, that finalizing on the
+// review built while collecting, with the whole files, gives.
+func sameAsTheCollection(t *testing.T, p Package) {
+	t.Helper()
+	data, err := os.ReadFile(p.Judgement)
+	if err != nil {
+		t.Fatal(err)
+	}
+	j, err := core.DecodeJudgement(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := core.Finalize(p.review, j)
+	if err != nil {
+		t.Fatalf("%s: finalizing the review of the collection: %v", p.CR, err)
+	}
+	data, err = os.ReadFile(filepath.Join(p.Dir, state.FindingsFile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := core.DecodeDocument(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, pair := range map[string][2][]core.Finding{"findings": {got.Findings, want.Findings}, "preExisting": {got.PreExisting, want.PreExisting}} {
+		have, _ := json.Marshal(pair[0])
+		wanted, _ := json.Marshal(pair[1])
+		if string(have) != string(wanted) {
+			t.Errorf("%s %s differ:\nfinalized from the work package: %s\nfinalized on the collection:     %s", p.CR, name, have, wanted)
+		}
+	}
+	if got.Verdict != want.Verdict {
+		t.Errorf("%s: verdict %s, want %s", p.CR, got.Verdict, want.Verdict)
+	}
 }

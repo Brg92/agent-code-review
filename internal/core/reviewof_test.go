@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -190,6 +191,98 @@ func TestReviewOfBadWorkPackage(t *testing.T) {
 	bad.Files[0].Diff, bad.Files[0].Status = "", "weird"
 	if _, err := core.ReviewOf(bad, set); err == nil {
 		t.Error("an unknown status was accepted")
+	}
+}
+
+// shiftedBigFile is a file of 400 lines shown in regions around its two
+// changes, 100 and 300, with the texts "target A" and "target B" far from
+// both, as lines 200 and 350 and moved down by shift lines, as a push that
+// adds lines above would move them. The existing code there has a signal
+// of the same rule on each.
+func shiftedBigFile(t *testing.T, shift int) core.WorkPackageInput {
+	t.Helper()
+	const path = "app/src/main/kotlin/Big.kt"
+	head := numbered(400 + shift)
+	head[199+shift], head[349+shift] = "target A", "target B"
+	var patch strings.Builder
+	for _, l := range []int{100 + shift, 300 + shift} {
+		fmt.Fprintf(&patch, "@@ -%d,1 +%d,1 @@\n-old %d\n+%s\n", l, l, l, head[l-1])
+	}
+	d, err := core.NewFileDiff(path, "", core.FileModified, patch.String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := packageInput(t, core.PackageFileInput{File: core.ChangedFile{Diff: d, Head: head, Base: head}, Language: "kotlin"})
+	for _, line := range []int{200 + shift, 350 + shift} {
+		in.FileSignals = append(in.FileSignals, rules.Signal{RuleID: "mobile-lines", Severity: "MINOR", Path: path, Line: line, Column: 1, Origin: rules.OriginExisting})
+	}
+	return in
+}
+
+// TestFingerprintOfASignalOutsideTheRegionsStartsFromItsLineText: the
+// findings of two signals of one rule in one file, on lines the work
+// package does not show, are told apart by the text of their lines, not by
+// their order, so they keep their ids when a push moves them.
+func TestFingerprintOfASignalOutsideTheRegionsStartsFromItsLineText(t *testing.T) {
+	set, _ := syntheticSet(t)
+	ids := func(shift int) (map[string]string, core.Result) {
+		wp, orig, err := core.BuildWorkPackage(shiftedBigFile(t, shift))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(wp.Signals) != 2 || wp.Signals[0].LineText != "target A" || wp.Signals[1].LineText != "target B" {
+			t.Fatalf("signals %+v", wp.Signals)
+		}
+		r, err := core.ReviewOf(wp, set)
+		if err != nil {
+			t.Fatal(err)
+		}
+		j := core.Judgement{Schema: 1, CR: wp.CR.String(), HeadSHA: wp.HeadSHA, Findings: []core.JudgedFinding{}, PreExisting: []core.JudgedFinding{}}
+		res, err := core.Finalize(r, j)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// What the collecting process, with the whole file, makes of them.
+		want, err := core.Finalize(orig, j)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(res, want) {
+			t.Errorf("shift %d: finalized differently:\n got %+v\nwant %+v", shift, res, want)
+		}
+		byText := map[string]string{}
+		for i, f := range res.PreExisting {
+			byText[wp.Signals[i].LineText] = f.ID
+		}
+		return byText, res
+	}
+	before, res := ids(0)
+	if len(res.PreExisting) != 2 || before["target A"] == "" || before["target A"] == before["target B"] {
+		t.Fatalf("findings %+v", res.PreExisting)
+	}
+	after, _ := ids(5)
+	if !reflect.DeepEqual(before, after) {
+		t.Errorf("ids moved with the lines: %v, then %v", before, after)
+	}
+}
+
+// TestReviewOfShowsOnlyWhatTheWorkPackageShows: the text of a line the work
+// package carries nowhere is not made up.
+func TestReviewOfShowsOnlyWhatTheWorkPackageShows(t *testing.T) {
+	wp, _, err := core.BuildWorkPackage(shiftedBigFile(t, 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	set, _ := syntheticSet(t)
+	r, err := core.ReviewOf(wp, set)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Line 7 is outside the regions and has no signal.
+	j := core.Judgement{Schema: 1, CR: wp.CR.String(), HeadSHA: wp.HeadSHA, Findings: []core.JudgedFinding{judgedFinding("app/src/main/kotlin/Big.kt", 7)}, PreExisting: []core.JudgedFinding{}}
+	_, err = core.Finalize(r, j)
+	if err == nil {
+		t.Fatal("a finding on a line the work package does not show was finalized")
 	}
 }
 

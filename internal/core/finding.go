@@ -132,7 +132,9 @@ func Finalize(r Review, j Judgement) (Result, error) {
 		file, _ := r.file(res.PreExisting[i].Path)
 		place(&res.PreExisting[i], file.Diff, true)
 	}
-	fingerprint(r, all)
+	if err := fingerprint(r, all); err != nil {
+		return Result{}, fmt.Errorf("finalize %s: %w", r.CR, err)
+	}
 	res.Verdict = ChangeRequestVerdict(res.Findings, res.PreExisting)
 	return res, nil
 }
@@ -169,13 +171,17 @@ func place(f *Finding, d FileDiff, preExisting bool) {
 // fingerprint sets the id of each finding. The occurrence index of a line
 // text counts the findings with the same rule, path and normalised text in
 // side and line order, so it does not depend on the order of the lists.
-func fingerprint(r Review, all []*Finding) {
+func fingerprint(r Review, all []*Finding) error {
 	type key struct{ rule, path, text string }
 	groups := map[key][]int{}
 	texts := make([]string, len(all))
 	var order []key
 	for i, f := range all {
-		texts[i] = NormalizeLine(lineText(r, f.Path, f.Side, f.Line))
+		text, err := lineText(r, f.Path, f.Side, f.Line)
+		if err != nil {
+			return err
+		}
+		texts[i] = NormalizeLine(text)
 		k := key{f.Rule, f.Path, texts[i]}
 		if _, ok := groups[k]; !ok {
 			order = append(order, k)
@@ -198,26 +204,35 @@ func fingerprint(r Review, all []*Finding) {
 			all[i].ID = FindingFingerprint(k.rule, k.path, k.text, n)
 		}
 	}
+	return nil
 }
 
 // lineText is the text of a line of a changed file: from the file version
-// of the side when it is known, else from the diff, else empty.
-func lineText(r Review, path string, side Side, line int) string {
+// of the side when it is known, else from the regions of the work package,
+// else from the diff, else from a signal on that line, which carries its
+// text. A line whose text none of them has is an error, except in a file
+// the agent was shown no line of: its text is not known to anyone, and the
+// judgement may still say something about the file as a whole.
+func lineText(r Review, path string, side Side, line int) (string, error) {
 	file, _ := r.file(path)
-	if lines, ok := file.lines(side); ok && line >= 1 && line <= len(lines) {
-		return lines[line-1]
+	if text, ok := file.textAt(side, line); ok {
+		return text, nil
 	}
-	if side == Right && file.Head == nil {
-		for _, r := range file.HeadRegions {
-			if i := line - r.Start; i >= 0 && i < len(r.Lines) {
-				return r.Lines[i]
-			}
+	for _, s := range r.Signals {
+		if s.Path == path && s.sideOrRight() == side && s.Line == line {
+			return s.LineText, nil
 		}
 	}
-	if _, l, ok := file.Diff.lineAt(side, line); ok {
-		return l.Text
+	if !file.showsLines() {
+		return "", nil
 	}
-	return ""
+	return "", fmt.Errorf("the text of line %d of %s is unknown", line, path)
+}
+
+// showsLines reports whether the file shows any line to the agent: its
+// contents, regions of them, or a diff.
+func (f ChangedFile) showsLines() bool {
+	return len(f.Head) > 0 || len(f.HeadRegions) > 0 || f.Diff.Visible()
 }
 
 // shown reports whether line n of the side was shown to the agent: on the
@@ -237,10 +252,4 @@ func (f ChangedFile) shown(side Side, n int) bool {
 	}
 	_, _, ok := f.Diff.lineAt(side, n)
 	return ok
-}
-
-// showsLines reports whether the file shows any line to the agent: its
-// contents, regions of them, or a diff.
-func (f ChangedFile) showsLines() bool {
-	return len(f.Head) > 0 || len(f.HeadRegions) > 0 || f.Diff.Visible()
 }

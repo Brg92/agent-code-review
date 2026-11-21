@@ -324,7 +324,7 @@ func (c *collector) collectOne(ctx context.Context, e core.Entry, crit *core.Rep
 		}
 		related = append(related, core.RelatedChange{CR: o.CR, Title: o.Title, WorkPackage: path.Join(other, state.WorkPackageFile)})
 	}
-	wp, _, err := core.BuildWorkPackage(core.WorkPackageInput{
+	wp, built, err := core.BuildWorkPackage(core.WorkPackageInput{
 		RunID: c.runID, CR: k, URL: k.URL(), Title: m.Title, Description: m.Description,
 		HeadSHA: m.HeadSHA, BaseSHA: m.BaseSHA, BaseRef: m.TargetBranch,
 		Files: files, Ruleset: rs, Profile: profile.Name, ProfileReason: profileReason(profile), Dimensions: choices, Criteria: *crit, CI: ci,
@@ -348,7 +348,7 @@ func (c *collector) collectOne(ctx context.Context, e core.Entry, crit *core.Rep
 		return Package{}, err
 	}
 	c.analyses[lower(k)] = &analysis{project: k.ProjectKey(), head: m.HeadSHA, target: m.TargetBranch, files: engineFiles}
-	return Package{CR: k, Title: m.Title, Dir: dir, File: file, Judgement: filepath.Join(dir, state.JudgementFile), Parts: wp.Parts.Total, NotVerified: len(wp.NotVerified)}, nil
+	return Package{CR: k, Title: m.Title, Dir: dir, File: file, Judgement: filepath.Join(dir, state.JudgementFile), Parts: wp.Parts.Total, NotVerified: len(wp.NotVerified), review: built}, nil
 }
 
 // parentKey is the key of the change request that lists e, or "".

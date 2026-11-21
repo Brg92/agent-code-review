@@ -338,3 +338,37 @@ func TestRulesOfKeepsTheFirstRuleOfAnID(t *testing.T) {
 		t.Errorf("RulesOf = %+v", got)
 	}
 }
+
+// TestUnknownLineTextIsAnError: the text of a line of a file that has
+// shown lines, but not this one, and that no signal carries, is never made
+// up as an empty text.
+func TestUnknownLineTextIsAnError(t *testing.T) {
+	d := mustFile(t, "app/A.kt", FileModified, "@@ -1,2 +1,2 @@\n a\n-b\n+c\n")
+	file := ChangedFile{Diff: d.Diff, HeadRegions: []Region{{Start: 1, Lines: []string{"a", "c"}}}}
+	r := Review{Files: []ChangedFile{file}, Signals: []Signal{{ID: "s1", Path: "app/A.kt", Line: 90, LineText: ""}, {ID: "s2", Path: "app/A.kt", Side: Left, Line: 91, LineText: "gone"}}}
+	tests := []struct {
+		path string
+		side Side
+		line int
+		want string
+		err  string
+	}{
+		{"app/A.kt", Right, 2, "c", ""},
+		{"app/A.kt", Left, 2, "b", ""},
+		{"app/A.kt", Right, 90, "", ""}, // the signal's line is known, and empty
+		{"app/A.kt", Left, 91, "gone", ""},
+		{"app/A.kt", Right, 50, "", "the text of line 50 of app/A.kt is unknown"},
+		{"app/A.kt", Left, 90, "", "the text of line 90 of app/A.kt is unknown"},
+	}
+	for _, tt := range tests {
+		got, err := lineText(r, tt.path, tt.side, tt.line)
+		if got != tt.want || (tt.err == "") != (err == nil) || err != nil && !strings.Contains(err.Error(), tt.err) {
+			t.Errorf("%s %s:%d = %q, %v; want %q, %q", tt.side, tt.path, tt.line, got, err, tt.want, tt.err)
+		}
+	}
+	// A file the agent was shown nothing of has no text to know.
+	bare := Review{Files: []ChangedFile{{Diff: FileDiff{Path: "big.kt", Status: FileModified}}}}
+	if got, err := lineText(bare, "big.kt", Right, 9); got != "" || err != nil {
+		t.Errorf("a file with no shown lines: %q, %v", got, err)
+	}
+}
