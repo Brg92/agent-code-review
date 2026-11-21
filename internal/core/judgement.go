@@ -89,6 +89,10 @@ func RulesOf(catalogs ...*rules.Catalog) map[string]*rules.Rule {
 type ChangedFile struct {
 	Diff       FileDiff
 	Base, Head []string
+	// HeadRegions are the lines of the HEAD version that are known when
+	// Head is not: the regions of a large file that a work package carries.
+	// The text of a line outside them is unknown.
+	HeadRegions []Region
 }
 
 // lines returns the lines of the side, and whether they are known.

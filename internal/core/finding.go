@@ -207,6 +207,13 @@ func lineText(r Review, path string, side Side, line int) string {
 	if lines, ok := file.lines(side); ok && line >= 1 && line <= len(lines) {
 		return lines[line-1]
 	}
+	if side == Right && file.Head == nil {
+		for _, r := range file.HeadRegions {
+			if i := line - r.Start; i >= 0 && i < len(r.Lines) {
+				return r.Lines[i]
+			}
+		}
+	}
 	if _, l, ok := file.Diff.lineAt(side, line); ok {
 		return l.Text
 	}
