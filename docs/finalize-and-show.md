@@ -16,7 +16,7 @@ Both work on the most recent run that is not `published`, or on the run given wi
 ## `finalize`
 
 1. Reads the work package and the judgement of every reviewed change request of the run. Skipped entries have neither.
-2. Validates every judgement against its work package: the schema, the change request and head, the rules, the files and lines, the signals that need a decision. A judgement that is missing is a problem of the same list: `missing judgement for <cr>, run agent-code-review next`.
+2. Validates every judgement against its work package: the schema, the change request and head, the rules, the files and lines, the signals that need a decision. A finding, new or pre-existing, must be on a line the agent was shown: any line of a file shown whole, the lines of its regions, and the lines of the diff of its side (the removed lines on the left side). A finding on any other line, or a range from `startLine` to `line` that leaves them, is a validation error that names the path and the line; a file the work package shows no line of (no patch, placed in the summary) keeps the rule it had. A judgement that is missing is a problem of the same list: `missing judgement for <cr>, run agent-code-review next`.
 3. If any judgement is invalid or missing, **writes nothing** and leaves the phase as it is. It exits 3 and prints every problem, grouped by change request, each with the pointer of its field, so that the agent fixes everything in one round:
 
 ```text
@@ -39,6 +39,8 @@ agent-code-review: the judgements are not valid, nothing was finalized
 A run that is already finalized (or later) exits 8. To change a judgement after `finalize`, run `review` again.
 
 `finalize` does not check that the change request is still at the commit that was reviewed: every report says `reviewed at head <head8>`, and `publish` checks the head before it writes anything.
+
+The fingerprint of a finding starts from the text of its line, and `finalize` has no file contents: it takes the text from the file contents or the regions of the work package, then from the diff, then, for a signal, from the `lineText` that every signal of the work package carries (the raw text of its line, written by `review` and not shown in the brief). A work package written before `lineText` existed is refused: run `review` again.
 
 Rules and options come from the packs, not from the platform: the work package names the rules, and `finalize` takes their text from the packs it loads. A pack that no longer defines a rule of the work package is a failure (exit 1) that names the rule; run `review` again with the packs it was made with.
 
