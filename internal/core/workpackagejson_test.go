@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -72,5 +73,26 @@ func TestDecodeWorkPackageRefuses(t *testing.T) {
 				t.Error("no error")
 			}
 		})
+	}
+}
+
+// TestDecodeWorkPackageRefusesASignalWithoutItsLineText: a work package
+// written before every signal carried the text of its line cannot be
+// finalized, so it is refused when it is read.
+func TestDecodeWorkPackageRefusesASignalWithoutItsLineText(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "testdata", "contracts", "workpackage", "valid", "s1-signals.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := core.DecodeWorkPackage(data); err != nil {
+		t.Fatal(err)
+	}
+	old := regexp.MustCompile(`(?m)^\s*"lineText": .*\n`).ReplaceAll(data, nil)
+	if bytes.Equal(old, data) {
+		t.Fatal("the example has no lineText")
+	}
+	_, err = core.DecodeWorkPackage(old)
+	if err == nil || !strings.Contains(err.Error(), "signal s1 has no lineText") {
+		t.Errorf("error %v", err)
 	}
 }

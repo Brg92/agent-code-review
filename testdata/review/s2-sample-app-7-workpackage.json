@@ -1132,6 +1132,7 @@
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "line": 7,
       "column": 7,
+      "lineText": "class SessionRepository(",
       "origin": "mr",
       "needsJudgement": false
     },
@@ -1142,6 +1143,7 @@
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "line": 13,
       "column": 9,
+      "lineText": "        GlobalScope.launch {",
       "origin": "existing",
       "needsJudgement": false
     },
@@ -1152,6 +1154,7 @@
       "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
       "line": 20,
       "column": 5,
+      "lineText": "    fun expiresAt(): Long? = sessionManager.expiresAt()",
       "origin": "mr",
       "needsJudgement": true
     },
@@ -1162,6 +1165,7 @@
       "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
       "line": 10,
       "column": 7,
+      "lineText": "class HomeViewModel(",
       "origin": "mr",
       "needsJudgement": false
     },
@@ -1172,6 +1176,7 @@
       "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
       "line": 36,
       "column": 6,
+      "lineText": "data class HomeState(val title: String, val expiresAtMillis: Long? = null)",
       "origin": "mr",
       "needsJudgement": true
     }

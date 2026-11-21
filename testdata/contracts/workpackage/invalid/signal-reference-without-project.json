@@ -67,6 +67,7 @@
       "side": "LEFT",
       "line": 39,
       "column": 9,
+      "lineText": "    fun legacyToken(): String? = session?.token",
       "origin": "mr",
       "needsJudgement": true,
       "references": [

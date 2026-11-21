@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "runId": "20261102-100000-s1",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "url": "https://github.com/acr-plugin-sandbox/sample-app/pull/2",
+  "title": "Prefetch the session on startup",
+  "description": "Refreshes the session when the app starts and prefetches the user name.",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "baseSha": "fdd842c45ac32e215b8c8bbf97ecf19e31fee79f",
+  "baseRef": "main",
+  "criteria": {
+    "source": "overlay",
+    "profile": "app",
+    "profileReason": "set in .agent-code-review/config.json",
+    "packs": [
+      "android"
+    ],
+    "dimensions": {
+      "ui-toolkit": {
+        "value": "views",
+        "reason": "android default"
+      }
+    },
+    "files": [
+      ".agent-code-review/config.json",
+      ".agent-code-review/criteria.md"
+    ],
+    "ignored": [],
+    "notes": [
+      "Criteria changed in this change request are not applied: .agent-code-review/config.json. The criteria of main are used."
+    ]
+  },
+  "ci": {
+    "state": "failing",
+    "checks": [
+      {
+        "name": "unit",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "name": "lint",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "global-scope",
+      "severity": "BLOCKER",
+      "title": "Coroutine launched in GlobalScope",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "run-blocking-prod",
+      "severity": "BLOCKER",
+      "title": "runBlocking in production code",
+      "source": "android",
+      "group": "Coroutines and concurrency",
+      "needsJudgement": false
+    },
+    {
+      "id": "no-double-bang",
+      "severity": "MAJOR",
+      "title": "Not-null assertion",
+      "source": "android",
+      "group": "Error handling",
+      "needsJudgement": true
+    }
+  ],
+  "checklist": {
+    "sections": [
+      {
+        "heading": "Coroutines and concurrency",
+        "rules": [
+          "global-scope",
+          "run-blocking-prod"
+        ]
+      },
+      {
+        "heading": "Error handling",
+        "rules": [
+          "no-double-bang"
+        ]
+      }
+    ],
+    "repository": []
+  },
+  "files": [
+    {
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -11,3 +11,4 @@ class MainActivity : AppCompatActivity() {\n     override fun onCreate(savedInstanceState: Bundle?) {\n         super.onCreate(savedInstanceState)\n+        runBlocking { SessionManager.instance.refresh() }\n         setContentView(R.layout.activity_main)\n",
+      "code": {
+        "whole": false,
+        "regions": [
+          {
+            "start": 11,
+            "lines": [
+              "    override fun onCreate(savedInstanceState: Bundle?) {",
+              "        super.onCreate(savedInstanceState)",
+              "        runBlocking { SessionManager.instance.refresh() }",
+              "        setContentView(R.layout.activity_main)"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -7,3 +7,4 @@ class ProfileStore(context: Context) {\n \n     fun displayName(): String = prefs.getString(\"display_name\", null)!!\n \n+    fun hasDisplayName(): Boolean = prefs.contains(\"display_name\")\n",
+      "code": {
+        "whole": false,
+        "regions": [
+          {
+            "start": 7,
+            "lines": [
+              "",
+              "    fun displayName(): String = prefs.getString(\"display_name\", null)!!",
+              "",
+              "    fun hasDisplayName(): Boolean = prefs.contains(\"display_name\")"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "status": "modified",
+      "language": "kotlin",
+      "placement": "inline",
+      "diff": "@@ -15,6 +15,13 @@ class SessionRepository(\n         }\n     }\n \n+    fun prefetch() {\n+        GlobalScope.launch {\n+            val user = sessionManager.current()!!.userName\n+            cachedUser = user\n+        }\n+    }\n+\n     fun requireUser(): String = checkNotNull(cachedUser) { \"warmUp() must run first\" }\n \n     fun authHeader(): String = \"Bearer ${sessionManager.legacyToken()}\"\n",
+      "code": {
+        "whole": false,
+        "regions": [
+          {
+            "start": 13,
+            "lines": [
+              "        GlobalScope.launch {",
+              "            cachedUser = sessionManager.refresh()?.userName",
+              "        }",
+              "    }",
+              "",
+              "    fun prefetch() {",
+              "        GlobalScope.launch {",
+              "            val user = sessionManager.current()!!.userName",
+              "            cachedUser = user",
+              "        }",
+              "    }",
+              "",
+              "    fun requireUser(): String = checkNotNull(cachedUser) { \"warmUp() must run first\" }",
+              "",
+              "    fun authHeader(): String = \"Bearer ${sessionManager.legacyToken()}\""
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "signals": [
+    {
+      "id": "s1",
+      "rule": "run-blocking-prod",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "line": 13,
+      "column": 9,
+      "origin": "mr",
+      "needsJudgement": false
+    },
+    {
+      "id": "s2",
+      "rule": "no-double-bang",
+      "severity": null,
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "line": 8,
+      "column": 70,
+      "lineText": "    fun displayName(): String = prefs.getString(\"display_name\", null)!!",
+      "origin": "existing",
+      "needsJudgement": true
+    },
+    {
+      "id": "s3",
+      "rule": "global-scope",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 13,
+      "column": 9,
+      "lineText": "        GlobalScope.launch {",
+      "origin": "existing",
+      "needsJudgement": false
+    },
+    {
+      "id": "s4",
+      "rule": "global-scope",
+      "severity": "BLOCKER",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 19,
+      "column": 9,
+      "lineText": "        GlobalScope.launch {",
+      "origin": "mr",
+      "needsJudgement": false
+    },
+    {
+      "id": "s5",
+      "rule": "no-double-bang",
+      "severity": null,
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "line": 20,
+      "column": 48,
+      "lineText": "            val user = sessionManager.current()!!.userName",
+      "origin": "mr",
+      "needsJudgement": true
+    }
+  ],
+  "notVerified": [],
+  "relatedChanges": [],
+  "cascade": {
+    "ancestors": []
+  },
+  "parts": {
+    "total": 1,
+    "changeRequestSignals": [],
+    "files": [
+      [
+        "app/src/main/java/com/example/sample/MainActivity.kt",
+        "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+        "app/src/main/java/com/example/sample/data/SessionRepository.kt"
+      ]
+    ]
+  },
+  "judgementPath": "cr/sample-app-2/judgement.json"
+}

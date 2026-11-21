@@ -130,8 +130,8 @@ func TestChangeRequestSignalsBecomeFindings(t *testing.T) {
 	}
 	r.Signals = NumberSignals(r.Files, nil, rules.RunChangeRequest(all, cr).Signals)
 	want := []Signal{
-		{ID: "s1", Rule: "variant-asymmetry", Path: "app/src/free/a/Ads.kt", Line: 2, Column: 1, Origin: OriginMR, NeedsJudgement: true},
-		{ID: "s2", Rule: "missing-tests", Severity: Major, Path: "app/src/main/a/AdsRepository.kt", Line: 2, Column: 7, Origin: OriginMR},
+		{ID: "s1", Rule: "variant-asymmetry", Path: "app/src/free/a/Ads.kt", Line: 2, Column: 1, LineText: "b", Origin: OriginMR, NeedsJudgement: true},
+		{ID: "s2", Rule: "missing-tests", Severity: Major, Path: "app/src/main/a/AdsRepository.kt", Line: 2, Column: 7, LineText: "class AdsRepository", Origin: OriginMR},
 	}
 	if !reflect.DeepEqual(r.Signals, want) {
 		t.Fatalf("signals %+v, want %+v", r.Signals, want)
@@ -170,7 +170,7 @@ func TestRemovedLineSignalBecomesFinding(t *testing.T) {
 	sig := rules.Signal{RuleID: "dead-code", NeedsJudgement: true, Path: "app/Old.kt", Side: rules.SideLeft, Line: 2, Column: 1,
 		Origin: rules.OriginMR, References: []rules.Reference{ref}}
 	r.Signals = NumberSignals(r.Files, nil, []rules.Signal{sig})
-	want := []Signal{{ID: "s1", Rule: "dead-code", Path: "app/Old.kt", Side: Left, Line: 2, Column: 1, Origin: OriginMR, NeedsJudgement: true,
+	want := []Signal{{ID: "s1", Rule: "dead-code", Path: "app/Old.kt", Side: Left, Line: 2, Column: 1, LineText: "q", Origin: OriginMR, NeedsJudgement: true,
 		References: []Reference{{Project: ref.Project, Ref: ref.Ref, Path: ref.Path, Line: ref.Line}}}}
 	if !reflect.DeepEqual(r.Signals, want) {
 		t.Fatalf("signals %+v, want %+v", r.Signals, want)
@@ -197,5 +197,51 @@ func TestRemovedLineSignalBecomesFinding(t *testing.T) {
 	res.Findings[0].References[0].Line = 99
 	if r.Signals[0].References[0].Line != 20 {
 		t.Error("the finding shares its references with the signal")
+	}
+}
+
+// TestNumberSignalsTakesTheLineText: a signal carries the raw text of the
+// line it points to, in the version of its side, so that finalize, which
+// has no file contents, can fingerprint it.
+func TestNumberSignalsTakesTheLineText(t *testing.T) {
+	diff, err := NewFileDiff("a/A.kt", "", FileModified, "@@ -2,2 +2,2 @@\n \tkept\n-removed(old)\n+added(new)\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	full := ChangedFile{Diff: diff,
+		Base: []string{"first", "\tkept", "removed(old)", "last base"},
+		Head: []string{"first", "\tkept", "added(new)  ", "", "last head"}}
+	// The contents of the base were not read: the diff still has the
+	// removed line.
+	noBase := ChangedFile{Diff: FileDiff{Path: "b/B.kt", Status: FileModified, Hunks: diff.Hunks}, Head: []string{"x"}}
+	files := []ChangedFile{full, noBase}
+	left := func(path string, line int) rules.Signal {
+		return rules.Signal{RuleID: "r", Path: path, Side: rules.SideLeft, Line: line, Column: 1, Origin: rules.OriginMR}
+	}
+	right := func(path string, line int) rules.Signal {
+		return rules.Signal{RuleID: "r", Path: path, Line: line, Column: 1, Origin: rules.OriginMR}
+	}
+	got := NumberSignals(files, []rules.Signal{
+		right("a/A.kt", 1), right("a/A.kt", 3), right("a/A.kt", 4), right("a/A.kt", 5),
+		left("a/A.kt", 3), left("a/A.kt", 4),
+		left("b/B.kt", 3), right("b/B.kt", 1),
+		right("elsewhere.kt", 7),
+	})
+	text := map[string]string{}
+	for _, s := range got {
+		side := "RIGHT"
+		if s.Side == Left {
+			side = "LEFT"
+		}
+		text[fmt.Sprintf("%s %s:%d", side, s.Path, s.Line)] = s.LineText
+	}
+	want := map[string]string{
+		"RIGHT a/A.kt:1": "first", "RIGHT a/A.kt:3": "added(new)  ", "RIGHT a/A.kt:4": "", "RIGHT a/A.kt:5": "last head",
+		"LEFT a/A.kt:3": "removed(old)", "LEFT a/A.kt:4": "last base",
+		"LEFT b/B.kt:3": "removed(old)", "RIGHT b/B.kt:1": "x",
+		"RIGHT elsewhere.kt:7": "",
+	}
+	if !reflect.DeepEqual(text, want) {
+		t.Errorf("line texts\n%q\nwant\n%q", text, want)
 	}
 }

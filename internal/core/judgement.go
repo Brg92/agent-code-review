@@ -60,8 +60,12 @@ type Signal struct {
 	// declaration; empty for the RIGHT side.
 	Side Side `json:"side,omitempty"`
 	// Line is on Side.
-	Line           int    `json:"line"`
-	Column         int    `json:"column"`
+	Line   int `json:"line"`
+	Column int `json:"column"`
+	// LineText is the raw text of the line, without its line terminator, in
+	// the version its side refers to. The brief does not show it: finalize,
+	// which has no file contents, fingerprints findings with it.
+	LineText       string `json:"lineText"`
 	Origin         Origin `json:"origin"`
 	NeedsJudgement bool   `json:"needsJudgement"`
 	// References are the places in the code the signal relies on; a
@@ -93,6 +97,26 @@ type ChangedFile struct {
 	// Head is not: the regions of a large file that a work package carries.
 	// The text of a line outside them is unknown.
 	HeadRegions []Region
+}
+
+// sideOrRight is the side of the signal, RIGHT by default.
+func (s Signal) sideOrRight() Side {
+	if s.Side == Left {
+		return Left
+	}
+	return Right
+}
+
+// textOf returns the text of a line of the side from the contents of the
+// file, else from the diff; empty when neither has it.
+func (f ChangedFile) textOf(side Side, line int) string {
+	if lines, ok := f.lines(side); ok && line >= 1 && line <= len(lines) {
+		return lines[line-1]
+	}
+	if _, l, ok := f.Diff.lineAt(side, line); ok {
+		return l.Text
+	}
+	return ""
 }
 
 // lines returns the lines of the side, and whether they are known.

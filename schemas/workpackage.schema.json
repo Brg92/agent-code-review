@@ -394,6 +394,7 @@
           "path",
           "line",
           "column",
+          "lineText",
           "origin",
           "needsJudgement"
         ],
@@ -457,6 +458,10 @@
             "description": "Column of the first character, starting at 1.",
             "type": "integer",
             "minimum": 1
+          },
+          "lineText": {
+            "description": "Raw text of the line, without its line terminator, in the version side refers to. The brief does not show it: finalize, which has no file contents, fingerprints findings with it.",
+            "type": "string"
           },
           "origin": {
             "description": "mr when the change request adds the line, existing when the line is already on the target branch; existing signals become pre-existing findings.",

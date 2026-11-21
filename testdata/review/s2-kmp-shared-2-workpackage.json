@@ -1398,6 +1398,7 @@
       "path": "shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
       "line": 3,
       "column": 1,
+      "lineText": "class SessionCountdown(private val expiresAtMillis: Long) {",
       "origin": "mr",
       "needsJudgement": true
     },
@@ -1408,6 +1409,7 @@
       "path": "shared/src/commonMain/kotlin/com/example/shared/SessionCountdown.kt",
       "line": 4,
       "column": 5,
+      "lineText": "    fun secondsLeft(): Long = maxOf(0L, (expiresAtMillis - currentTimeMillis()) / 1000)",
       "origin": "mr",
       "needsJudgement": true
     }
