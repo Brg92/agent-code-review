@@ -208,7 +208,7 @@ var platforms = map[core.Forge]string{core.GitHub: "GitHub", core.GitLab: "GitLa
 
 // Final renders what the agent prints in chat at the end of a review: that
 // nothing was written to the platform, where each report is, in review
-// order, and the summary of the cascade.
+// order, the summary of the cascade and the actions that can follow.
 func Final(res cascade.Result, reviewed []Reviewed) (string, error) {
 	summary, err := Cascade(res, reviewed)
 	if err != nil {
@@ -232,5 +232,11 @@ func Final(res cascade.Result, reviewed []Reviewed) (string, error) {
 		}
 	}
 	b.line("")
-	return b.String() + summary, nil
+	b.WriteString(summary)
+	b.line("")
+	b.line("Next:")
+	b.line("  agent-code-review show <cr>       read the full report of a change request")
+	b.line("  agent-code-review show --save     save a report outside any git work tree")
+	b.line("  agent-code-review publish --plan  plan what to write to " + platforms[forge] + " (not available yet)")
+	return b.String(), nil
 }
