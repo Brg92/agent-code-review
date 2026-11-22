@@ -147,6 +147,13 @@ func classify(err error, host, what, where string) *Failure {
 	return f
 }
 
+// PlatformFailure is the failure of a read of the platform that no run is
+// about, such as the review queue: what says what was being done and where
+// the operation; host is the host of the platform.
+func PlatformFailure(err error, host, what, where string) *Failure {
+	return classify(err, host, what, where)
+}
+
 // loginCommand is the command that stores a token for host, and the
 // variable that may hold it.
 func loginCommand(host string) string {
