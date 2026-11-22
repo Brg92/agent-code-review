@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "runId": "20261102-090000-s1",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "createdAt": "2026-11-02T09:20:00Z",
+  "publish": "comments",
+  "actions": [
+    {
+      "id": 1,
+      "kind": "issue",
+      "severity": "BLOCKER",
+      "rules": [
+        "run-blocking-prod"
+      ],
+      "body": "**BLOCKER** · `run-blocking-prod` — runBlocking in onCreate blocks the main thread\n\nThe main thread waits for the session refresh, so the first frame is late.\n\n**Fix:** Start the refresh in a coroutine.\n\n<!-- acr:v1:run-blocking-prod:app/src/main/java/com/example/sample/MainActivity.kt:f6631c865b8f -->",
+      "findingId": "acr:v1:run-blocking-prod:app/src/main/java/com/example/sample/MainActivity.kt:f6631c865b8f",
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "side": "RIGHT",
+      "line": 13,
+      "project": "github:github.com/acr-plugin-sandbox/sample-app",
+      "title": "t"
+    },
+    {
+      "id": 2,
+      "kind": "review-comment",
+      "severity": "BLOCKER",
+      "rules": [
+        "global-scope"
+      ],
+      "body": "**BLOCKER** · `global-scope` — prefetch() launches in GlobalScope\n\nThe coroutine outlives the screen.\n\n**Fix:** Use a scope tied to the lifecycle.\n\n<!-- acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba -->",
+      "findingId": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 19
+    }
+  ],
+  "skipped": []
+}

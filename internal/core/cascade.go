@@ -139,6 +139,10 @@ type Entry struct {
 	HeadSHA string `json:"headSha,omitempty"`
 	// Title is the title on the platform, once known.
 	Title string `json:"title,omitempty"`
+	// PlanSHA256 is the SHA-256 of the plan.json written for the entry by
+	// publish --plan. publish --apply writes only from a plan with this
+	// hash.
+	PlanSHA256 string `json:"planSha256,omitempty"`
 }
 
 var shaPattern = regexp.MustCompile(`^[0-9a-f]{40}$`)
@@ -168,6 +172,12 @@ func (e Entry) Validate() error {
 	}
 	if e.HeadSHA != "" && !shaPattern.MatchString(e.HeadSHA) {
 		return fmt.Errorf("headSha %q is not 40 lowercase hexadecimal characters", e.HeadSHA)
+	}
+	switch {
+	case e.PlanSHA256 != "" && !sha256Pattern.MatchString(e.PlanSHA256):
+		return fmt.Errorf("planSha256 %q is not 64 lowercase hexadecimal characters", e.PlanSHA256)
+	case e.PlanSHA256 != "" && e.Status == Skipped:
+		return errors.New("planSha256 on a skipped entry: it has no plan")
 	}
 	return nil
 }

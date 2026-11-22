@@ -20,6 +20,8 @@ const maxErrorBody = 200
 
 // StatusError is a response with an unexpected HTTP status.
 type StatusError struct {
+	// Method is the HTTP method of the request; GET when empty.
+	Method     string
 	StatusCode int
 	// URL is the request URL with credentials and sensitive query values removed.
 	URL string
@@ -29,10 +31,22 @@ type StatusError struct {
 	// platform says in them, such as the permissions a request needed.
 	// Error does not print them.
 	Header http.Header
+	// Body is the answer of the platform, with the token removed, for
+	// callers that read what it says of a refused write. Error prints only
+	// the start of it, in Message.
+	Body []byte
+}
+
+// methodOf names the method of an error, GET when none was set.
+func methodOf(m string) string {
+	if m == "" {
+		return http.MethodGet
+	}
+	return m
 }
 
 func (e *StatusError) Error() string {
-	msg := fmt.Sprintf("transport: GET %s: status %d", e.URL, e.StatusCode)
+	msg := fmt.Sprintf("transport: %s %s: status %d", methodOf(e.Method), e.URL, e.StatusCode)
 	if e.Message != "" {
 		msg += ": " + e.Message
 	}
@@ -42,6 +56,8 @@ func (e *StatusError) Error() string {
 // RateLimitError is a request refused by the platform's rate limit after the
 // allowed retries, or with a reset too far away to wait for.
 type RateLimitError struct {
+	// Method is the HTTP method of the request; GET when empty.
+	Method     string
 	StatusCode int
 	URL        string
 	// RetryAt is when the platform accepts requests again; zero if unknown.
@@ -49,7 +65,7 @@ type RateLimitError struct {
 }
 
 func (e *RateLimitError) Error() string {
-	msg := fmt.Sprintf("transport: GET %s: rate limited (status %d)", e.URL, e.StatusCode)
+	msg := fmt.Sprintf("transport: %s %s: rate limited (status %d)", methodOf(e.Method), e.URL, e.StatusCode)
 	if !e.RetryAt.IsZero() {
 		msg += "; retry after " + e.RetryAt.UTC().Format(time.RFC3339)
 	}
@@ -59,13 +75,17 @@ func (e *RateLimitError) Error() string {
 // NetworkError is a request that got no HTTP response: refused connection,
 // DNS or TLS failure, timeout, cancelled context.
 type NetworkError struct {
+	// Method is the HTTP method of the request; GET when empty.
+	Method  string
 	URL     string
 	msg     string
 	timeout bool
 	err     error
 }
 
-func (e *NetworkError) Error() string { return "transport: GET " + e.URL + ": " + e.msg }
+func (e *NetworkError) Error() string {
+	return "transport: " + methodOf(e.Method) + " " + e.URL + ": " + e.msg
+}
 
 // Timeout reports whether the request timed out.
 func (e *NetworkError) Timeout() bool { return e.timeout }
@@ -75,7 +95,7 @@ func (e *NetworkError) Unwrap() error { return e.err }
 
 // newNetworkError builds a NetworkError from an http.Client error. The
 // url.Error wrapper is dropped: it carries the unredacted URL.
-func newNetworkError(rawURL string, err error, secrets []string) *NetworkError {
+func newNetworkError(method, rawURL string, err error, secrets []string) *NetworkError {
 	cause := err
 	var ue *url.Error
 	if errors.As(err, &ue) {
@@ -84,6 +104,7 @@ func newNetworkError(rawURL string, err error, secrets []string) *NetworkError {
 	var ne net.Error
 	timeout := errors.As(err, &ne) && ne.Timeout()
 	return &NetworkError{
+		Method:  method,
 		URL:     redactURL(rawURL),
 		msg:     redactText(cause.Error(), secrets),
 		timeout: timeout,

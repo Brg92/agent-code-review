@@ -33,6 +33,9 @@ const (
 	// KindValidation is a file the agent wrote that does not match its
 	// schema or the work package: every problem is in Details.
 	KindValidation
+	// KindHeadChanged is a change request that has new commits since it
+	// was reviewed or planned: nothing is written for it.
+	KindHeadChanged
 	// KindPath is a path the command may not use: a folder for saved
 	// reports inside a git work tree, with "..", or that cannot be
 	// written.

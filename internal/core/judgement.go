@@ -261,10 +261,16 @@ func DecodeJudgement(data []byte) (Judgement, error) {
 	return j, nil
 }
 
-// Limits of the report fields of a judgement.
+// Limits of the fields of a judgement, in characters (runes), except the
+// suggestion, which is in lines. What is published is short enough to read.
 const (
-	MaxNotes      = 3
-	MaxNoteLength = 200
+	MaxNotes           = 3
+	MaxNoteLength      = 200
+	MaxTitleLength     = 120
+	MaxWhyLength       = 1000
+	MaxFixLength       = 1000
+	MaxSuggestionLines = 50
+	MaxQuestionLength  = 500
 )
 
 // FieldError is one problem of a judgement: the JSON pointer of the field

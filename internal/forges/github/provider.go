@@ -50,7 +50,8 @@ const (
 	acceptRaw  = "application/vnd.github.raw+json"
 )
 
-// Provider reads GitHub. It implements base.Reader and has no way to write.
+// Provider is GitHub: it implements base.ForgeProvider. The only requests
+// besides GETs that it can send are the ones of writeEndpoints.
 type Provider struct {
 	host           string
 	client         *transport.Client
@@ -62,6 +63,8 @@ type Provider struct {
 
 	mu    sync.Mutex
 	repos map[string]repoState
+	// self is the login of the token's account, once read.
+	self string
 }
 
 var _ base.Reader = (*Provider)(nil)
@@ -73,10 +76,10 @@ type repoState struct {
 	err           error
 }
 
-// New returns the reader of host, which must be in the host table. The
+// New returns the provider of host, which must be in the host table. The
 // token of the host is resolved through tokens at each request and handed to
 // the transport alone.
-func New(host string, tokens Resolver, opts Options) (base.Reader, error) {
+func New(host string, tokens Resolver, opts Options) (base.ForgeProvider, error) {
 	api, ok := apiBases[strings.ToLower(host)]
 	if !ok {
 		return nil, &UnsupportedHostError{Host: host}
@@ -99,6 +102,7 @@ func newProvider(host, apiBase string, tokens Resolver, opts Options) (*Provider
 	cfg.BaseURL = apiBase
 	cfg.MaxWait = limits.MaxWait
 	cfg.Policy = limits.policy()
+	cfg.Allow = writeEndpoints
 	cfg.Token = nil
 	if tokens != nil {
 		cfg.Token = func(ctx context.Context) (string, error) {
@@ -170,6 +174,21 @@ func (p *Provider) get(ctx context.Context, path, accept string) (*transport.Res
 		accept = acceptJSON
 	}
 	return p.client.Get(ctx, path, accept)
+}
+
+// post sends one POST with a JSON body. Requests are sequential. The
+// transport sends it only to the endpoints of writeEndpoints.
+func (p *Provider) post(ctx context.Context, path string, body []byte) (*transport.Response, error) {
+	p.seq.Lock()
+	defer p.seq.Unlock()
+	return p.client.Post(ctx, path, acceptJSON, body)
+}
+
+// patch sends one PATCH with a JSON body. Requests are sequential.
+func (p *Provider) patch(ctx context.Context, path string, body []byte) (*transport.Response, error) {
+	p.seq.Lock()
+	defer p.seq.Unlock()
+	return p.client.Patch(ctx, path, acceptJSON, body)
 }
 
 // pages reads a list and the pages that follow it, up to the page cap; a

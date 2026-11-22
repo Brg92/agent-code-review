@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "runId": "20261102-101500-s2cascade",
+  "cr": "github:github.com/acr-plugin-sandbox/kmp-shared#2",
+  "headSha": "2c5e0a0e7d4e5b5cdb37f5d3a8d1f0f34a2b9c11",
+  "createdAt": "2026-11-02T09:20:00Z",
+  "publish": "comments",
+  "actions": [
+    {
+      "id": 1,
+      "kind": "summary-comment",
+      "body": "Review completed: no blocking issues found!\n\n<!-- acr:v1:ok:2c5e0a0e -->",
+      "fingerprint": "acr:v1:ok:2c5e0a0e"
+    },
+    {
+      "id": 2,
+      "kind": "related-tick",
+      "body": "",
+      "parent": "github:github.com/acr-plugin-sandbox/core-lib#3",
+      "entry": "github:github.com/acr-plugin-sandbox/kmp-shared#2"
+    }
+  ],
+  "skipped": []
+}

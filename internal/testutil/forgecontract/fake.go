@@ -2,6 +2,7 @@ package forgecontract
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"strings"
 
@@ -39,7 +40,20 @@ type Fake struct {
 	CIs map[string]core.CI
 	// Notes are the notes on each change request, by key.
 	NoteSets map[core.Key][]core.ReviewNote
-	Fail     map[Call]error
+	// Login is the login of the token's account.
+	Login string
+	// IssueSets are the issues of each project, by project key; Labels the
+	// labels of each project and Assignees who can be assigned in it.
+	IssueSets map[string][]core.Issue
+	Labels    map[string][]string
+	Assignees map[string][]string
+	// ThreadSets are the review threads of each change request.
+	ThreadSets map[core.Key][]core.ReviewThread
+	// RefusedLines are the positions, "<path>:<line>", of inline comments
+	// the fake refuses; Unnamed makes it refuse without saying which.
+	RefusedLines map[string]bool
+	Unnamed      bool
+	Fail         map[Call]error
 }
 
 // Capabilities implements base.Reader.
@@ -104,6 +118,14 @@ func (f *Fake) Notes(_ context.Context, cr core.Key) ([]core.ReviewNote, error) 
 		return nil, &base.Error{Kind: base.ErrNotFound, Op: "notes " + cr.String()}
 	}
 	return f.NoteSets[cr], nil
+}
+
+// Self implements base.Reader.
+func (f *Fake) Self(context.Context) (string, error) {
+	if err := f.Fail[Call{OpSelf, "", ""}]; err != nil {
+		return "", err
+	}
+	return f.Login, nil
 }
 
 // repo returns the files of a project at ref, or ErrNotFound.
@@ -205,4 +227,174 @@ func (s search) Search(project, ref, term string) ([]rules.Match, error) {
 		}
 	}
 	return out, nil
+}
+
+// Issues implements base.Reader.
+func (f *Fake) Issues(_ context.Context, project core.Key, _ string) ([]core.Issue, error) {
+	if err := f.Fail[Call{OpIssues, project.ProjectKey(), ""}]; err != nil {
+		return nil, err
+	}
+	if _, ok := f.DefaultBranch[project.ProjectKey()]; !ok {
+		return nil, &base.Error{Kind: base.ErrNotFound, Op: "issues " + project.ProjectKey()}
+	}
+	return append([]core.Issue{}, f.IssueSets[project.ProjectKey()]...), nil
+}
+
+// HasLabel implements base.Reader.
+func (f *Fake) HasLabel(_ context.Context, project core.Key, name string) (bool, error) {
+	if err := f.Fail[Call{OpHasLabel, project.ProjectKey(), ""}]; err != nil {
+		return false, err
+	}
+	if _, ok := f.DefaultBranch[project.ProjectKey()]; !ok {
+		return false, &base.Error{Kind: base.ErrNotFound, Op: "label " + project.ProjectKey()}
+	}
+	return slices.Contains(f.Labels[project.ProjectKey()], name), nil
+}
+
+// Assignable implements base.Reader.
+func (f *Fake) Assignable(_ context.Context, project core.Key, login string) (bool, error) {
+	if err := f.Fail[Call{OpAssignable, project.ProjectKey(), ""}]; err != nil {
+		return false, err
+	}
+	if _, ok := f.DefaultBranch[project.ProjectKey()]; !ok {
+		return false, &base.Error{Kind: base.ErrNotFound, Op: "assignee " + project.ProjectKey()}
+	}
+	return slices.Contains(f.Assignees[project.ProjectKey()], login), nil
+}
+
+// ReviewThreads implements base.Reader.
+func (f *Fake) ReviewThreads(_ context.Context, cr core.Key) ([]core.ReviewThread, error) {
+	if err := f.Fail[Call{OpThreads, cr.ProjectKey(), ""}]; err != nil {
+		return nil, err
+	}
+	if _, ok := f.ChangeRequests[cr]; !ok {
+		return nil, &base.Error{Kind: base.ErrNotFound, Op: "review threads " + cr.String()}
+	}
+	return append([]core.ReviewThread{}, f.ThreadSets[cr]...), nil
+}
+
+var _ base.ForgeProvider = (*Fake)(nil)
+
+// writable fails like a platform does for a write to a change request that
+// is not there, or that the token cannot write to.
+func (f *Fake) writable(op Op, what string, cr core.Key) error {
+	if err := f.Fail[Call{op, cr.ProjectKey(), ""}]; err != nil {
+		return err
+	}
+	if _, ok := f.ChangeRequests[cr]; !ok {
+		return &base.Error{Kind: base.ErrNotFound, Op: what + " " + cr.String()}
+	}
+	return nil
+}
+
+func (f *Fake) addNote(cr core.Key, body string) {
+	if f.NoteSets == nil {
+		f.NoteSets = map[core.Key][]core.ReviewNote{}
+	}
+	f.NoteSets[cr] = append(f.NoteSets[cr], core.ReviewNote{Author: f.Login, Body: body, Trusted: true})
+}
+
+// CreateReview implements base.Writer: nothing is posted if any comment is
+// refused.
+func (f *Fake) CreateReview(_ context.Context, cr core.Key, _ string, comments []base.ReviewComment) error {
+	if err := f.writable(OpCreateReview, "review", cr); err != nil {
+		return err
+	}
+	var refused []int
+	for i, c := range comments {
+		if f.RefusedLines[fmt.Sprintf("%s:%d", c.Path, c.Line)] {
+			refused = append(refused, i)
+		}
+	}
+	if len(refused) > 0 {
+		if f.Unnamed {
+			refused = nil
+		}
+		return &base.Error{Kind: base.ErrRejected, Op: "review " + cr.String(), Rejected: refused}
+	}
+	if f.ThreadSets == nil {
+		f.ThreadSets = map[core.Key][]core.ReviewThread{}
+	}
+	for _, c := range comments {
+		f.addNote(cr, c.Body)
+		f.ThreadSets[cr] = append(f.ThreadSets[cr], core.ReviewThread{Author: f.Login, Trusted: true, Body: c.Body})
+	}
+	return nil
+}
+
+// CreateComment implements base.Writer.
+func (f *Fake) CreateComment(_ context.Context, cr core.Key, body string) error {
+	if err := f.writable(OpCreateComment, "comment", cr); err != nil {
+		return err
+	}
+	f.addNote(cr, body)
+	return nil
+}
+
+// CreateIssue implements base.Writer.
+func (f *Fake) CreateIssue(_ context.Context, project core.Key, issue base.NewIssue) (int, error) {
+	pk := project.ProjectKey()
+	if err := f.Fail[Call{OpCreateIssue, pk, ""}]; err != nil {
+		return 0, err
+	}
+	if _, ok := f.DefaultBranch[pk]; !ok {
+		return 0, &base.Error{Kind: base.ErrNotFound, Op: "issue " + pk}
+	}
+	if f.IssueSets == nil {
+		f.IssueSets = map[string][]core.Issue{}
+	}
+	n := 1
+	for _, is := range f.IssueSets[pk] {
+		n = max(n, is.Number+1)
+	}
+	f.IssueSets[pk] = append(f.IssueSets[pk], core.Issue{Number: n, Open: true, Author: f.Login, Trusted: true, Title: issue.Title, Body: issue.Body})
+	return n, nil
+}
+
+// UpdateIssue implements base.Writer.
+func (f *Fake) UpdateIssue(_ context.Context, project core.Key, number int, title, body string) error {
+	pk := project.ProjectKey()
+	if err := f.Fail[Call{OpUpdateIssue, pk, ""}]; err != nil {
+		return err
+	}
+	for i, is := range f.IssueSets[pk] {
+		if is.Number == number {
+			f.IssueSets[pk][i].Title, f.IssueSets[pk][i].Body = title, body
+			return nil
+		}
+	}
+	return &base.Error{Kind: base.ErrNotFound, Op: fmt.Sprintf("issue %s#%d", pk, number)}
+}
+
+// CreateLabel implements base.Writer.
+func (f *Fake) CreateLabel(_ context.Context, project core.Key, label core.Label) error {
+	pk := project.ProjectKey()
+	if err := f.Fail[Call{OpCreateLabel, pk, ""}]; err != nil {
+		return err
+	}
+	if _, ok := f.DefaultBranch[pk]; !ok {
+		return &base.Error{Kind: base.ErrNotFound, Op: "label " + pk}
+	}
+	if f.Labels == nil {
+		f.Labels = map[string][]string{}
+	}
+	if !slices.Contains(f.Labels[pk], label.Name) {
+		f.Labels[pk] = append(f.Labels[pk], label.Name)
+	}
+	return nil
+}
+
+// UpdateDescription implements base.Writer.
+func (f *Fake) UpdateDescription(_ context.Context, cr core.Key, description string) error {
+	if err := f.writable(OpUpdateDescription, "description", cr); err != nil {
+		return err
+	}
+	meta := f.ChangeRequests[cr]
+	meta.Description = description
+	f.ChangeRequests[cr] = meta
+	if item, ok := f.Items[cr]; ok {
+		item.Description = description
+		f.Items[cr] = item
+	}
+	return nil
 }

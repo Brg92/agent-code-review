@@ -2,6 +2,7 @@ package runlog
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -176,5 +177,29 @@ func TestWriteErrorsDoNotStopTheRun(t *testing.T) {
 	l.Event("op", "ok") // the file is closed
 	if l.Err() == nil {
 		t.Error("Err does not report the failed write")
+	}
+}
+
+// TestAttachAgainClosesTheFileBefore: a command that opens the run again,
+// as publish does when it is applied twice in a process, must not leave the
+// first run.log open: Windows cannot remove a directory that holds one.
+func TestAttachAgainClosesTheFileBefore(t *testing.T) {
+	l := New(fixedClock, nil)
+	dir := t.TempDir()
+	if err := l.Attach(dir); err != nil {
+		t.Fatal(err)
+	}
+	first := l.file
+	if err := l.Attach(dir); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = l.Close() })
+	if _, err := first.Write([]byte("x")); !errors.Is(err, os.ErrClosed) {
+		t.Errorf("writing to the first file = %v, want it closed", err)
+	}
+	l.Event("still logs", "ok")
+	data, err := os.ReadFile(filepath.Join(dir, FileName))
+	if err != nil || !strings.Contains(string(data), "still logs") {
+		t.Errorf("run.log = %q, %v", data, err)
 	}
 }

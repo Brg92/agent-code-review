@@ -63,10 +63,41 @@ func overlay(t *testing.T, r *sandbox.Replay, sc scenarioCase, fx *forgecontract
 	fx.Failures = append(fx.Failures, forgecontract.Failure{Op: forgecontract.OpCI, Project: fx.Project, Ref: "ffffffffffffffffffffffffffffffffffffffff", Kind: base.ErrNotFound})
 
 	// Comments with the fingerprints of an earlier run, one by the author.
+	// The reviewer is a member; the token's own account has no association;
+	// a stranger is a contributor, so what they wrote does not count.
+	route(200, "/user", nil, nil, `{"login":"token-login"}`)
 	route(200, repoPath+"/issues/"+n+"/comments", per, nil,
-		`[{"user":{"login":"sandbox-reviewer"},"body":"Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},{"user":{"login":"`+fx.Author+`"},"body":"<!-- acr:v1:ok:89abcdef -->"}]`)
-	route(200, repoPath+"/pulls/"+n+"/comments", per, nil, `[{"user":{"login":"sandbox-reviewer"},"body":"Inline.\n\n<!-- `+finding+` -->"}]`)
-	fx.Fingerprints = []string{"acr:v1:ok:01234567", finding}
+		`[{"user":{"login":"sandbox-reviewer"},"author_association":"MEMBER","body":"Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},`+
+			`{"user":{"login":"`+fx.Author+`"},"author_association":"COLLABORATOR","body":"<!-- acr:v1:ok:89abcdef -->"},`+
+			`{"user":{"login":"stranger"},"author_association":"CONTRIBUTOR","body":"<!-- acr:v1:ok:fedcba98 -->"},`+
+			`{"user":{"login":"token-login"},"author_association":"NONE","body":"<!-- acr:v1:ok:0f0f0f0f -->"}]`)
+	route(200, repoPath+"/pulls/"+n+"/comments", per, nil, `[{"user":{"login":"sandbox-reviewer"},"author_association":"OWNER","body":"Inline.\n\n<!-- `+finding+` -->"}]`)
+	fx.Fingerprints = []string{"acr:v1:ok:01234567", "acr:v1:ok:0f0f0f0f", finding}
+	fx.Untrusted = []string{"acr:v1:ok:89abcdef", "acr:v1:ok:fedcba98"}
+	fx.Login = "token-login"
+
+	// What publish reads: the issues of the review label, the labels, who
+	// can be assigned and the review threads of the change request.
+	route(200, repoPath+"/issues", map[string]string{"state": "all", "labels": "review", "per_page": "100"}, nil,
+		`[{"number":3,"state":"open","title":"Review of #7: MAJOR findings","body":"major <!-- acr:v1:issue:acme/app#7:major -->","user":{"login":"token-login"},"author_association":"NONE"},`+
+			`{"number":4,"state":"closed","title":"Planted","body":"<!-- acr:v1:issue:acme/app#7:minor -->","user":{"login":"stranger"},"author_association":"CONTRIBUTOR"},`+
+			`{"number":5,"state":"open","title":"A pull request","body":"x","user":{"login":"m"},"author_association":"OWNER","pull_request":{}}]`)
+	route(200, repoPath+"/labels/review", nil, nil, `{"name":"review"}`)
+	route(404, repoPath+"/labels/needs-triage", nil, nil, `{"message":"Not Found"}`)
+	route(204, repoPath+"/assignees/author-login", nil, nil, ``)
+	route(404, repoPath+"/assignees/nobody-here", nil, nil, `{"message":"Not Found"}`)
+	r.Add(sandbox.Route{Method: "POST", Path: "/graphql", Status: 200, Body: `{"data":{"repository":{"pullRequest":{"reviewThreads":{"pageInfo":{"hasNextPage":false,"endCursor":""},"nodes":[` +
+		`{"isResolved":false,"comments":{"nodes":[{"body":"Blocker <!-- ` + finding + ` -->","authorAssociation":"NONE","author":{"login":"token-login"}}]}},` +
+		`{"isResolved":true,"comments":{"nodes":[{"body":"Planted","authorAssociation":"CONTRIBUTOR","author":{"login":"stranger"}}]}}]}}}}}`})
+	fx.Label, fx.ExistingLabel, fx.MissingLabel, fx.Assignable, fx.NotAssignable = "review", "review", "needs-triage", "author-login", "nobody-here"
+	fx.Issues = []core.Issue{
+		{Number: 3, Open: true, Author: "token-login", Trusted: true, Title: "Review of #7: MAJOR findings", Body: "major <!-- acr:v1:issue:acme/app#7:major -->"},
+		{Number: 4, Open: false, Author: "stranger", Title: "Planted", Body: "<!-- acr:v1:issue:acme/app#7:minor -->"},
+	}
+	fx.Threads = []core.ReviewThread{
+		{Resolved: false, Author: "token-login", Trusted: true, Body: "Blocker <!-- " + finding + " -->"},
+		{Resolved: true, Author: "stranger", Body: "Planted"},
+	}
 
 	// A file at main, where none was recorded.
 	if fx.Path == "" {
@@ -129,6 +160,10 @@ func failures(r *sandbox.Replay, fx *forgecontract.Fixture) {
 	add(forgecontract.OpNotes, private, "", base.ErrNotFound)
 	add(forgecontract.OpChangedFiles, private, "", base.ErrNotFound)
 	add(forgecontract.OpChangeRequest, private, "", base.ErrNotFound)
+	route(404, "/repos/acme/private/issues", map[string]string{"state": "all", "labels": "review", "per_page": "100"}, nil, missing)
+	add(forgecontract.OpIssues, private, "", base.ErrNotFound)
+	add(forgecontract.OpHasLabel, private, "", base.ErrNotFound)
+	add(forgecontract.OpAssignable, private, "", base.ErrNotFound)
 
 	// A token without a permission.
 	locked := acme("locked", 1)
@@ -137,6 +172,8 @@ func failures(r *sandbox.Replay, fx *forgecontract.Fixture) {
 	route(403, "/repos/acme/locked/pulls/1/files", per, map[string]string{"X-Accepted-GitHub-Permissions": "pull_requests=read"}, `{"message":"no"}`)
 	add(forgecontract.OpFilesList, locked, "main", base.ErrForbidden)
 	add(forgecontract.OpChangedFiles, locked, "", base.ErrForbidden)
+	route(403, "/repos/acme/locked/issues", map[string]string{"state": "all", "labels": "review", "per_page": "100"}, map[string]string{"X-Accepted-GitHub-Permissions": "issues=read"}, `{"message":"no"}`)
+	add(forgecontract.OpIssues, locked, "", base.ErrForbidden)
 
 	// A tree and a list GitHub cuts short.
 	huge := acme("huge", 1)
@@ -162,6 +199,9 @@ func failures(r *sandbox.Replay, fx *forgecontract.Fixture) {
 	add(forgecontract.OpChange, busy, "", base.ErrRateLimited)
 	add(forgecontract.OpChangeRequest, busy, "", base.ErrRateLimited)
 	add(forgecontract.OpCI, busy, fx.Head, base.ErrRateLimited)
+	route(200, "/repos/acme/busy", nil, nil, `{"default_branch":"main"}`)
+	route(403, "/repos/acme/busy/assignees/author-login", nil, rate, `{"message":"API rate limit exceeded"}`)
+	add(forgecontract.OpAssignable, busy, "", base.ErrRateLimited)
 
 	// A platform that fails.
 	flaky := acme("flaky", 2)

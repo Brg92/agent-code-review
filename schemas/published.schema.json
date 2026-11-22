@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Brg92/agent-code-review/schemas/published.schema.json",
+  "title": "Publish outcomes",
+  "description": "What publish --apply did with each action of the plan of one change request, written as soon as each outcome is known. A later --apply skips the actions that have a final outcome and tries the others again.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "runId",
+    "cr",
+    "planSha256",
+    "updatedAt",
+    "outcomes"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Version of this format.",
+      "const": 1
+    },
+    "runId": {
+      "description": "Run the plan belongs to.",
+      "$ref": "#/$defs/runId"
+    },
+    "cr": {
+      "description": "Change request the plan writes to.",
+      "$ref": "#/$defs/crKey"
+    },
+    "planSha256": {
+      "description": "SHA-256 of the plan these outcomes are for; outcomes of another plan are stale and ignored.",
+      "$ref": "#/$defs/sha256"
+    },
+    "blocked": {
+      "description": "Why nothing was written for the change request, when its head changed, it is closed or merged, or it is the account's own.",
+      "enum": [
+        "head-changed",
+        "not-open",
+        "own-cr"
+      ]
+    },
+    "updatedAt": {
+      "description": "When the outcomes last changed.",
+      "$ref": "#/$defs/timestamp"
+    },
+    "outcomes": {
+      "description": "One outcome per action that was tried, in the order it was tried.",
+      "type": "array",
+      "items": {
+        "description": "What happened to one action.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "description": "Id of the action in the plan.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "description": "posted: written. posted-unassigned: an issue written without its assignee, who cannot be assigned. already-posted: a trusted fingerprint was already there. rejected, secret-blocked, too-long, not-eligible: not written, and final. head-changed, not-open, own-cr: nothing is written for the change request. failed: the platform or the network failed, and a later apply tries again.",
+            "enum": [
+              "posted",
+              "posted-unassigned",
+              "already-posted",
+              "rejected",
+              "secret-blocked",
+              "too-long",
+              "not-eligible",
+              "head-changed",
+              "not-open",
+              "own-cr",
+              "failed"
+            ]
+          },
+          "number": {
+            "description": "Number of the issue that was created or updated.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "detail": {
+            "description": "What else there is to know, in one line; never a token or a text that matched a secret pattern.",
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "description": "SHA-256 as 64 lowercase hexadecimal characters.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "description": "UTC time in RFC 3339 format, for example 2026-11-02T10:15:00Z.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"
+    },
+    "crKey": {
+      "description": "Change request key: <forge>:<host>/<project>#<number>, for example github:github.com/acr-plugin-sandbox/core-lib#3.",
+      "type": "string",
+      "pattern": "^(?:github|gitlab):[a-z0-9.-]+(?::[0-9]+)?/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,})(?:/(?:\\.*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,}))+#[1-9][0-9]*$"
+    },
+    "runId": {
+      "description": "Identifier of a review run, also the name of its work directory.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]{8,64}$"
+    }
+  }
+}

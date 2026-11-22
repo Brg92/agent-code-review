@@ -17,6 +17,9 @@ const apiHost = "https://api.github.com"
 // Route is a response added to a Replay by hand, for what no recording
 // holds. It answers a GET of Path with exactly the query Query.
 type Route struct {
+	// Method is the HTTP method the route answers; GET when empty. A
+	// route of another method answers any query.
+	Method string
 	Path   string
 	Query  map[string]string
 	Status int
@@ -86,7 +89,11 @@ func (r *Replay) URL() string { return r.srv.URL }
 func (r *Replay) Add(rt Route) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.routes[routeKey(http.MethodGet, rt.Path, toValues(rt.Query))] = rt
+	method := rt.Method
+	if method == "" {
+		method = http.MethodGet
+	}
+	r.routes[routeKey(method, rt.Path, toValues(rt.Query))] = rt
 }
 
 // Requests returns the requests received, in order, as "METHOD path?query".
@@ -116,7 +123,11 @@ func (r *Replay) serve(w http.ResponseWriter, req *http.Request) {
 	}
 	r.mu.Lock()
 	r.log = append(r.log, line)
-	key := routeKey(req.Method, req.URL.Path, req.URL.Query())
+	query := req.URL.Query()
+	if req.Method != http.MethodGet {
+		query = nil
+	}
+	key := routeKey(req.Method, req.URL.Path, query)
 	route, ok := r.routes[key]
 	if ok {
 		if n := r.hits[key]; n > 0 && len(route.Then) > 0 {

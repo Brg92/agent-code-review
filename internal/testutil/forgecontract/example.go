@@ -45,9 +45,22 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 		Repos:          map[string]map[string]string{pk + "@main": files, pk + "@release/2.0": files},
 		CIs:            map[string]core.CI{pk + "@" + head: ci},
 		NoteSets: map[core.Key][]core.ReviewNote{app: {
-			{Author: "reviewer", Body: "Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},
-			{Author: "author-login", Body: "<!-- acr:v1:ok:89abcdef -->"},
-			{Author: "reviewer", Body: "Inline finding.\n\n<!-- " + finding + " -->"},
+			{Author: "reviewer", Trusted: true, Body: "Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},
+			{Author: "author-login", Trusted: true, Body: "<!-- acr:v1:ok:89abcdef -->"},
+			{Author: "stranger", Body: "<!-- acr:v1:ok:fedcba98 -->"},
+			{Author: "token-login", Trusted: true, Body: "<!-- acr:v1:ok:0f0f0f0f -->"},
+			{Author: "reviewer", Trusted: true, Body: "Inline finding.\n\n<!-- " + finding + " -->"},
+		}},
+		Login: "token-login",
+		IssueSets: map[string][]core.Issue{pk: {
+			{Number: 3, Open: true, Author: "token-login", Trusted: true, Title: "Review of #7: MAJOR findings", Body: "major <!-- acr:v1:issue:acme/app#7:major -->"},
+			{Number: 4, Open: false, Author: "stranger", Title: "Planted", Body: "<!-- acr:v1:issue:acme/app#7:minor -->"},
+		}},
+		Labels:    map[string][]string{pk: {"review", "bug"}},
+		Assignees: map[string][]string{pk: {"author-login"}},
+		ThreadSets: map[core.Key][]core.ReviewThread{app: {
+			{Resolved: false, Author: "token-login", Trusted: true, Body: "Blocker <!-- " + finding + " -->"},
+			{Resolved: true, Author: "stranger", Body: "Planted"},
 		}},
 		Fail: map[Call]error{
 			{OpChangedFiles, locked.ProjectKey(), ""}:  &base.Error{Kind: base.ErrForbidden, Op: "changed files acme/locked#1", Permissions: []string{"pull requests: read"}},
@@ -58,6 +71,9 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 			{OpChange, busy.ProjectKey(), ""}:          &base.Error{Kind: base.ErrRateLimited, Op: "change acme/busy#3"},
 			{OpSearch, flaky.ProjectKey(), "main"}:     &base.Error{Kind: base.ErrTransport, Op: "search acme/flaky@main"},
 			{OpNotes, flaky.ProjectKey(), ""}:          &base.Error{Kind: base.ErrTransport, Op: "notes acme/flaky#2"},
+			{OpIssues, locked.ProjectKey(), ""}:        &base.Error{Kind: base.ErrForbidden, Op: "issues acme/locked", Permissions: []string{"issues: read"}},
+			{OpAssignable, busy.ProjectKey(), ""}:      &base.Error{Kind: base.ErrRateLimited, Op: "assignee acme/busy"},
+			{OpThreads, flaky.ProjectKey(), ""}:        &base.Error{Kind: base.ErrTransport, Op: "review threads acme/flaky#2"},
 		},
 	}
 
@@ -89,7 +105,22 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 		Head:         head,
 		CI:           ci,
 		Author:       "author-login",
-		Fingerprints: []string{"acr:v1:ok:01234567", finding},
+		Fingerprints: []string{"acr:v1:ok:01234567", "acr:v1:ok:0f0f0f0f", finding},
+		Untrusted:    []string{"acr:v1:ok:89abcdef", "acr:v1:ok:fedcba98"},
+		Login:        "token-login",
+		Label:        "review",
+		Issues: []core.Issue{
+			{Number: 3, Open: true, Author: "token-login", Trusted: true, Title: "Review of #7: MAJOR findings", Body: "major <!-- acr:v1:issue:acme/app#7:major -->"},
+			{Number: 4, Open: false, Author: "stranger", Title: "Planted", Body: "<!-- acr:v1:issue:acme/app#7:minor -->"},
+		},
+		ExistingLabel: "review",
+		MissingLabel:  "needs-triage",
+		Assignable:    "author-login",
+		NotAssignable: "nobody-here",
+		Threads: []core.ReviewThread{
+			{Resolved: false, Author: "token-login", Trusted: true, Body: "Blocker <!-- " + finding + " -->"},
+			{Resolved: true, Author: "stranger", Body: "Planted"},
+		},
 		Failures: []Failure{
 			{OpFilesGet, private, "main", base.ErrNotFound},
 			{OpTree, private, "main", base.ErrNotFound},
@@ -102,6 +133,13 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 			{OpChangedFiles, locked, "", base.ErrForbidden},
 			{OpChangedFiles, private, "", base.ErrNotFound},
 			{OpNotes, flaky, "", base.ErrTransport},
+			{OpIssues, private, "", base.ErrNotFound},
+			{OpIssues, locked, "", base.ErrForbidden},
+			{OpHasLabel, private, "", base.ErrNotFound},
+			{OpAssignable, private, "", base.ErrNotFound},
+			{OpAssignable, busy, "", base.ErrRateLimited},
+			{OpThreads, private, "", base.ErrNotFound},
+			{OpThreads, flaky, "", base.ErrTransport},
 		},
 	}
 	if caps.TreeMayTruncate {
@@ -114,4 +152,36 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 		fx.Failures = append(fx.Failures, Failure{OpSearch, app, "release/2.0", base.ErrSearchUnavailable})
 	}
 	return fake, fx
+}
+
+// ExampleWriter returns the fixture of the writes of the Example fake: its
+// change request acme/app#7, and projects that fail in each way.
+func ExampleWriter(f *Fake) WriterFixture {
+	key := func(project string, n int) core.Key {
+		return core.Key{Forge: core.GitHub, Host: "github.com", Project: project, Number: n}
+	}
+	app := key("acme/app", 7)
+	wf := WriterFixture{
+		ChangeRequest: app,
+		Head:          "0123456789abcdef0123456789abcdef01234567",
+		Project:       app,
+		Label:         "contract-review",
+		Login:         "token-login",
+		Refused:       base.ReviewComment{Path: "app/A.kt", Side: core.Right, Line: 99},
+		Missing:       key("acme/app", 9),
+		NoProject:     key("acme/nowhere", 1),
+		Forbidden:     key("acme/locked", 1),
+		Busy:          key("acme/busy", 3),
+		Broken:        key("acme/flaky", 2),
+	}
+	f.RefusedLines = map[string]bool{"app/A.kt:99": true}
+	for _, k := range []core.Key{wf.Forbidden, wf.Busy, wf.Broken} {
+		f.ChangeRequests[k] = core.ChangeRequest{Key: k}
+	}
+	f.DefaultBranch[wf.Forbidden.ProjectKey()] = "main"
+	f.Fail[Call{OpCreateComment, wf.Forbidden.ProjectKey(), ""}] = &base.Error{Kind: base.ErrForbidden, Op: "comment", Permissions: []string{"issues: write"}}
+	f.Fail[Call{OpCreateIssue, wf.Forbidden.ProjectKey(), ""}] = &base.Error{Kind: base.ErrForbidden, Op: "issue", Permissions: []string{"issues: write"}}
+	f.Fail[Call{OpCreateComment, wf.Busy.ProjectKey(), ""}] = &base.Error{Kind: base.ErrRateLimited, Op: "comment"}
+	f.Fail[Call{OpCreateComment, wf.Broken.ProjectKey(), ""}] = &base.Error{Kind: base.ErrTransport, Op: "comment"}
+	return wf
 }

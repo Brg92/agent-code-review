@@ -237,6 +237,6 @@ func Final(res cascade.Result, reviewed []Reviewed) (string, error) {
 	b.line("Next:")
 	b.line("  agent-code-review show <cr>       read the full report of a change request")
 	b.line("  agent-code-review show --save     save a report outside any git work tree")
-	b.line("  agent-code-review publish --plan  plan what to write to " + platforms[forge] + " (not available yet)")
+	b.line("  agent-code-review publish --plan <comments|issues|both>  plan what to write to " + platforms[forge] + "; the plan writes nothing")
 	return b.String(), nil
 }

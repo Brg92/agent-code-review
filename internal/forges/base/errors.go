@@ -1,7 +1,9 @@
 // Package base is the platform abstraction of agent-code-review: what a
 // provider in internal/forges/<forge> gives the core so that it can read a
-// cascade without knowing the platform. It has a read side only; nothing
-// here writes to a platform.
+// cascade without knowing the platform, and the few things publish writes
+// to it: a Reader and a Writer, which make a ForgeProvider. Nothing here
+// approves, merges, pushes, rebases, checks out, builds, closes or resolves
+// anything; internal/guards keeps it so.
 //
 // # Read errors
 //
@@ -48,6 +50,10 @@ const (
 	// files of a change request, is longer than the platform or the
 	// reader returns; the part read is never returned in place of it.
 	ErrListTruncated Kind = "list-truncated"
+	// ErrRejected: the platform refused what a write carried, such as the
+	// position of an inline comment; Error.Rejected names which, when the
+	// platform says.
+	ErrRejected Kind = "rejected"
 	// ErrRateLimited: the platform refused the request for its rate limit.
 	ErrRateLimited Kind = "rate-limited"
 	// ErrTransport: the request failed for any other reason.
@@ -55,7 +61,7 @@ const (
 )
 
 // Kinds are all the kinds, in a fixed order.
-var Kinds = []Kind{ErrNotFound, ErrForbidden, ErrSearchUnavailable, ErrTreeTruncated, ErrListTruncated, ErrRateLimited, ErrTransport}
+var Kinds = []Kind{ErrNotFound, ErrForbidden, ErrSearchUnavailable, ErrTreeTruncated, ErrListTruncated, ErrRejected, ErrRateLimited, ErrTransport}
 
 var messages = map[Kind]string{
 	ErrNotFound:          "not found or no access",
@@ -63,6 +69,7 @@ var messages = map[Kind]string{
 	ErrSearchUnavailable: "search unavailable for this ref",
 	ErrTreeTruncated:     "tree truncated",
 	ErrListTruncated:     "list truncated",
+	ErrRejected:          "rejected by the platform",
 	ErrRateLimited:       "rate limited",
 	ErrTransport:         "transport error",
 }
@@ -83,6 +90,10 @@ type Error struct {
 	// Permissions are what the platform said the read needed; set by the
 	// provider for ErrForbidden when the platform says it.
 	Permissions []string
+	// Rejected holds the positions, in the order they were sent, of the
+	// items of a write that the platform refused, for ErrRejected, when it
+	// says which. It is nil when it does not.
+	Rejected []int
 	// Err is the cause, if any.
 	Err error
 }
@@ -117,6 +128,17 @@ func ReasonOf(err error) string {
 		}
 	}
 	return ""
+}
+
+// RejectedOf reports whether err is a write the platform refused and, if
+// it named them, which items: their positions in what was sent. A nil list
+// with true means the platform did not say which.
+func RejectedOf(err error) ([]int, bool) {
+	var e *Error
+	if errors.As(err, &e) && e.Kind == ErrRejected {
+		return e.Rejected, true
+	}
+	return nil, false
 }
 
 // PermissionsOf returns the permissions a forbidden read needed, if the

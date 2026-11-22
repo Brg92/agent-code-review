@@ -19,6 +19,7 @@ const (
 	exitUnexpected    = 1
 	exitUsage         = 2
 	exitValidation    = 3
+	exitHeadChanged   = 4
 	exitAuth          = 6
 	exitPlatform      = 7
 	exitState         = 8
@@ -39,6 +40,9 @@ commands:
   show [--verbose] [--run <id>] [<cr>]
                                  print the summary of the cascade, or a report
   show --save [<folder>] [<cr>]  save a report outside any git work tree
+  publish --plan <comments|issues|both> [--run <id>]
+                                 plan what to write to the platform; writes nothing there
+  publish --apply [--run <id>]   write exactly the plans, only after the user said yes
   auth login [--host <host>]     store a token read from stdin
   auth status [--host <host>]    say whether a token is available, and from where
   auth logout [--host <host>]    remove the stored token
@@ -59,7 +63,7 @@ type env struct {
 	// the user cache and configuration live.
 	now           func() time.Time
 	random        io.Reader
-	newReader     func(host string, tokens github.Resolver, opts github.Options) (base.Reader, error)
+	newReader     func(host string, tokens github.Resolver, opts github.Options) (base.ForgeProvider, error)
 	userCacheDir  func() (string, error)
 	userConfigDir func() (string, error)
 	// userHomeDir is where reports are saved when no folder is named.
@@ -94,6 +98,8 @@ func run(args []string, e env) int {
 		return runFinalize(args[1:], e)
 	case len(args) >= 1 && args[0] == "show":
 		return runShow(args[1:], e)
+	case len(args) >= 1 && args[0] == "publish":
+		return runPublish(args[1:], e)
 	}
 	fmt.Fprint(e.stderr, usage)
 	return exitUsage

@@ -23,7 +23,8 @@ const (
 // Event describes a request for diagnostics. It holds no header, no query,
 // no body and no URL host: nothing in it can carry a token.
 type Event struct {
-	// Method is always GET.
+	// Method is the HTTP method of the request: GET, or POST or PATCH for
+	// an endpoint the caller allowed.
 	Method string
 	// Path is the URL path of the request, without its query.
 	Path string

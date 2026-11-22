@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "runId": "20261102-090000-s1",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "createdAt": "2026-11-02T09:20:00Z",
+  "publish": "comments",
+  "actions": [
+    {
+      "id": 1,
+      "kind": "review-comment",
+      "severity": "BLOCKER",
+      "rules": [
+        "run-blocking-prod"
+      ],
+      "body": "**BLOCKER** · `run-blocking-prod` — runBlocking in onCreate blocks the main thread\n\nThe main thread waits for the session refresh, so the first frame is late.\n\n**Fix:** Start the refresh in a coroutine.\n\n<!-- acr:v1:run-blocking-prod:app/src/main/java/com/example/sample/MainActivity.kt:f6631c865b8f -->",
+      "findingId": "acr:v1:run-blocking-prod:app/src/main/java/com/example/sample/MainActivity.kt:f6631c865b8f",
+      "path": "app/src/main/java/com/example/sample/MainActivity.kt",
+      "side": "RIGHT",
+      "line": 13
+    },
+    {
+      "id": 2,
+      "kind": "review-comment",
+      "severity": "BLOCKER",
+      "rules": [
+        "global-scope"
+      ],
+      "body": "**BLOCKER** · `global-scope` — prefetch() launches in GlobalScope\n\nThe coroutine outlives the screen.\n\n**Fix:** Use a scope tied to the lifecycle.\n\n<!-- acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba -->",
+      "findingId": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 19
+    },
+    {
+      "id": 3,
+      "kind": "review-comment",
+      "severity": "BLOCKER",
+      "rules": [
+        "logic-defect"
+      ],
+      "body": "Refers to line 27 of `app/src/main/java/com/example/sample/ui/HomeViewModel.kt`, outside the changed lines.\n\n**BLOCKER** · `logic-defect` — requireUser() always throws in refresh()\n\nNothing calls warmUp() any more.\n\n**Fix:** Keep the warmUp() call in init.\n\n<!-- acr:v1:logic-defect:app/src/main/java/com/example/sample/ui/HomeViewModel.kt:0a1b2c3d4e5f -->",
+      "findingId": "acr:v1:logic-defect:app/src/main/java/com/example/sample/ui/HomeViewModel.kt:0a1b2c3d4e5f",
+      "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
+      "side": "RIGHT",
+      "line": 16
+    }
+  ],
+  "skipped": [
+    {
+      "status": "already-posted",
+      "kind": "review-comment",
+      "findingId": "acr:v1:no-double-bang:app/src/main/java/com/example/sample/data/ProfileStore.kt:7726b8854d31",
+      "rule": "no-double-bang",
+      "path": "app/src/main/java/com/example/sample/data/ProfileStore.kt",
+      "line": 12
+    },
+    {
+      "status": "ignored-untrusted",
+      "kind": "review-comment",
+      "target": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:a1b2c3d4e5f6",
+      "detail": "written by an account that is not trusted"
+    }
+  ]
+}

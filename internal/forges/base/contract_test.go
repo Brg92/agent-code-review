@@ -32,3 +32,10 @@ func TestContract(t *testing.T) {
 		})
 	}
 }
+
+// TestWriterContract runs the contract of the writes on the fake. The
+// GitHub provider runs it against the synthetic GitHub, in its own package.
+func TestWriterContract(t *testing.T) {
+	fake, _ := forgecontract.Example(github.Capabilities())
+	forgecontract.RunWriter(t, fake, forgecontract.ExampleWriter(fake))
+}

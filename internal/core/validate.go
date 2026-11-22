@@ -44,6 +44,7 @@ func ValidateJudgement(r Review, j Judgement) error {
 		v.check(q.Line >= 0, at+"/line", "line %d is less than 1", q.Line)
 		v.check(q.Line == 0 || q.Path != "", at+"/path", "a question about a line names its file")
 		v.check(!blank(q.Text), at+"/text", "the question is empty")
+		v.limit(at+"/text", q.Text, MaxQuestionLength)
 	}
 	v.check(len(j.Notes) <= MaxNotes, "/notes", "%d notes, at most %d", len(j.Notes), MaxNotes)
 	for i, n := range j.Notes {
@@ -72,6 +73,13 @@ func (v *validator) add(pointer, format string, args ...any) {
 func (v *validator) check(ok bool, pointer, format string, args ...any) {
 	if !ok {
 		v.add(pointer, format, args...)
+	}
+}
+
+// limit reports text longer than max characters.
+func (v *validator) limit(pointer, text string, max int) {
+	if n := utf8.RuneCountInString(text); n > max {
+		v.add(pointer, "%d characters, at most %d", n, max)
 	}
 }
 
@@ -125,6 +133,13 @@ func (v *validator) finding(at string, f JudgedFinding, preExisting bool) {
 		}
 	}
 	v.check(!blank(f.Title) && !strings.ContainsAny(f.Title, "\r\n"), at+"/title", "the title must be one non-empty line")
+	v.limit(at+"/title", f.Title, MaxTitleLength)
+	v.limit(at+"/why", f.Why, MaxWhyLength)
+	v.limit(at+"/fix", f.Fix, MaxFixLength)
+	if f.Suggestion != nil {
+		n := strings.Count(*f.Suggestion, "\n") + 1
+		v.check(n <= MaxSuggestionLines, at+"/suggestion", "%d lines, at most %d: describe the change in fix instead", n, MaxSuggestionLines)
+	}
 	v.check(!blank(f.Why), at+"/why", "why is empty: say what goes wrong")
 	v.check(!blank(f.Fix), at+"/fix", "fix is empty: a finding without a fix is not a finding")
 	switch {

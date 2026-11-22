@@ -139,3 +139,26 @@ func TestSyntheticRouteSequence(t *testing.T) {
 		t.Errorf("statuses = %v, want %v: each request takes the next response and the last one repeats", got, want)
 	}
 }
+
+func TestSyntheticPostRoute(t *testing.T) {
+	r := NewSynthetic(t)
+	r.Add(Route{Method: http.MethodPost, Path: "/graphql", Status: 200, Body: `{"data":{}}`})
+	resp, err := http.Post(r.URL()+"/graphql", "application/json", strings.NewReader(`{"query":"{ x }"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != 200 || string(body) != `{"data":{}}` {
+		t.Errorf("POST /graphql = %d %q", resp.StatusCode, body)
+	}
+	if n := r.Count("POST", "/graphql"); n != 1 {
+		t.Errorf("Count = %d, want 1", n)
+	}
+	// A GET of the same path is a different route, and has no answer.
+	rec := &recTB{TB: t}
+	r.t = rec
+	if resp, _ := get(t, r.URL()+"/graphql"); resp.StatusCode != http.StatusNotImplemented || len(rec.errs) != 1 {
+		t.Errorf("GET /graphql = %d, errors %v, want 501 and one error", resp.StatusCode, rec.errs)
+	}
+}

@@ -13,6 +13,20 @@ type Capabilities struct {
 	TreeMayTruncate bool
 	// CI is where the platform reports the CI state of a commit.
 	CI CISources
+	// Writes are the limits and formats of what publish writes.
+	Writes WriteLimits
+}
+
+// WriteLimits say what the platform accepts of what publish writes. They
+// are data: the core publishes by them without knowing the platform.
+type WriteLimits struct {
+	// MaxBodyLength is the most characters a comment or an issue body may
+	// hold; 0 means no limit is known.
+	MaxBodyLength int
+	// SuggestionInfo is the info string of the code fence that makes a block
+	// a change the reader can apply, such as "suggestion"; empty when the
+	// platform has none.
+	SuggestionInfo string
 }
 
 // SearchScope is the set of refs a platform's code search covers.

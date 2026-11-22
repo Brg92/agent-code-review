@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Brg92/agent-code-review/schemas/plan.schema.json",
   "title": "Publish plan",
-  "description": "Writes that publish --plan proposes for one change request. publish --apply executes exactly these actions, and only if the head commit is still headSha.",
+  "description": "Writes that publish --plan proposes for one change request. publish --apply executes exactly these actions, from plans whose SHA-256 is the one recorded in state.json, and writes nothing for a change request whose head commit is no longer headSha. Nothing is written without a confirmed plan.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -11,7 +11,9 @@
     "cr",
     "headSha",
     "createdAt",
-    "actions"
+    "publish",
+    "actions",
+    "skipped"
   ],
   "properties": {
     "schema": {
@@ -34,11 +36,19 @@
       "description": "When the plan was made.",
       "$ref": "#/$defs/timestamp"
     },
+    "publish": {
+      "description": "What the user asked to publish: comments (the inline comments, the note that nothing blocks and the Related Changes tick), issues, or both.",
+      "enum": [
+        "comments",
+        "issues",
+        "both"
+      ]
+    },
     "actions": {
       "description": "Writes in the order they are executed. An empty list means there is nothing to publish.",
       "type": "array",
       "items": {
-        "description": "One write. review-comment needs path, side and line; issue needs project and title; related-tick needs entry.",
+        "description": "One write. What each kind needs is in the rules below.",
         "type": "object",
         "additionalProperties": false,
         "required": [
@@ -48,27 +58,46 @@
         ],
         "properties": {
           "id": {
-            "description": "Number of the action, from 1, so the user can confirm or drop single actions.",
+            "description": "Number of the action, from 1, in the order the actions are executed. Ids never change once the plan is written; publish --apply executes all of them.",
             "type": "integer",
             "minimum": 1
           },
           "kind": {
-            "description": "review-comment is an inline comment, summary-comment a comment on the change request, issue a new issue, related-tick ticks an entry of Related Changes.",
+            "description": "review-comment is an inline comment, in the one review of the change request; summary-comment is the general note that says nothing blocks; issue-create opens an issue; issue-update rewrites the body of an open issue; label-create creates the label the issues use; related-tick ticks the entry of this change request in the Related Changes of its parent.",
             "enum": [
               "review-comment",
               "summary-comment",
-              "issue",
+              "issue-create",
+              "issue-update",
+              "label-create",
               "related-tick"
             ]
           },
           "body": {
-            "description": "Text to post, in Markdown; it is secret-scanned before it is sent. Empty for related-tick.",
+            "description": "Text to post, in Markdown; it is secret-scanned before it is sent. Empty for label-create and related-tick.",
             "type": "string"
           },
           "findingId": {
-            "description": "Fingerprint of the finding the action publishes: the id of a reported finding.",
+            "description": "Fingerprint of the finding an inline comment publishes: the id of a reported finding.",
             "type": "string",
             "pattern": "^acr:v1:[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*:(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*:[0-9a-f]{12}$"
+          },
+          "fingerprint": {
+            "description": "Fingerprint embedded in a summary-comment, an issue-create or an issue-update: the one that finds the text again.",
+            "$ref": "#/$defs/fingerprint"
+          },
+          "severity": {
+            "description": "Severity of the findings of an inline comment or an issue.",
+            "$ref": "#/$defs/issueSeverity"
+          },
+          "rules": {
+            "description": "Rule id of each finding the action publishes, in the order of the text, for the summary the plan prints.",
+            "type": "array",
+            "items": {
+              "description": "A rule id.",
+              "type": "string",
+              "pattern": "\\S"
+            }
           },
           "path": {
             "description": "File of an inline comment.",
@@ -83,21 +112,220 @@
             "$ref": "#/$defs/line"
           },
           "startLine": {
-            "description": "First line of a multi-line inline comment.",
+            "description": "First line of a multi-line inline comment; only with a suggestion.",
             "$ref": "#/$defs/line"
           },
           "project": {
-            "description": "Project of a new issue.",
+            "description": "Project of an issue or a label.",
             "$ref": "#/$defs/projectKey"
+          },
+          "number": {
+            "description": "Number of the issue an issue-update rewrites.",
+            "type": "integer",
+            "minimum": 1
           },
           "title": {
             "description": "Title of a new issue.",
             "type": "string",
             "pattern": "\\S"
           },
-          "entry": {
-            "description": "Related Changes entry to tick.",
+          "assignee": {
+            "description": "Login of the author of the change request, whom a new issue is assigned to if the platform lets it; absent when the author is not known.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "label": {
+            "description": "Label a label-create makes.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "color",
+              "description"
+            ],
+            "properties": {
+              "name": {
+                "description": "Name of the label.",
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "color": {
+                "description": "Colour of the label, six hexadecimal digits.",
+                "type": "string",
+                "pattern": "^[0-9a-f]{6}$"
+              },
+              "description": {
+                "description": "What the label is for.",
+                "type": "string"
+              }
+            }
+          },
+          "parent": {
+            "description": "Change request whose Related Changes entry a related-tick ticks.",
             "$ref": "#/$defs/crKey"
+          },
+          "entry": {
+            "description": "Related Changes entry a related-tick ticks: the change request this plan is for.",
+            "$ref": "#/$defs/crKey"
+          }
+        },
+        "if": {
+          "properties": {
+            "kind": {
+              "const": "review-comment"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "findingId",
+            "severity",
+            "rules",
+            "path",
+            "side",
+            "line"
+          ]
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "summary-comment"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "fingerprint"
+            ]
+          },
+          "else": {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "issue-create"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "fingerprint",
+                "severity",
+                "rules",
+                "project",
+                "title"
+              ]
+            },
+            "else": {
+              "if": {
+                "properties": {
+                  "kind": {
+                    "const": "issue-update"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "fingerprint",
+                  "severity",
+                  "rules",
+                  "project",
+                  "number",
+                  "title"
+                ]
+              },
+              "else": {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "label-create"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "project",
+                    "label"
+                  ]
+                },
+                "else": {
+                  "if": {
+                    "properties": {
+                      "kind": {
+                        "const": "related-tick"
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "parent",
+                      "entry"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "skipped": {
+      "description": "What the plan does not write and why, in the order it was found.",
+      "type": "array",
+      "items": {
+        "description": "Something the plan does not write, or notes about what it found. An ignored-untrusted entry does not stop its action.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "description": "Why it is not written.",
+            "$ref": "#/$defs/status"
+          },
+          "kind": {
+            "description": "The kind of action that was not planned.",
+            "enum": [
+              "review-comment",
+              "summary-comment",
+              "issue-create",
+              "issue-update",
+              "label-create",
+              "related-tick"
+            ]
+          },
+          "findingId": {
+            "description": "Fingerprint of the finding that is not written.",
+            "type": "string",
+            "pattern": "^acr:v1:[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*:(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*)(?:/(?:[^/\\\\.][^/\\\\]*|\\.[^/\\\\.][^/\\\\]*))*:[0-9a-f]{12}$"
+          },
+          "target": {
+            "description": "What the entry is about when it is not a finding: a fingerprint, a change request key or a project key.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "path": {
+            "description": "File the finding is in, for the summary the plan prints.",
+            "$ref": "#/$defs/relativePath"
+          },
+          "line": {
+            "description": "Line of the finding.",
+            "$ref": "#/$defs/line"
+          },
+          "rule": {
+            "description": "Rule id of the finding.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "pattern": {
+            "description": "Name of the secret pattern that matched; never the text that matched.",
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "detail": {
+            "description": "What else the reader needs, in one line.",
+            "type": "string"
           }
         }
       }
@@ -145,6 +373,39 @@
       "description": "UTC time in RFC 3339 format, for example 2026-11-02T10:15:00Z.",
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"
+    },
+    "status": {
+      "description": "Why something is not written, or what the platform answered. already-posted: a trusted fingerprint is already on the change request or issue. ignored-untrusted: a fingerprint was found, written by an account that is not trusted, so it does not count and the write goes ahead. head-changed: the change request has new commits since it was reviewed. not-open: the change request is closed or merged. own-cr: the change request was opened by the account of the token, so nothing is written. rejected: the platform refused the position of an inline comment. secret-blocked: a text matches a secret pattern. too-long: a body is longer than the platform accepts. not-eligible: the Related Changes entry cannot be ticked, and detail says why. no-anchor: a BLOCKER of the change request that no line of the diff can carry, so it stays in the report.",
+      "enum": [
+        "already-posted",
+        "ignored-untrusted",
+        "head-changed",
+        "not-open",
+        "own-cr",
+        "rejected",
+        "secret-blocked",
+        "too-long",
+        "not-eligible",
+        "no-anchor"
+      ]
+    },
+    "fingerprint": {
+      "description": "A fingerprint embedded in the text of an action: acr:v1: followed by what it identifies.",
+      "type": "string",
+      "pattern": "^acr:v1:\\S+$"
+    },
+    "sha256": {
+      "description": "SHA-256 as 64 lowercase hexadecimal characters.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "issueSeverity": {
+      "description": "Severity of a finding that is published: BLOCKER inline or in the issue of existing code, MAJOR and MINOR in issues.",
+      "enum": [
+        "BLOCKER",
+        "MAJOR",
+        "MINOR"
+      ]
     }
   }
 }

@@ -1,8 +1,10 @@
 // Package review runs the commands of a review on the core: Collect
 // resolves the cascade of a change request and collects every change
 // request of it, up to the collected phase, and Next serves the agent the
-// next part to judge. It reads through a base.Reader and writes only the
-// run's work directory; it never writes to a platform.
+// next part to judge. Until publish, which Plan and Apply serve, it reads
+// through a base.Reader and writes only the run's work directory: a platform
+// is written to only by ApplyPublish, from the plans PlanPublish made and
+// the user confirmed.
 package review
 
 import (

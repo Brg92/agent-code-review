@@ -62,6 +62,11 @@ func (l *Log) Attach(runDir string) error {
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	if l.file != nil {
+		// A log attached again, to the same run or another, leaves nothing
+		// open behind it.
+		_ = l.file.Close()
+	}
 	l.file, l.path = f, path
 	return nil
 }

@@ -32,6 +32,8 @@ func TestErrorKinds(t *testing.T) {
 			ErrRateLimited, "rate-limited", "ci acme/app@abc: rate limited", nil},
 		{"transport with cause", &Error{Kind: ErrTransport, Op: "notes acme/app#1", Err: cause},
 			ErrTransport, "transport", "notes acme/app#1: transport error: connection reset", nil},
+		{"rejected", &Error{Kind: ErrRejected, Op: "review acme/app#1"},
+			ErrRejected, "rejected", "review acme/app#1: rejected by the platform", nil},
 		{"wrapped", fmt.Errorf("criteria: %w", &Error{Kind: ErrNotFound, Op: "files acme/app@main"}),
 			ErrNotFound, "not-found", "criteria: files acme/app@main: not found or no access", nil},
 	}
@@ -75,5 +77,21 @@ func TestReasonOfOtherErrors(t *testing.T) {
 	}
 	if got := Kind("made-up").Error(); got != "made-up" {
 		t.Errorf("Error() of an unknown kind = %q, want its name", got)
+	}
+}
+
+func TestRejectedOf(t *testing.T) {
+	named := &Error{Kind: ErrRejected, Op: "review acme/app#1", Rejected: []int{2, 0}}
+	if got, ok := RejectedOf(fmt.Errorf("publish: %w", named)); !ok || !reflect.DeepEqual(got, []int{2, 0}) {
+		t.Errorf("RejectedOf(named) = %v, %v, want [2 0], true", got, ok)
+	}
+	if got, ok := RejectedOf(&Error{Kind: ErrRejected}); !ok || got != nil {
+		t.Errorf("RejectedOf(unnamed) = %v, %v, want nil, true: the platform did not say which", got, ok)
+	}
+	if got, ok := RejectedOf(&Error{Kind: ErrNotFound, Rejected: []int{1}}); ok || got != nil {
+		t.Errorf("RejectedOf(not found) = %v, %v, want nothing", got, ok)
+	}
+	if got, ok := RejectedOf(nil); ok || got != nil {
+		t.Errorf("RejectedOf(nil) = %v, %v", got, ok)
 	}
 }

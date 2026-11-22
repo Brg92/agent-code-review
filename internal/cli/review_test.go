@@ -59,7 +59,7 @@ func reviewEnv(t *testing.T, r *sandbox.Replay) (env, string) {
 		}),
 		now:    clock.Now,
 		random: rand.New(rand.NewSource(1)),
-		newReader: func(host string, tokens github.Resolver, opts github.Options) (base.Reader, error) {
+		newReader: func(host string, tokens github.Resolver, opts github.Options) (base.ForgeProvider, error) {
 			opts.Transport.Now, opts.Transport.Sleep = clock.Now, clock.Sleep
 			return github.NewLoopback(host, r.URL(), tokens, opts)
 		},
@@ -283,7 +283,7 @@ func TestReviewWithoutAToken(t *testing.T) {
 	e.git = git
 	vars := map[string]string{"ACR_WORKDIR": filepath.Join(t.TempDir(), "w"), "ACR_PACKS_DIR": packsDir(t)}
 	e.getenv = func(k string) string { return vars[k] }
-	e.newReader = func(host string, tokens github.Resolver, opts github.Options) (base.Reader, error) {
+	e.newReader = func(host string, tokens github.Resolver, opts github.Options) (base.ForgeProvider, error) {
 		return github.New(host, tokens, opts)
 	}
 	r := runWith(t, e, "review", "o/r#7")
@@ -316,7 +316,7 @@ func TestReviewUsageErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e, _ := reviewEnv(t, sandbox.NewSynthetic(t))
-			e.newReader = func(string, github.Resolver, github.Options) (base.Reader, error) {
+			e.newReader = func(string, github.Resolver, github.Options) (base.ForgeProvider, error) {
 				t.Error("a reader was made")
 				return nil, errors.New("no reader")
 			}
@@ -342,7 +342,7 @@ func TestReviewOfAnUnsupportedHost(t *testing.T) {
 				}
 				return map[string]string{"ACR_WORKDIR": t.TempDir(), "ACR_PACKS_DIR": packsDir(t)}[k]
 			}
-			e.newReader = func(host string, tokens github.Resolver, opts github.Options) (base.Reader, error) {
+			e.newReader = func(host string, tokens github.Resolver, opts github.Options) (base.ForgeProvider, error) {
 				return github.New(host, tokens, opts)
 			}
 			r := runWith(t, e, "review", ref)
@@ -360,7 +360,7 @@ func TestReviewOfAnUnsupportedHost(t *testing.T) {
 func TestNextFailures(t *testing.T) {
 	work := func(t *testing.T) (env, string) {
 		e, w := reviewEnv(t, sandbox.NewSynthetic(t))
-		e.newReader = func(string, github.Resolver, github.Options) (base.Reader, error) {
+		e.newReader = func(string, github.Resolver, github.Options) (base.ForgeProvider, error) {
 			t.Error("next reads no platform")
 			return nil, errors.New("no reader")
 		}

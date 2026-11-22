@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "runId": "20261102-090000-s1",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#2",
+  "headSha": "76ae5f13ca1575b65fe1567c471e8a7b51a00af4",
+  "createdAt": "2026-11-02T09:20:00Z",
+  "publish": "both",
+  "actions": [],
+  "skipped": [
+    {
+      "status": "head-changed",
+      "target": "github:github.com/acr-plugin-sandbox/sample-app#2",
+      "detail": "the head is now 0123456789abcdef0123456789abcdef01234567"
+    },
+    {
+      "status": "not-open",
+      "target": "github:github.com/acr-plugin-sandbox/sample-app#2"
+    },
+    {
+      "status": "own-cr",
+      "target": "github:github.com/acr-plugin-sandbox/sample-app#2"
+    },
+    {
+      "status": "secret-blocked",
+      "kind": "review-comment",
+      "findingId": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
+      "pattern": "github-token"
+    },
+    {
+      "status": "too-long",
+      "kind": "issue-create",
+      "target": "acr:v1:issue:acr-plugin-sandbox/sample-app#2:minor",
+      "detail": "70000 characters, the platform accepts 65536"
+    },
+    {
+      "status": "not-eligible",
+      "kind": "related-tick",
+      "target": "github:github.com/acr-plugin-sandbox/sample-app#2",
+      "detail": "it has an unresolved blocker"
+    },
+    {
+      "status": "no-anchor",
+      "kind": "review-comment",
+      "findingId": "acr:v1:logic-defect:app/src/main/res/logo.png:0123456789ab",
+      "rule": "logic-defect",
+      "path": "app/src/main/res/logo.png",
+      "line": 1
+    },
+    {
+      "status": "rejected",
+      "kind": "review-comment",
+      "findingId": "acr:v1:logic-defect:app/src/main/java/A.kt:0123456789ab"
+    }
+  ]
+}
