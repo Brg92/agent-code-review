@@ -132,6 +132,10 @@
           "title": {
             "description": "Title on the platform, once known.",
             "type": "string"
+          },
+          "planSha256": {
+            "description": "SHA-256 of the plan.json that publish --plan wrote for this change request. publish --apply writes only from a plan with this hash; a plan that is missing or has another hash is a failure and nothing is written. A skipped entry has none.",
+            "$ref": "#/$defs/sha256"
           }
         }
       }
@@ -152,6 +156,11 @@
       "description": "Full commit SHA, 40 lowercase hexadecimal characters.",
       "type": "string",
       "pattern": "^[0-9a-f]{40}$"
+    },
+    "sha256": {
+      "description": "SHA-256 as 64 lowercase hexadecimal characters.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
     },
     "timestamp": {
       "description": "UTC time in RFC 3339 format, for example 2026-11-02T10:15:00Z.",

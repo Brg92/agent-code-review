@@ -119,6 +119,10 @@ func TestEntryValidate(t *testing.T) {
 		{"short sha", Entry{CR: root, Status: Collected, HeadSHA: "abc"}, "headSha"},
 		{"uppercase sha", Entry{CR: root, Status: Collected, HeadSHA: strings.ToUpper(sha)}, "headSha"},
 		{"invalid parent", Entry{CR: child, Depth: 1, Parent: &Key{}, Status: Pending}, "parent"},
+		{"plan hash", Entry{CR: root, Status: Finalized, HeadSHA: sha, PlanSHA256: strings.Repeat("ab", 32)}, ""},
+		{"short plan hash", Entry{CR: root, Status: Finalized, PlanSHA256: "abc"}, "planSha256"},
+		{"uppercase plan hash", Entry{CR: root, Status: Finalized, PlanSHA256: strings.Repeat("AB", 32)}, "planSha256"},
+		{"plan hash on a skipped entry", Entry{CR: child, Depth: 1, Parent: &root, Status: Skipped, SkipReason: Cycle, PlanSHA256: strings.Repeat("ab", 32)}, "planSha256"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -136,11 +140,12 @@ func TestEntryJSON(t *testing.T) {
 		{CR: root, Status: Pending},
 		{CR: mustKey(t, "github:github.com/acr-plugin-sandbox/core-lib#3"), Depth: 1, Parent: &root, Status: Skipped, SkipReason: AlreadyDone},
 	}
+	entries[0].PlanSHA256 = strings.Repeat("ab", 32)
 	out, err := json.Marshal(entries)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := `[{"cr":"github:github.com/acr-plugin-sandbox/sample-app#7","depth":0,"status":"pending"},` +
+	want := `[{"cr":"github:github.com/acr-plugin-sandbox/sample-app#7","depth":0,"status":"pending","planSha256":"` + strings.Repeat("ab", 32) + `"},` +
 		`{"cr":"github:github.com/acr-plugin-sandbox/core-lib#3","depth":1,"parent":"github:github.com/acr-plugin-sandbox/sample-app#7","status":"skipped","skipReason":"already-done"}]`
 	if string(out) != want {
 		t.Errorf("marshal =\n%s\nwant\n%s", out, want)
