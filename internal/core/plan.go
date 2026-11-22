@@ -151,6 +151,9 @@ func (s *PlanStatus) UnmarshalText(b []byte) error {
 	return nil
 }
 
+// ReviewLabel is the label every issue publish writes carries.
+var ReviewLabel = Label{Name: "review", Color: "5319e7", Description: "Findings of a code review"}
+
 // Label is the label the issues carry.
 type Label struct {
 	Name        string `json:"name"`
@@ -326,9 +329,7 @@ func (a Action) validate() error {
 	case ActionIssueCreate, ActionIssueUpdate:
 		checks = append(checks, need(fingerprintPattern.MatchString(a.Fingerprint), "a fingerprint"), need(a.Severity.Valid() && a.Severity != Info, "a severity"),
 			need(len(a.Rules) > 0, "rules"), need(isProjectKey(a.Project), "a project"), need(strings.TrimSpace(a.Title) != "", "a title"))
-		if a.Kind == ActionIssueCreate {
-			checks = append(checks, need(strings.TrimSpace(a.Assignee) != "", "an assignee"))
-		} else {
+		if a.Kind == ActionIssueUpdate {
 			checks = append(checks, need(a.Number >= 1, "a number"))
 		}
 	case ActionLabelCreate:

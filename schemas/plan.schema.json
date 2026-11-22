@@ -130,7 +130,7 @@
             "pattern": "\\S"
           },
           "assignee": {
-            "description": "Login of the author of the change request, whom a new issue is assigned to if the platform lets it.",
+            "description": "Login of the author of the change request, whom a new issue is assigned to if the platform lets it; absent when the author is not known.",
             "type": "string",
             "pattern": "\\S"
           },
@@ -213,8 +213,7 @@
                 "severity",
                 "rules",
                 "project",
-                "title",
-                "assignee"
+                "title"
               ]
             },
             "else": {

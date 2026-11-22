@@ -191,7 +191,6 @@ func TestPlanValidate(t *testing.T) {
 		{"label project", func(p *Plan) { p.Actions[2].Project = "x" }, "project"},
 		{"label", func(p *Plan) { p.Actions[2].Label = nil }, "label"},
 		{"label colour", func(p *Plan) { p.Actions[2].Label.Color = "purple" }, "colour"},
-		{"issue assignee", func(p *Plan) { p.Actions[3].Assignee = " " }, "assignee"},
 		{"issue title", func(p *Plan) { p.Actions[3].Title = "" }, "title"},
 		{"issue number", func(p *Plan) { p.Actions[4].Number = 0 }, "number"},
 		{"tick parent", func(p *Plan) { p.Actions[5].Parent = nil }, "parent"},

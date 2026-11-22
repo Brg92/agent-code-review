@@ -24,6 +24,10 @@ const (
 	JudgementFile   = "judgement.json"
 	FindingsFile    = "findings.json"
 	ReportFile      = "report.txt"
+	// PlanFile is the plan publish --plan writes for a change request;
+	// PublishedFile the outcomes publish --apply writes as it goes.
+	PlanFile      = "plan.json"
+	PublishedFile = "published.json"
 )
 
 // runsDir is the directory of the run directories under the base.

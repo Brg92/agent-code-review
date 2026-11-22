@@ -138,7 +138,7 @@ Reports:
 Next:
   agent-code-review show <cr>       read the full report of a change request
   agent-code-review show --save     save a report outside any git work tree
-  agent-code-review publish --plan  plan what to write to GitHub (not available yet)
+  agent-code-review publish --plan <comments|issues|both>  plan what to write to GitHub; the plan writes nothing
 `
 	if got != want {
 		t.Errorf("got\n%s\nwant\n%s", got, want)
@@ -153,7 +153,7 @@ func TestFinalNamesThePlatform(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasPrefix(got, "Review completed. Nothing was written to GitLab.\n") || !strings.Contains(got, "publish --plan  plan what to write to GitLab (not available yet)\n") {
+	if !strings.HasPrefix(got, "Review completed. Nothing was written to GitLab.\n") || !strings.Contains(got, "publish --plan <comments|issues|both>  plan what to write to GitLab; the plan writes nothing\n") {
 		t.Errorf("got\n%s", got)
 	}
 }
