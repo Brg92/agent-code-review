@@ -56,8 +56,10 @@ type options struct {
 	// limit is the argument of --limit.
 	limit    int
 	limitSet bool
-	save     bool
-	args     []string
+	// repo is the argument of --repo.
+	repo string
+	save bool
+	args []string
 }
 
 // allowed are the flags besides --verbose a command takes.
@@ -70,6 +72,7 @@ const (
 	flagPlan
 	flagApply
 	flagLimit
+	flagRepo
 )
 
 // parseOptions reads the flags of a command wherever they are among its
@@ -87,6 +90,9 @@ func parseOptions(name string, args []string, allow allowed) (options, error) {
 	}
 	if allow&flagLimit != 0 {
 		fs.IntVar(&o.limit, "limit", 0, "")
+	}
+	if allow&flagRepo != 0 {
+		fs.StringVar(&o.repo, "repo", "", "")
 	}
 	if allow&flagSave != 0 {
 		fs.BoolVar(&o.save, "save", false, "")
@@ -140,7 +146,13 @@ func finish(e env, err error, log *runlog.Log) int {
 		f.LogPath = log.Path()
 	}
 	fmt.Fprint(e.stderr, f.Report())
-	switch f.Kind {
+	return exitCodeOf(f.Kind)
+}
+
+// exitCodeOf is the exit code of a failure of kind, as docs/exit-codes.md
+// lists them.
+func exitCodeOf(kind review.Kind) int {
+	switch kind {
 	case review.KindUsage:
 		return exitUsage
 	case review.KindAuth:
