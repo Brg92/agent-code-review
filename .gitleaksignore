@@ -1,6 +1,0 @@
-# Test value of a test that checks that auth errors never quote what git printed (synthetic, not a credential).
-348668d3349046a28e04284c79b4023b8d45a3f5:internal/auth/hardening_test.go:generic-api-key:53
-# The fingerprint of a finding in a contract example of the publish plan: a rule, a path and 12 hexadecimal characters (synthetic).
-0b2956d2e2cc017adad04bb05d77adfb1ca934cd:testdata/contracts/plan/valid/s3-multi-line-suggestion.json:generic-api-key:17
-# A line of a test that checks the secret scan does not take prose for a secret (synthetic, not a credential).
-0197f8d010c7bfeacb2cf0efd87c31a4ae5ab245:internal/core/secrets_test.go:generic-api-key:39

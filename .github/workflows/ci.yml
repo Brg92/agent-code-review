@@ -54,13 +54,14 @@ jobs:
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
       - name: gitleaks
         env:
-          # One extra regex per line; the default gitleaks rules always apply.
+          # One extra regex per line, added to the rules of .gitleaks.toml,
+          # which keeps the default gitleaks rules.
           ACR_SECRET_PATTERNS: ${{ secrets.ACR_SECRET_PATTERNS }}
         run: |
-          config=()
+          config_file=".gitleaks.toml"
           if [ -n "${ACR_SECRET_PATTERNS:-}" ]; then
             config_file="$RUNNER_TEMP/gitleaks.toml"
-            printf '[extend]\nuseDefault = true\n' > "$config_file"
+            cp .gitleaks.toml "$config_file"
             n=0
             while IFS= read -r pattern || [ -n "$pattern" ]; do
               pattern=${pattern%$'\r'}
@@ -74,9 +75,8 @@ jobs:
               esac
               printf "\n[[rules]]\nid = \"acr-extra-%d\"\ndescription = \"Extra pattern from ACR_SECRET_PATTERNS\"\nregex = '''%s'''\n" "$n" "$pattern" >> "$config_file"
             done <<< "$ACR_SECRET_PATTERNS"
-            config=(--config "$config_file")
           fi
-          go run github.com/zricethezav/gitleaks/v8@v8.30.1 git --redact --no-banner "${config[@]}" .
+          go run github.com/zricethezav/gitleaks/v8@v8.30.1 git --redact --no-banner --config "$config_file" .
 
   test:
     name: test (${{ matrix.os }}, go ${{ matrix.go }})

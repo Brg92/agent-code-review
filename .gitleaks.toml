@@ -1,0 +1,27 @@
+# Configuration of gitleaks, which CI runs on the whole history. It keeps the
+# default rules. Each allowlist below is limited to one rule, one file and
+# the exact synthetic value; none covers a directory and no rule is disabled.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Test value of a test that checks that auth errors never quote what git printed (synthetic, not a credential)."
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^internal/auth/hardening_test\.go$''']
+regexes = ['''^echoed-secret-0123$''']
+
+[[allowlists]]
+description = "The 12 hexadecimal characters of a synthetic finding fingerprint in a contract example of the publish plan."
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^testdata/contracts/plan/valid/s3-multi-line-suggestion\.json$''']
+regexes = ['''^0123456789ab$''']
+
+[[allowlists]]
+description = "A line of a test of the secret scan that is not a secret: a made-up value under an api_key name (synthetic, not a credential)."
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^internal/core/secrets_test\.go$''']
+regexes = ['''^abcdefgh12345$''']

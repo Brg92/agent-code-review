@@ -52,7 +52,7 @@ Renaming a job or changing a matrix value changes these names, so that pull requ
 
 ## Extra secret patterns
 
-The repository secret `ACR_SECRET_PATTERNS` adds regular expressions to the default gitleaks rules, one per line. Blank lines are ignored, and a pattern must not contain `'''`. When the secret is empty or unset, only the default rules apply.
+The gitleaks rules are the default ones, with the allowlists of `.gitleaks.toml`: each is limited to one rule (`generic-api-key`), one file and the exact synthetic value of a test, never a directory. The repository secret `ACR_SECRET_PATTERNS` adds regular expressions to those rules, one per line, in a copy of `.gitleaks.toml` made by the workflow. Blank lines are ignored, and a pattern must not contain `'''`. When the secret is empty or unset, only the default rules apply.
 
 ## Pinned tools
 
