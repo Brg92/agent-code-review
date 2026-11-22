@@ -15,6 +15,7 @@ func TestCapabilities(t *testing.T) {
 		Search:          base.SearchDefaultBranch,
 		TreeMayTruncate: true,
 		CI:              base.CISources{CheckRuns: true, CommitStatuses: true},
+		Writes:          base.WriteLimits{MaxBodyLength: 65536, SuggestionInfo: "suggestion"},
 	}
 	if c != want {
 		t.Errorf("Capabilities() = %+v, want %+v", c, want)
