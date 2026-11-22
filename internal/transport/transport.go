@@ -2,11 +2,14 @@
 // providers. It knows no platform: base URL, token source, Accept header and
 // rate-limit policy come from the caller.
 //
-// Only GET requests can be sent. The client has no method that takes an HTTP
-// method, and its round tripper refuses anything else.
+// Reads are GET requests. The only other requests the client sends are the
+// POST and PATCH of the endpoints the caller allows in Config.Allow: it has
+// no method that takes an HTTP method, and its round tripper refuses
+// anything else, with a *NotAllowedError, before it reaches the network.
 package transport
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -14,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -60,6 +64,10 @@ type Config struct {
 	Now   func() time.Time
 	Sleep func(ctx context.Context, d time.Duration) error
 
+	// Allow lists the only requests besides GET that Post and Patch may
+	// send; none by default.
+	Allow []Endpoint
+
 	// Observe, if set, is called for each request the client finishes and
 	// for each attempt it retries, for the diagnostics of the caller. It
 	// must not block.
@@ -76,6 +84,8 @@ type Response struct {
 	Body       []byte
 	// URL is the URL that answered, after redirects.
 	URL string
+	// method is the HTTP method of the request that was answered.
+	method string
 	// FromCache is true when the server answered 304 Not Modified and the
 	// body is the one cached for the same ETag.
 	FromCache bool
@@ -105,6 +115,11 @@ func New(cfg Config) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	for _, e := range cfg.Allow {
+		if err := e.validate(); err != nil {
+			return nil, err
+		}
+	}
 	timeout := cfg.Timeout
 	if timeout <= 0 {
 		timeout = DefaultTimeout
@@ -123,7 +138,7 @@ func New(cfg Config) (*Client, error) {
 		maxBody:  maxBody,
 		userAgnt: "agent-code-review/" + version.Version,
 		http: &http.Client{
-			Transport:     getOnly{rt},
+			Transport:     restrict{next: rt, basePath: base.Path, allow: slices.Clone(cfg.Allow)},
 			Timeout:       timeout,
 			CheckRedirect: checkRedirect,
 		},
@@ -212,22 +227,6 @@ func newNetworkTransport(timeout time.Duration) *http.Transport {
 	}
 }
 
-// getOnly refuses every request that is not a GET, whatever builds it.
-type getOnly struct{ next http.RoundTripper }
-
-// errMethodNotAllowed is returned for a request that is not a GET.
-var errMethodNotAllowed = errors.New("transport: only GET requests are allowed")
-
-func (g getOnly) RoundTrip(req *http.Request) (*http.Response, error) {
-	if req.Method != http.MethodGet {
-		if req.Body != nil {
-			_ = req.Body.Close()
-		}
-		return nil, errMethodNotAllowed
-	}
-	return g.next.RoundTrip(req)
-}
-
 // resolve appends path, which must start with a single "/", to the base URL.
 func (c *Client) resolve(path string) (*url.URL, error) {
 	if !strings.HasPrefix(path, "/") || strings.HasPrefix(path, "//") {
@@ -273,7 +272,7 @@ func (c *Client) get(ctx context.Context, u *url.URL, accept string) (resp *Resp
 	for attempt := 0; ; attempt++ {
 		attemptStart := c.now()
 		attempts, status = attempt+1, 0
-		resp, err := c.attempt(ctx, u, accept, token, cached.etag, secrets)
+		resp, err := c.attempt(ctx, http.MethodGet, u, accept, token, cached.etag, nil, secrets)
 		if resp != nil {
 			status = resp.StatusCode
 		}
@@ -335,17 +334,25 @@ func (c *Client) retryAt(d time.Duration, hinted bool) time.Time {
 }
 
 func (c *Client) statusError(u *url.URL, resp *Response, secrets []string) error {
-	return &StatusError{StatusCode: resp.StatusCode, URL: redactURL(u.String()), Message: bodyMessage(resp.Body, secrets), Header: resp.Header.Clone()}
+	return &StatusError{Method: resp.method, StatusCode: resp.StatusCode, URL: redactURL(u.String()), Message: bodyMessage(resp.Body, secrets), Header: resp.Header.Clone(),
+		Body: []byte(redactText(string(resp.Body), secrets))}
 }
 
 // attempt sends one request and reads its body, whatever the status.
-func (c *Client) attempt(ctx context.Context, u *url.URL, accept, token, etag string, secrets []string) (*Response, error) {
+func (c *Client) attempt(ctx context.Context, method string, u *url.URL, accept, token, etag string, body []byte, secrets []string) (*Response, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	var payload io.Reader
+	if body != nil {
+		payload = bytes.NewReader(body)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), payload)
 	if err != nil {
 		return nil, err
+	}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
 	}
 	req.Header.Set("User-Agent", c.userAgnt)
 	if accept != "" {
@@ -358,24 +365,29 @@ func (c *Client) attempt(ctx context.Context, u *url.URL, accept, token, etag st
 		req.Header.Set("If-None-Match", etag)
 	}
 	resp, err := c.http.Do(req)
-	// A refused redirect is final: retrying would get the same answer.
+	// A request that is not allowed never reaches the network, and a
+	// refused redirect is final: retrying would get the same answer.
+	var na *NotAllowedError
+	if errors.As(err, &na) {
+		return nil, na
+	}
 	for _, final := range []error{ErrCrossHostRedirect, errTooManyRedirects} {
 		if errors.Is(err, final) {
-			return nil, fmt.Errorf("transport: GET %s: %w", redactURL(u.String()), final)
+			return nil, fmt.Errorf("transport: %s %s: %w", method, redactURL(u.String()), final)
 		}
 	}
 	if err != nil {
-		return nil, newNetworkError(u.String(), err, secrets)
+		return nil, newNetworkError(method, u.String(), err, secrets)
 	}
 	defer resp.Body.Close()
-	body, err := io.ReadAll(io.LimitReader(resp.Body, c.maxBody+1))
+	answer, err := io.ReadAll(io.LimitReader(resp.Body, c.maxBody+1))
 	if err != nil {
-		return nil, newNetworkError(u.String(), err, secrets)
+		return nil, newNetworkError(method, u.String(), err, secrets)
 	}
-	if int64(len(body)) > c.maxBody {
-		return nil, fmt.Errorf("transport: GET %s: response body exceeds %d bytes", redactURL(u.String()), c.maxBody)
+	if int64(len(answer)) > c.maxBody {
+		return nil, fmt.Errorf("transport: %s %s: response body exceeds %d bytes", method, redactURL(u.String()), c.maxBody)
 	}
-	return &Response{StatusCode: resp.StatusCode, Header: resp.Header, Body: body, URL: resp.Request.URL.String()}, nil
+	return &Response{StatusCode: resp.StatusCode, Header: resp.Header, Body: answer, URL: resp.Request.URL.String(), method: method}, nil
 }
 
 func (c *Client) tokenValue(ctx context.Context) (string, error) {
