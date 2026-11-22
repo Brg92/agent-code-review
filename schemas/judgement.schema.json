@@ -70,9 +70,10 @@
             "$ref": "#/$defs/line"
           },
           "text": {
-            "description": "The question, in Markdown.",
+            "description": "The question, in Markdown, of at most 500 characters.",
             "type": "string",
-            "pattern": "\\S"
+            "pattern": "\\S",
+            "maxLength": 500
           }
         }
       }
@@ -145,23 +146,27 @@
           "$ref": "#/$defs/line"
         },
         "title": {
-          "description": "What is wrong, in one line.",
+          "description": "What is wrong, in one line of at most 120 characters.",
           "type": "string",
-          "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$"
+          "pattern": "^[^\\r\\n]*\\S[^\\r\\n]*$",
+          "maxLength": 120
         },
         "why": {
-          "description": "The consequence: what goes wrong if the code ships as it is, in Markdown.",
+          "description": "The consequence: what goes wrong if the code ships as it is, in Markdown, of at most 1000 characters.",
           "type": "string",
-          "pattern": "\\S"
+          "pattern": "\\S",
+          "maxLength": 1000
         },
         "fix": {
-          "description": "The smallest safe correction, in Markdown. A finding without a fix is not a finding.",
+          "description": "The smallest safe correction, in Markdown, of at most 1000 characters. A finding without a fix is not a finding.",
           "type": "string",
-          "pattern": "\\S"
+          "pattern": "\\S",
+          "maxLength": 1000
         },
         "suggestion": {
-          "description": "Replacement text for the lines from startLine (or line) to line, without a trailing newline.",
-          "type": "string"
+          "description": "Replacement text for the lines from startLine (or line) to line, without a trailing newline, of at most 50 lines.",
+          "type": "string",
+          "pattern": "^(?:[^\\n]*\\n){0,49}[^\\n]*$"
         },
         "references": {
           "description": "Other places the finding relies on.",

@@ -224,6 +224,17 @@ func TestValidateJudgementSingleErrors(t *testing.T) {
 		{"four notes", func(j *Judgement) { j.Notes = []string{"a", "b", "c", "d"} }, "/notes"},
 		{"note of 200 characters", func(j *Judgement) { j.Notes = []string{strings.Repeat("è", 200)} }, ""},
 		{"note of 201 characters", func(j *Judgement) { j.Notes = []string{strings.Repeat("è", 201)} }, "/notes/0"},
+		{"title of 120 characters", func(j *Judgement) { j.Findings[0].Title = strings.Repeat("è", 120) }, ""},
+		{"title of 121 characters", func(j *Judgement) { j.Findings[0].Title = strings.Repeat("è", 121) }, "/findings/0/title"},
+		{"pre-existing title of 121 characters", func(j *Judgement) { j.PreExisting[0].Title = strings.Repeat("a", 121) }, "/preExisting/0/title"},
+		{"why of 1000 characters", func(j *Judgement) { j.Findings[0].Why = strings.Repeat("è", 1000) }, ""},
+		{"why of 1001 characters", func(j *Judgement) { j.Findings[0].Why = strings.Repeat("è", 1001) }, "/findings/0/why"},
+		{"fix of 1000 characters", func(j *Judgement) { j.Findings[0].Fix = strings.Repeat("è", 1000) }, ""},
+		{"fix of 1001 characters", func(j *Judgement) { j.Findings[0].Fix = strings.Repeat("è", 1001) }, "/findings/0/fix"},
+		{"suggestion of 50 lines", func(j *Judgement) { j.Findings[0].Suggestion = ptr(strings.Repeat("x\n", 49) + "x") }, ""},
+		{"suggestion of 51 lines", func(j *Judgement) { j.Findings[0].Suggestion = ptr(strings.Repeat("x\n", 50) + "x") }, "/findings/0/suggestion"},
+		{"question of 500 characters", func(j *Judgement) { j.Questions[0].Text = strings.Repeat("è", 500) }, ""},
+		{"question of 501 characters", func(j *Judgement) { j.Questions[0].Text = strings.Repeat("è", 501) }, "/questions/0/text"},
 		{"question without a line", func(j *Judgement) { j.Questions = []Question{{Text: "Why?"}} }, ""},
 		{"question with a negative line", func(j *Judgement) { j.Questions[0].Line = -2 }, "/questions/0/line"},
 	}
@@ -360,3 +371,5 @@ func TestValidateJudgementPromotesACrash(t *testing.T) {
 		t.Errorf("pre-existing crash of a MAJOR rule promoted to BLOCKER: %v", err)
 	}
 }
+
+func ptr(s string) *string { return &s }
