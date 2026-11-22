@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "runId": "20261102-090000-s1",
+  "cr": "github:github.com/acme/./app#2",
+  "planSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "updatedAt": "2026-11-02T09:30:00Z",
+  "outcomes": [
+    {
+      "id": 1,
+      "status": "posted"
+    }
+  ]
+}

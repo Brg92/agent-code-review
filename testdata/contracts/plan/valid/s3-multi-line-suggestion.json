@@ -3,12 +3,18 @@
   "runId": "20261102-110000-s3",
   "cr": "github:github.com/acr-plugin-sandbox/core-lib#1",
   "headSha": "1bb2c03af22c5360e04698de42d0833c0387b499",
-  "createdAt": "2026-11-02T11:30:00Z",
+  "createdAt": "2026-11-02T09:20:00Z",
+  "publish": "comments",
   "actions": [
     {
       "id": 1,
       "kind": "review-comment",
-      "body": "**MAJOR** `logic-defect`: the blank-token check is gone.",
+      "severity": "BLOCKER",
+      "rules": [
+        "logic-defect"
+      ],
+      "body": "**BLOCKER** · `logic-defect` — the blank-token check is gone",
+      "findingId": "acr:v1:logic-defect:src/main/java/com/example/core/session/codec/TokenCodec.kt:0123456789ab",
       "path": "src/main/java/com/example/core/session/codec/TokenCodec.kt",
       "side": "LEFT",
       "line": 7
@@ -16,11 +22,17 @@
     {
       "id": 2,
       "kind": "review-comment",
-      "body": "**MINOR** `style.redundant-if`: return the comparison directly.\n\n```suggestion\n        return session.expiresAtMillis <= nowMillis\n```",
+      "severity": "BLOCKER",
+      "rules": [
+        "style.redundant-if"
+      ],
+      "body": "**BLOCKER** · `style.redundant-if` — return the comparison directly\n\n```suggestion\n        return session.expiresAtMillis <= nowMillis\n```",
+      "findingId": "acr:v1:style.redundant-if:src/main/java/com/example/core/session/SessionExpiry.kt:ba9876543210",
       "path": "src/main/java/com/example/core/session/SessionExpiry.kt",
       "side": "RIGHT",
       "startLine": 5,
       "line": 9
     }
-  ]
+  ],
+  "skipped": []
 }

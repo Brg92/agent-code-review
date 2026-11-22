@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "runId": "20261102-101500-s2cascade",
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#7",
+  "headSha": "e9009ec0098be0aa6733ce77c43bc53161ad9c5f",
+  "createdAt": "2026-11-02T09:20:00Z",
+  "publish": "issues",
+  "actions": [
+    {
+      "id": 1,
+      "kind": "label-create",
+      "body": "",
+      "project": "github:github.com/acr-plugin-sandbox/sample-app",
+      "label": {
+        "name": "review",
+        "color": "5319e7",
+        "description": "Findings of a code review"
+      }
+    },
+    {
+      "id": 2,
+      "kind": "issue-create",
+      "severity": "MAJOR",
+      "rules": [
+        "missing-tests"
+      ],
+      "body": "### Findings\n\n- **`missing-tests`** `app/src/main/java/com/example/sample/data/SessionRepository.kt:1` — SessionRepository has no test <!-- acr:item:missing-tests:app/src/main/java/com/example/sample/data/SessionRepository.kt:0123456789ab -->\n\n<!-- acr:v1:issue:acr-plugin-sandbox/sample-app#2:major -->",
+      "fingerprint": "acr:v1:issue:acr-plugin-sandbox/sample-app#7:major",
+      "project": "github:github.com/acr-plugin-sandbox/sample-app",
+      "title": "Review of #7: MAJOR findings",
+      "assignee": "sandbox-author"
+    },
+    {
+      "id": 3,
+      "kind": "issue-update",
+      "severity": "MINOR",
+      "rules": [
+        "missing-kdoc",
+        "missing-kdoc"
+      ],
+      "body": "### Findings\n\n- **`missing-tests`** `app/src/main/java/com/example/sample/data/SessionRepository.kt:1` — SessionRepository has no test <!-- acr:item:missing-tests:app/src/main/java/com/example/sample/data/SessionRepository.kt:0123456789ab -->\n\n<!-- acr:v1:issue:acr-plugin-sandbox/sample-app#2:major -->",
+      "fingerprint": "acr:v1:issue:acr-plugin-sandbox/sample-app#7:minor",
+      "project": "github:github.com/acr-plugin-sandbox/sample-app",
+      "number": 12,
+      "title": "Review of #7: MINOR findings"
+    }
+  ],
+  "skipped": []
+}
