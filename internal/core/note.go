@@ -18,6 +18,37 @@ type ReviewNote struct {
 	Trusted bool `json:"trusted"`
 }
 
+// Issue is an issue of a project as the platform returns it, with whether
+// its author is trusted: what is written in it counts as a note does.
+type Issue struct {
+	Number  int
+	Open    bool
+	Author  string
+	Trusted bool
+	Title   string
+	Body    string
+}
+
+// Note is the issue read as a note, for the fingerprints in its body.
+func (i Issue) Note() ReviewNote {
+	return ReviewNote{Author: i.Author, Body: i.Body, Trusted: i.Trusted}
+}
+
+// ReviewThread is a thread of review comments on the diff of a change
+// request: whether it is resolved, and its first comment.
+type ReviewThread struct {
+	Resolved bool
+	// Author, Trusted and Body are those of the first comment.
+	Author  string
+	Trusted bool
+	Body    string
+}
+
+// Note is the first comment of the thread read as a note.
+func (t ReviewThread) Note() ReviewNote {
+	return ReviewNote{Author: t.Author, Body: t.Body, Trusted: t.Trusted}
+}
+
 // FingerprintKind says what a fingerprint identifies.
 type FingerprintKind string
 

@@ -46,6 +46,21 @@ type Reader interface {
 	// trusted when its author is this account, besides what the platform
 	// says of the author (see core.ReviewNote).
 	Self(ctx context.Context) (string, error)
+	// Issues lists the issues of the project of project that carry label,
+	// open and closed, with whether their authors are trusted. Pull
+	// requests are not issues here.
+	Issues(ctx context.Context, project core.Key, label string) ([]core.Issue, error)
+	// HasLabel reports whether the project has a label of that name. A
+	// project that cannot be read is an error, not a missing label.
+	HasLabel(ctx context.Context, project core.Key, name string) (bool, error)
+	// Assignable reports whether login can be assigned to an issue of the
+	// project.
+	Assignable(ctx context.Context, project core.Key, login string) (bool, error)
+	// ReviewThreads lists the threads of review comments on the diff of
+	// cr, with the first comment of each and whether the thread is
+	// resolved. It is a read; the platform may answer it from a different
+	// API than the other reads.
+	ReviewThreads(ctx context.Context, cr core.Key) ([]core.ReviewThread, error)
 }
 
 // Repo returns the packs.Reader of project at ref, read through files.

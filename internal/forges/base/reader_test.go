@@ -82,6 +82,12 @@ func (r *reader) Search() rules.Search                                          
 func (r *reader) Tree(context.Context, core.Key, string) rules.Tree                 { return nil }
 func (r *reader) Notes(context.Context, core.Key) ([]core.ReviewNote, error)        { return nil, nil }
 func (r *reader) Self(context.Context) (string, error)                              { return "", nil }
+func (r *reader) Issues(context.Context, core.Key, string) ([]core.Issue, error)    { return nil, nil }
+func (r *reader) HasLabel(context.Context, core.Key, string) (bool, error)          { return false, nil }
+func (r *reader) Assignable(context.Context, core.Key, string) (bool, error)        { return false, nil }
+func (r *reader) ReviewThreads(context.Context, core.Key) ([]core.ReviewThread, error) {
+	return nil, nil
+}
 func (r *reader) CI(context.Context, core.Key, string) (core.CI, error) {
 	r.called = true
 	return r.ci, r.err

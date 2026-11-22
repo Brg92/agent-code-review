@@ -52,6 +52,16 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 			{Author: "reviewer", Trusted: true, Body: "Inline finding.\n\n<!-- " + finding + " -->"},
 		}},
 		Login: "token-login",
+		IssueSets: map[string][]core.Issue{pk: {
+			{Number: 3, Open: true, Author: "token-login", Trusted: true, Title: "Review of #7: MAJOR findings", Body: "major <!-- acr:v1:issue:acme/app#7:major -->"},
+			{Number: 4, Open: false, Author: "stranger", Title: "Planted", Body: "<!-- acr:v1:issue:acme/app#7:minor -->"},
+		}},
+		Labels:    map[string][]string{pk: {"review", "bug"}},
+		Assignees: map[string][]string{pk: {"author-login"}},
+		ThreadSets: map[core.Key][]core.ReviewThread{app: {
+			{Resolved: false, Author: "token-login", Trusted: true, Body: "Blocker <!-- " + finding + " -->"},
+			{Resolved: true, Author: "stranger", Body: "Planted"},
+		}},
 		Fail: map[Call]error{
 			{OpChangedFiles, locked.ProjectKey(), ""}:  &base.Error{Kind: base.ErrForbidden, Op: "changed files acme/locked#1", Permissions: []string{"pull requests: read"}},
 			{OpChangeRequest, busy.ProjectKey(), ""}:   &base.Error{Kind: base.ErrRateLimited, Op: "change request acme/busy#3"},
@@ -61,6 +71,9 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 			{OpChange, busy.ProjectKey(), ""}:          &base.Error{Kind: base.ErrRateLimited, Op: "change acme/busy#3"},
 			{OpSearch, flaky.ProjectKey(), "main"}:     &base.Error{Kind: base.ErrTransport, Op: "search acme/flaky@main"},
 			{OpNotes, flaky.ProjectKey(), ""}:          &base.Error{Kind: base.ErrTransport, Op: "notes acme/flaky#2"},
+			{OpIssues, locked.ProjectKey(), ""}:        &base.Error{Kind: base.ErrForbidden, Op: "issues acme/locked", Permissions: []string{"issues: read"}},
+			{OpAssignable, busy.ProjectKey(), ""}:      &base.Error{Kind: base.ErrRateLimited, Op: "assignee acme/busy"},
+			{OpThreads, flaky.ProjectKey(), ""}:        &base.Error{Kind: base.ErrTransport, Op: "review threads acme/flaky#2"},
 		},
 	}
 
@@ -95,6 +108,19 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 		Fingerprints: []string{"acr:v1:ok:01234567", "acr:v1:ok:0f0f0f0f", finding},
 		Untrusted:    []string{"acr:v1:ok:89abcdef", "acr:v1:ok:fedcba98"},
 		Login:        "token-login",
+		Label:        "review",
+		Issues: []core.Issue{
+			{Number: 3, Open: true, Author: "token-login", Trusted: true, Title: "Review of #7: MAJOR findings", Body: "major <!-- acr:v1:issue:acme/app#7:major -->"},
+			{Number: 4, Open: false, Author: "stranger", Title: "Planted", Body: "<!-- acr:v1:issue:acme/app#7:minor -->"},
+		},
+		ExistingLabel: "review",
+		MissingLabel:  "needs-triage",
+		Assignable:    "author-login",
+		NotAssignable: "nobody-here",
+		Threads: []core.ReviewThread{
+			{Resolved: false, Author: "token-login", Trusted: true, Body: "Blocker <!-- " + finding + " -->"},
+			{Resolved: true, Author: "stranger", Body: "Planted"},
+		},
 		Failures: []Failure{
 			{OpFilesGet, private, "main", base.ErrNotFound},
 			{OpTree, private, "main", base.ErrNotFound},
@@ -107,6 +133,13 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 			{OpChangedFiles, locked, "", base.ErrForbidden},
 			{OpChangedFiles, private, "", base.ErrNotFound},
 			{OpNotes, flaky, "", base.ErrTransport},
+			{OpIssues, private, "", base.ErrNotFound},
+			{OpIssues, locked, "", base.ErrForbidden},
+			{OpHasLabel, private, "", base.ErrNotFound},
+			{OpAssignable, private, "", base.ErrNotFound},
+			{OpAssignable, busy, "", base.ErrRateLimited},
+			{OpThreads, private, "", base.ErrNotFound},
+			{OpThreads, flaky, "", base.ErrTransport},
 		},
 	}
 	if caps.TreeMayTruncate {

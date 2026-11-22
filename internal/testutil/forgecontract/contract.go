@@ -37,6 +37,17 @@ const (
 	OpCI            Op = "ci"
 	OpNotes         Op = "notes"
 	OpSelf          Op = "self"
+	OpIssues        Op = "issues"
+	OpHasLabel      Op = "has-label"
+	OpAssignable    Op = "assignable"
+	OpThreads       Op = "review-threads"
+	// The writes.
+	OpCreateReview      Op = "create-review"
+	OpCreateComment     Op = "create-comment"
+	OpCreateIssue       Op = "create-issue"
+	OpUpdateIssue       Op = "update-issue"
+	OpCreateLabel       Op = "create-label"
+	OpUpdateDescription Op = "update-description"
 )
 
 // Fixture is what a provider must answer.
@@ -91,6 +102,18 @@ type Fixture struct {
 	Untrusted    []string
 	Login        string
 
+	// Label is the label Issues lists by; Project has Issues under it and
+	// the labels in Labels: MissingLabel is not one of them. Assignable can
+	// be assigned in Project and NotAssignable cannot.
+	Label         string
+	Issues        []core.Issue
+	MissingLabel  string
+	ExistingLabel string
+	Assignable    string
+	NotAssignable string
+	// ChangeRequest has these review threads.
+	Threads []core.ReviewThread
+
 	// Failures are reads that must fail with their kind.
 	Failures []Failure
 }
@@ -125,6 +148,7 @@ func Run(t testing.TB, r base.Reader, fx Fixture) {
 	checkCI(t, ctx, r, fx)
 	checkNotes(t, ctx, r, fx)
 	checkSelf(t, ctx, r, fx)
+	checkPublishReads(t, ctx, r, fx)
 	for _, f := range fx.Failures {
 		checkFailure(t, ctx, r, fx, f)
 	}
@@ -145,6 +169,8 @@ func checkFixture(t testing.TB, fx Fixture) {
 		t.Errorf("fixture: OtherRef must differ from DefaultBranch")
 	case fx.Metadata.Key != fx.ChangeRequest || fx.Metadata.Validate() != nil || len(fx.ChangedFiles) == 0:
 		t.Errorf("fixture: Metadata must be valid and of ChangeRequest, and ChangedFiles must not be empty")
+	case fx.Label == "" || len(fx.Issues) == 0 || fx.MissingLabel == "" || fx.ExistingLabel == "" || fx.Assignable == "" || fx.NotAssignable == "" || len(fx.Threads) == 0:
+		t.Errorf("fixture: Label, Issues, the labels, the assignees and Threads must not be empty")
 	case len(fx.Fingerprints) == 0 || len(fx.Untrusted) == 0 || fx.Login == "":
 		t.Errorf("fixture: Fingerprints, Untrusted and Login must not be empty")
 	}
@@ -348,6 +374,34 @@ func checkNotes(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
 	}
 }
 
+func checkPublishReads(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
+	t.Helper()
+	issues, err := r.Issues(ctx, fx.Project, fx.Label)
+	if err != nil || !reflect.DeepEqual(issues, fx.Issues) {
+		t.Errorf("Issues(%s, %s) = %+v, %v, want %+v", fx.Project.ProjectKey(), fx.Label, issues, err, fx.Issues)
+	}
+	for _, c := range []struct {
+		name string
+		want bool
+	}{{fx.ExistingLabel, true}, {fx.MissingLabel, false}} {
+		if got, err := r.HasLabel(ctx, fx.Project, c.name); err != nil || got != c.want {
+			t.Errorf("HasLabel(%s) = %v, %v, want %v", c.name, got, err, c.want)
+		}
+	}
+	for _, c := range []struct {
+		login string
+		want  bool
+	}{{fx.Assignable, true}, {fx.NotAssignable, false}} {
+		if got, err := r.Assignable(ctx, fx.Project, c.login); err != nil || got != c.want {
+			t.Errorf("Assignable(%s) = %v, %v, want %v", c.login, got, err, c.want)
+		}
+	}
+	threads, err := r.ReviewThreads(ctx, fx.ChangeRequest)
+	if err != nil || !reflect.DeepEqual(threads, fx.Threads) {
+		t.Errorf("ReviewThreads(%s) = %+v, %v, want %+v", fx.ChangeRequest, threads, err, fx.Threads)
+	}
+}
+
 func checkSelf(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
 	t.Helper()
 	if got, err := r.Self(ctx); err != nil || got != fx.Login {
@@ -411,6 +465,22 @@ func checkFailure(t testing.TB, ctx context.Context, r base.Reader, fx Fixture, 
 		var notes []core.ReviewNote
 		notes, err = r.Notes(ctx, f.Project)
 		empty = notes == nil
+	case OpIssues:
+		var issues []core.Issue
+		issues, err = r.Issues(ctx, f.Project, fx.Label)
+		empty = issues == nil
+	case OpHasLabel:
+		var has bool
+		has, err = r.HasLabel(ctx, f.Project, fx.ExistingLabel)
+		empty = !has
+	case OpAssignable:
+		var ok bool
+		ok, err = r.Assignable(ctx, f.Project, fx.Assignable)
+		empty = !ok
+	case OpThreads:
+		var threads []core.ReviewThread
+		threads, err = r.ReviewThreads(ctx, f.Project)
+		empty = threads == nil
 	default:
 		t.Errorf("failure: unknown operation %q", f.Op)
 		return

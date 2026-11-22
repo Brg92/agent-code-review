@@ -101,6 +101,7 @@ func newProvider(host, apiBase string, tokens Resolver, opts Options) (*Provider
 	cfg.BaseURL = apiBase
 	cfg.MaxWait = limits.MaxWait
 	cfg.Policy = limits.policy()
+	cfg.Allow = writeEndpoints
 	cfg.Token = nil
 	if tokens != nil {
 		cfg.Token = func(ctx context.Context) (string, error) {
@@ -172,6 +173,21 @@ func (p *Provider) get(ctx context.Context, path, accept string) (*transport.Res
 		accept = acceptJSON
 	}
 	return p.client.Get(ctx, path, accept)
+}
+
+// post sends one POST with a JSON body. Requests are sequential. The
+// transport sends it only to the endpoints of writeEndpoints.
+func (p *Provider) post(ctx context.Context, path string, body []byte) (*transport.Response, error) {
+	p.seq.Lock()
+	defer p.seq.Unlock()
+	return p.client.Post(ctx, path, acceptJSON, body)
+}
+
+// patch sends one PATCH with a JSON body. Requests are sequential.
+func (p *Provider) patch(ctx context.Context, path string, body []byte) (*transport.Response, error) {
+	p.seq.Lock()
+	defer p.seq.Unlock()
+	return p.client.Patch(ctx, path, acceptJSON, body)
 }
 
 // pages reads a list and the pages that follow it, up to the page cap; a
