@@ -194,7 +194,7 @@ func (e env) loadPacks(cfg state.UserConfig) (*packs.Set, error) {
 		Hint: "install the packs next to the executable, or set " + packs.PacksDirEnv + " or packPaths in the user configuration"}
 }
 
-func (e env) reader(host string, log *runlog.Log) (base.Reader, error) {
+func (e env) reader(host string, log *runlog.Log) (base.ForgeProvider, error) {
 	opts := github.Options{Transport: transport.Config{Observe: log.Observe}}
 	newReader := e.newReader
 	if newReader == nil {

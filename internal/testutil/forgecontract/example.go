@@ -153,3 +153,35 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 	}
 	return fake, fx
 }
+
+// ExampleWriter returns the fixture of the writes of the Example fake: its
+// change request acme/app#7, and projects that fail in each way.
+func ExampleWriter(f *Fake) WriterFixture {
+	key := func(project string, n int) core.Key {
+		return core.Key{Forge: core.GitHub, Host: "github.com", Project: project, Number: n}
+	}
+	app := key("acme/app", 7)
+	wf := WriterFixture{
+		ChangeRequest: app,
+		Head:          "0123456789abcdef0123456789abcdef01234567",
+		Project:       app,
+		Label:         "contract-review",
+		Login:         "token-login",
+		Refused:       base.ReviewComment{Path: "app/A.kt", Side: core.Right, Line: 99},
+		Missing:       key("acme/app", 9),
+		NoProject:     key("acme/nowhere", 1),
+		Forbidden:     key("acme/locked", 1),
+		Busy:          key("acme/busy", 3),
+		Broken:        key("acme/flaky", 2),
+	}
+	f.RefusedLines = map[string]bool{"app/A.kt:99": true}
+	for _, k := range []core.Key{wf.Forbidden, wf.Busy, wf.Broken} {
+		f.ChangeRequests[k] = core.ChangeRequest{Key: k}
+	}
+	f.DefaultBranch[wf.Forbidden.ProjectKey()] = "main"
+	f.Fail[Call{OpCreateComment, wf.Forbidden.ProjectKey(), ""}] = &base.Error{Kind: base.ErrForbidden, Op: "comment", Permissions: []string{"issues: write"}}
+	f.Fail[Call{OpCreateIssue, wf.Forbidden.ProjectKey(), ""}] = &base.Error{Kind: base.ErrForbidden, Op: "issue", Permissions: []string{"issues: write"}}
+	f.Fail[Call{OpCreateComment, wf.Busy.ProjectKey(), ""}] = &base.Error{Kind: base.ErrRateLimited, Op: "comment"}
+	f.Fail[Call{OpCreateComment, wf.Broken.ProjectKey(), ""}] = &base.Error{Kind: base.ErrTransport, Op: "comment"}
+	return wf
+}

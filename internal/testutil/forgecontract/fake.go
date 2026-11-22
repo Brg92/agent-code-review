@@ -312,8 +312,12 @@ func (f *Fake) CreateReview(_ context.Context, cr core.Key, _ string, comments [
 		}
 		return &base.Error{Kind: base.ErrRejected, Op: "review " + cr.String(), Rejected: refused}
 	}
+	if f.ThreadSets == nil {
+		f.ThreadSets = map[core.Key][]core.ReviewThread{}
+	}
 	for _, c := range comments {
 		f.addNote(cr, c.Body)
+		f.ThreadSets[cr] = append(f.ThreadSets[cr], core.ReviewThread{Author: f.Login, Trusted: true, Body: c.Body})
 	}
 	return nil
 }
@@ -339,7 +343,10 @@ func (f *Fake) CreateIssue(_ context.Context, project core.Key, issue base.NewIs
 	if f.IssueSets == nil {
 		f.IssueSets = map[string][]core.Issue{}
 	}
-	n := len(f.IssueSets[pk]) + 1
+	n := 1
+	for _, is := range f.IssueSets[pk] {
+		n = max(n, is.Number+1)
+	}
 	f.IssueSets[pk] = append(f.IssueSets[pk], core.Issue{Number: n, Open: true, Author: f.Login, Trusted: true, Title: issue.Title, Body: issue.Body})
 	return n, nil
 }

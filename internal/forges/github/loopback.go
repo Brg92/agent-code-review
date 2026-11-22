@@ -18,7 +18,7 @@ import (
 // on this machine. The host is the one the keys of the change requests
 // carry and must be one New supports. Production code never calls it; a
 // guard in internal/guards keeps it so.
-func NewLoopback(host, apiBase string, tokens Resolver, opts Options) (base.Reader, error) {
+func NewLoopback(host, apiBase string, tokens Resolver, opts Options) (base.ForgeProvider, error) {
 	if !SupportedHost(host) {
 		return nil, &UnsupportedHostError{Host: host}
 	}

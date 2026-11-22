@@ -50,7 +50,8 @@ const (
 	acceptRaw  = "application/vnd.github.raw+json"
 )
 
-// Provider reads GitHub. It implements base.Reader and has no way to write.
+// Provider is GitHub: it implements base.ForgeProvider. The only requests
+// besides GETs that it can send are the ones of writeEndpoints.
 type Provider struct {
 	host           string
 	client         *transport.Client
@@ -75,10 +76,10 @@ type repoState struct {
 	err           error
 }
 
-// New returns the reader of host, which must be in the host table. The
+// New returns the provider of host, which must be in the host table. The
 // token of the host is resolved through tokens at each request and handed to
 // the transport alone.
-func New(host string, tokens Resolver, opts Options) (base.Reader, error) {
+func New(host string, tokens Resolver, opts Options) (base.ForgeProvider, error) {
 	api, ok := apiBases[strings.ToLower(host)]
 	if !ok {
 		return nil, &UnsupportedHostError{Host: host}

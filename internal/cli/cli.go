@@ -59,7 +59,7 @@ type env struct {
 	// the user cache and configuration live.
 	now           func() time.Time
 	random        io.Reader
-	newReader     func(host string, tokens github.Resolver, opts github.Options) (base.Reader, error)
+	newReader     func(host string, tokens github.Resolver, opts github.Options) (base.ForgeProvider, error)
 	userCacheDir  func() (string, error)
 	userConfigDir func() (string, error)
 	// userHomeDir is where reports are saved when no folder is named.
