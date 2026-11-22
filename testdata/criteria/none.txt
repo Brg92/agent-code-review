@@ -1,0 +1,13 @@
+Repository criteria in <dir>
+Layout: default (no repository criteria)
+Files read: none
+
+Repository rules: 0
+
+disabledRules applied: none
+ruleOptions applied: none
+
+Notes
+  No repository criteria on the working copy: only the pack and core rules apply.
+
+Result: valid: nothing would be ignored by a review

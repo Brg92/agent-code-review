@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "packs": ["android"],
+  "profile": "library",
+  "disabledRules": ["app-tracker"],
+  "ruleOptions": {
+    "line-too-long": {
+      "max": 120
+    }
+  }
+}
