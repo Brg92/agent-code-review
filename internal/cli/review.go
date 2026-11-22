@@ -48,6 +48,9 @@ moving on.
 type options struct {
 	verbose bool
 	run     string
+	// plan is the argument of --plan; apply is --apply.
+	plan    string
+	apply   bool
 	part    int
 	partSet bool
 	save    bool
@@ -61,6 +64,8 @@ const (
 	flagRun allowed = 1 << iota
 	flagPart
 	flagSave
+	flagPlan
+	flagApply
 )
 
 // parseOptions reads the flags of a command wherever they are among its
@@ -78,6 +83,12 @@ func parseOptions(name string, args []string, allow allowed) (options, error) {
 	}
 	if allow&flagSave != 0 {
 		fs.BoolVar(&o.save, "save", false, "")
+	}
+	if allow&flagPlan != 0 {
+		fs.StringVar(&o.plan, "plan", "", "")
+	}
+	if allow&flagApply != 0 {
+		fs.BoolVar(&o.apply, "apply", false, "")
 	}
 	for {
 		if err := fs.Parse(args); err != nil {
@@ -125,6 +136,8 @@ func finish(e env, err error, log *runlog.Log) int {
 		return exitState
 	case review.KindValidation:
 		return exitValidation
+	case review.KindHeadChanged:
+		return exitHeadChanged
 	case review.KindPath:
 		return exitPath
 	}
