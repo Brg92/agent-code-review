@@ -1,7 +1,9 @@
 // Package base is the platform abstraction of agent-code-review: what a
 // provider in internal/forges/<forge> gives the core so that it can read a
-// cascade without knowing the platform. It has a read side only; nothing
-// here writes to a platform.
+// cascade without knowing the platform, and the few things publish writes
+// to it: a Reader and a Writer, which make a ForgeProvider. Nothing here
+// approves, merges, pushes, rebases, checks out, builds, closes or resolves
+// anything; internal/guards keeps it so.
 //
 // # Read errors
 //

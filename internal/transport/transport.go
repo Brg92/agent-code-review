@@ -1,5 +1,5 @@
-// Package transport is the generic, read-only HTTP client used by the forge
-// providers. It knows no platform: base URL, token source, Accept header and
+// Package transport is the generic HTTP client used by the forge providers,
+// which only reads unless the caller allows a few writes. It knows no platform: base URL, token source, Accept header and
 // rate-limit policy come from the caller.
 //
 // Reads are GET requests. The only other requests the client sends are the
@@ -91,7 +91,8 @@ type Response struct {
 	FromCache bool
 }
 
-// Client sends read-only requests to one API root.
+// Client sends requests to one API root: reads, and the writes the caller
+// allows.
 type Client struct {
 	base     *url.URL
 	token    TokenSource

@@ -38,7 +38,7 @@ agent-code-review: the judgements are not valid, nothing was finalized
 
 A run that is already finalized (or later) exits 8. To change a judgement after `finalize`, run `review` again.
 
-`finalize` does not check that the change request is still at the commit that was reviewed: every report says `reviewed at head <head8>`, and `publish` checks the head before it writes anything.
+`finalize` does not check that the change request is still at the commit that was reviewed: every report says `reviewed at head <head8>`, and `publish` checks the head before it writes anything (see [publish.md](publish.md)). Its `Next:` block now offers `publish --plan <comments|issues|both>`, which writes nothing to the platform.
 
 The fingerprint of a finding starts from the text of its line, and `finalize` has no file contents: it takes the text from the file contents or the regions of the work package, then from the diff, then, for a signal, from the `lineText` that every signal of the work package carries (the raw text of its line, written by `review` and not shown in the brief). A work package written before `lineText` existed is refused: run `review` again.
 
