@@ -42,6 +42,10 @@ type Reader interface {
 	// Notes returns the notes on change request cr, review comments
 	// included, that carry the fingerprints of earlier runs.
 	Notes(ctx context.Context, cr core.Key) ([]core.ReviewNote, error)
+	// Self is the login of the account the token belongs to. A note is
+	// trusted when its author is this account, besides what the platform
+	// says of the author (see core.ReviewNote).
+	Self(ctx context.Context) (string, error)
 }
 
 // Repo returns the packs.Reader of project at ref, read through files.

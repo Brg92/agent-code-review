@@ -36,6 +36,7 @@ const (
 	OpSearch        Op = "search"
 	OpCI            Op = "ci"
 	OpNotes         Op = "notes"
+	OpSelf          Op = "self"
 )
 
 // Fixture is what a provider must answer.
@@ -81,10 +82,14 @@ type Fixture struct {
 	Head string
 	CI   core.CI
 
-	// The notes on ChangeRequest carry Fingerprints once the notes of
-	// Author, who wrote ChangeRequest, are left out.
+	// The notes on ChangeRequest carry Fingerprints that count: those in
+	// notes of trusted accounts other than Author, who wrote
+	// ChangeRequest. They carry Untrusted ones too, which are read and do
+	// not count. Login is the account of the token, which is trusted.
 	Author       string
 	Fingerprints []string
+	Untrusted    []string
+	Login        string
 
 	// Failures are reads that must fail with their kind.
 	Failures []Failure
@@ -119,6 +124,7 @@ func Run(t testing.TB, r base.Reader, fx Fixture) {
 	checkSearch(t, r, fx)
 	checkCI(t, ctx, r, fx)
 	checkNotes(t, ctx, r, fx)
+	checkSelf(t, ctx, r, fx)
 	for _, f := range fx.Failures {
 		checkFailure(t, ctx, r, fx, f)
 	}
@@ -139,8 +145,8 @@ func checkFixture(t testing.TB, fx Fixture) {
 		t.Errorf("fixture: OtherRef must differ from DefaultBranch")
 	case fx.Metadata.Key != fx.ChangeRequest || fx.Metadata.Validate() != nil || len(fx.ChangedFiles) == 0:
 		t.Errorf("fixture: Metadata must be valid and of ChangeRequest, and ChangedFiles must not be empty")
-	case len(fx.Fingerprints) == 0:
-		t.Errorf("fixture: Fingerprints must not be empty")
+	case len(fx.Fingerprints) == 0 || len(fx.Untrusted) == 0 || fx.Login == "":
+		t.Errorf("fixture: Fingerprints, Untrusted and Login must not be empty")
 	}
 	if fx.Capabilities.TreeMayTruncate && !slices.ContainsFunc(fx.Failures, func(f Failure) bool { return f.Kind == base.ErrTreeTruncated }) {
 		t.Errorf("fixture: the provider may truncate trees, so a truncated tree must be among the failures")
@@ -330,6 +336,22 @@ func checkNotes(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
 	}
 	if !reflect.DeepEqual(got, fx.Fingerprints) {
 		t.Errorf("fingerprints in Notes(%s) = %v, want %v", fx.ChangeRequest, got, fx.Fingerprints)
+	}
+	var untrusted []string
+	for _, fp := range core.ReadFingerprints(notes, fx.Author) {
+		if !fp.Trusted {
+			untrusted = append(untrusted, fp.Value)
+		}
+	}
+	if !reflect.DeepEqual(untrusted, fx.Untrusted) {
+		t.Errorf("untrusted fingerprints in Notes(%s) = %v, want %v", fx.ChangeRequest, untrusted, fx.Untrusted)
+	}
+}
+
+func checkSelf(t testing.TB, ctx context.Context, r base.Reader, fx Fixture) {
+	t.Helper()
+	if got, err := r.Self(ctx); err != nil || got != fx.Login {
+		t.Errorf("Self() = %q, %v, want %q", got, err, fx.Login)
 	}
 }
 

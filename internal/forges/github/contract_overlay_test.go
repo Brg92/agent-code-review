@@ -63,10 +63,18 @@ func overlay(t *testing.T, r *sandbox.Replay, sc scenarioCase, fx *forgecontract
 	fx.Failures = append(fx.Failures, forgecontract.Failure{Op: forgecontract.OpCI, Project: fx.Project, Ref: "ffffffffffffffffffffffffffffffffffffffff", Kind: base.ErrNotFound})
 
 	// Comments with the fingerprints of an earlier run, one by the author.
+	// The reviewer is a member; the token's own account has no association;
+	// a stranger is a contributor, so what they wrote does not count.
+	route(200, "/user", nil, nil, `{"login":"token-login"}`)
 	route(200, repoPath+"/issues/"+n+"/comments", per, nil,
-		`[{"user":{"login":"sandbox-reviewer"},"body":"Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},{"user":{"login":"`+fx.Author+`"},"body":"<!-- acr:v1:ok:89abcdef -->"}]`)
-	route(200, repoPath+"/pulls/"+n+"/comments", per, nil, `[{"user":{"login":"sandbox-reviewer"},"body":"Inline.\n\n<!-- `+finding+` -->"}]`)
-	fx.Fingerprints = []string{"acr:v1:ok:01234567", finding}
+		`[{"user":{"login":"sandbox-reviewer"},"author_association":"MEMBER","body":"Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},`+
+			`{"user":{"login":"`+fx.Author+`"},"author_association":"COLLABORATOR","body":"<!-- acr:v1:ok:89abcdef -->"},`+
+			`{"user":{"login":"stranger"},"author_association":"CONTRIBUTOR","body":"<!-- acr:v1:ok:fedcba98 -->"},`+
+			`{"user":{"login":"token-login"},"author_association":"NONE","body":"<!-- acr:v1:ok:0f0f0f0f -->"}]`)
+	route(200, repoPath+"/pulls/"+n+"/comments", per, nil, `[{"user":{"login":"sandbox-reviewer"},"author_association":"OWNER","body":"Inline.\n\n<!-- `+finding+` -->"}]`)
+	fx.Fingerprints = []string{"acr:v1:ok:01234567", "acr:v1:ok:0f0f0f0f", finding}
+	fx.Untrusted = []string{"acr:v1:ok:89abcdef", "acr:v1:ok:fedcba98"}
+	fx.Login = "token-login"
 
 	// A file at main, where none was recorded.
 	if fx.Path == "" {

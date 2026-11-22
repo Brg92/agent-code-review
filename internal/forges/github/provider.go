@@ -62,6 +62,8 @@ type Provider struct {
 
 	mu    sync.Mutex
 	repos map[string]repoState
+	// self is the login of the token's account, once read.
+	self string
 }
 
 var _ base.Reader = (*Provider)(nil)

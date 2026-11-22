@@ -131,7 +131,7 @@ func TestEmbedRoundTripsHostilePaths(t *testing.T) {
 					t.Errorf("embedded comment %q holds the control character %q", comment, r)
 				}
 			}
-			got := ParseFingerprints([]ReviewNote{{Author: "reviewer", Body: body}}, "author")
+			got := ParseFingerprints([]ReviewNote{{Author: "reviewer", Trusted: true, Body: body}}, "author")
 			want := []string{
 				"finding " + fp,
 				"item " + item + " -> " + fp,

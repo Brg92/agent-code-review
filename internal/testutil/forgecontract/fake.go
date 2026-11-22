@@ -39,7 +39,9 @@ type Fake struct {
 	CIs map[string]core.CI
 	// Notes are the notes on each change request, by key.
 	NoteSets map[core.Key][]core.ReviewNote
-	Fail     map[Call]error
+	// Login is the login of the token's account.
+	Login string
+	Fail  map[Call]error
 }
 
 // Capabilities implements base.Reader.
@@ -104,6 +106,14 @@ func (f *Fake) Notes(_ context.Context, cr core.Key) ([]core.ReviewNote, error) 
 		return nil, &base.Error{Kind: base.ErrNotFound, Op: "notes " + cr.String()}
 	}
 	return f.NoteSets[cr], nil
+}
+
+// Self implements base.Reader.
+func (f *Fake) Self(context.Context) (string, error) {
+	if err := f.Fail[Call{OpSelf, "", ""}]; err != nil {
+		return "", err
+	}
+	return f.Login, nil
 }
 
 // repo returns the files of a project at ref, or ErrNotFound.

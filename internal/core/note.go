@@ -6,10 +6,16 @@ import (
 )
 
 // ReviewNote is a note on a change request as the platform returns it: who
-// wrote it and its body.
+// wrote it and its body, and whether the platform vouches for the author.
 type ReviewNote struct {
 	Author string `json:"author"`
 	Body   string `json:"body"`
+	// Trusted says the provider trusts the author: the account of the
+	// token, or one the platform shows as an owner, member or collaborator
+	// of the project. Whether an account is trusted is the provider's to
+	// say; the core only reads this flag. A fingerprint in a note that is
+	// not trusted is read but never counts.
+	Trusted bool `json:"trusted"`
 }
 
 // FingerprintKind says what a fingerprint identifies.
@@ -33,6 +39,9 @@ type NoteFingerprint struct {
 	// Finding is the fingerprint of the finding an issue item lists; empty
 	// for the other kinds.
 	Finding string
+	// Trusted is true when a note that holds the fingerprint was written
+	// by a trusted account other than the change request author.
+	Trusted bool
 }
 
 const (
@@ -60,19 +69,19 @@ var (
 	}
 )
 
-// ParseFingerprints reads the fingerprints embedded in notes, current and
-// legacy forms alike, each once, in the order they appear, with the
-// characters Embed encoded restored. Notes written by
-// the author of the change request are skipped: the author could otherwise
-// plant a fingerprint to hide a finding. Authors compare without case, as
-// platform logins do; an empty author skips nothing.
-func ParseFingerprints(notes []ReviewNote, crAuthor string) []NoteFingerprint {
+// ReadFingerprints reads the fingerprints embedded in notes, current and
+// legacy forms alike, each once, in the order they first appear, with the
+// characters Embed encoded restored. A fingerprint is Trusted when a note
+// that holds it is trusted and was not written by the change request
+// author: the author could otherwise plant a fingerprint to hide a
+// finding, and so could any account the platform does not vouch for.
+// Authors compare without case, as platform logins do; an empty crAuthor
+// excludes nobody.
+func ReadFingerprints(notes []ReviewNote, crAuthor string) []NoteFingerprint {
 	var out []NoteFingerprint
-	seen := map[string]bool{}
+	at := map[string]int{}
 	for _, n := range notes {
-		if crAuthor != "" && strings.EqualFold(n.Author, crAuthor) {
-			continue
-		}
+		trusted := n.Trusted && (crAuthor == "" || !strings.EqualFold(n.Author, crAuthor))
 		for _, m := range embedded.FindAllStringSubmatch(n.Body, -1) {
 			fp, ok := classify(m[1])
 			if !ok {
@@ -80,10 +89,25 @@ func ParseFingerprints(notes []ReviewNote, crAuthor string) []NoteFingerprint {
 			}
 			fp.Value = unescapeComment(fp.Value)
 			fp.Finding = unescapeComment(fp.Finding)
-			if seen[fp.Value] {
+			if i, seen := at[fp.Value]; seen {
+				out[i].Trusted = out[i].Trusted || trusted
 				continue
 			}
-			seen[fp.Value] = true
+			fp.Trusted = trusted
+			at[fp.Value] = len(out)
+			out = append(out, fp)
+		}
+	}
+	return out
+}
+
+// ParseFingerprints is ReadFingerprints without the fingerprints that are
+// not trusted: the ones a review may rely on to skip what is already
+// posted.
+func ParseFingerprints(notes []ReviewNote, crAuthor string) []NoteFingerprint {
+	var out []NoteFingerprint
+	for _, fp := range ReadFingerprints(notes, crAuthor) {
+		if fp.Trusted {
 			out = append(out, fp)
 		}
 	}

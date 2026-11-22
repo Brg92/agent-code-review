@@ -45,10 +45,13 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 		Repos:          map[string]map[string]string{pk + "@main": files, pk + "@release/2.0": files},
 		CIs:            map[string]core.CI{pk + "@" + head: ci},
 		NoteSets: map[core.Key][]core.ReviewNote{app: {
-			{Author: "reviewer", Body: "Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},
-			{Author: "author-login", Body: "<!-- acr:v1:ok:89abcdef -->"},
-			{Author: "reviewer", Body: "Inline finding.\n\n<!-- " + finding + " -->"},
+			{Author: "reviewer", Trusted: true, Body: "Looks fine.\n\n<!-- acr:v1:ok:01234567 -->"},
+			{Author: "author-login", Trusted: true, Body: "<!-- acr:v1:ok:89abcdef -->"},
+			{Author: "stranger", Body: "<!-- acr:v1:ok:fedcba98 -->"},
+			{Author: "token-login", Trusted: true, Body: "<!-- acr:v1:ok:0f0f0f0f -->"},
+			{Author: "reviewer", Trusted: true, Body: "Inline finding.\n\n<!-- " + finding + " -->"},
 		}},
+		Login: "token-login",
 		Fail: map[Call]error{
 			{OpChangedFiles, locked.ProjectKey(), ""}:  &base.Error{Kind: base.ErrForbidden, Op: "changed files acme/locked#1", Permissions: []string{"pull requests: read"}},
 			{OpChangeRequest, busy.ProjectKey(), ""}:   &base.Error{Kind: base.ErrRateLimited, Op: "change request acme/busy#3"},
@@ -89,7 +92,9 @@ func Example(caps base.Capabilities) (*Fake, Fixture) {
 		Head:         head,
 		CI:           ci,
 		Author:       "author-login",
-		Fingerprints: []string{"acr:v1:ok:01234567", finding},
+		Fingerprints: []string{"acr:v1:ok:01234567", "acr:v1:ok:0f0f0f0f", finding},
+		Untrusted:    []string{"acr:v1:ok:89abcdef", "acr:v1:ok:fedcba98"},
+		Login:        "token-login",
 		Failures: []Failure{
 			{OpFilesGet, private, "main", base.ErrNotFound},
 			{OpTree, private, "main", base.ErrNotFound},
