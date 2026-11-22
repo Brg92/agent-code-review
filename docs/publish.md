@@ -111,13 +111,23 @@ Every title and body, of every action, is scanned in `--plan` and again in `--ap
 
 A write is retried only after a rate limit, which refused it. After a network error or a 5xx it is not retried, because the platform may have done it: the next apply finds it by its fingerprint.
 
+### Decisions that are easy to miss
+
+- **Writes are not retried after a network error or a 5xx**, only after a rate limit; reads are retried as before. What the platform did is unknown, so the next apply looks for the fingerprint before it writes.
+- **`assignee` is not required in an `issue-create`**: it is absent when the author of the change request is not known. When it is there and the author cannot be assigned in the project, the outcome is `posted-unassigned`.
+- **Trust is a flag the provider fills** on notes, issues and review threads (on GitHub from `author_association`, and from the login of the token, which is read once and only when a note needs it). The core only reads "trusted" or "not trusted". What a platform accepts in a body and how it writes a suggestion are capabilities, as data.
+- **A box that is already ticked** is `not-eligible` when planning (the entry cannot be ticked) and `already-posted` when applying (an earlier apply, or someone, did it): applying again stays idempotent.
+- **The check of a change request** is in this order: closed or merged (`not-open`), new commits (`head-changed`), the account's own (`own-cr`).
+
 ### Resume
 
 After a failure (**exit 7**: the platform is unreachable, answers 5xx, or asks for a wait longer than 60 seconds; **exit 6**: the token is refused or lacks a permission) the command prints what was done and what was not. Running `--apply` again on the same plans skips the actions that have a final outcome, checks the trusted fingerprints again for the others, and writes only what is not there. `published.json` is for the plan it names: after a new `--plan` its outcomes are not used, and the platform tells what is posted.
 
 ### A position the platform refuses
 
-The inline comments of a change request are one request, and GitHub answers a position outside the diff with a 422 for the whole review, in which nothing is posted. If the answer names the comments it refused, the command marks them `rejected`, sends the review once more without them, and marks the others `posted`; a second refusal is handled the same way and not tried a third time. If the answer does not say which comment it refused, nothing was posted: every comment of the review is `rejected` and the findings stay in the report. A comment is never tried on another line.
+The inline comments of a change request are one request, and GitHub answers a position outside the diff with a 422 for the whole review, in which nothing is posted. If the answer names the comments it refused, the command marks them `rejected`, sends the review once more without them, and marks the others `posted`; a second refusal is handled the same way and not tried a third time. If the answer does not say which comment it refused, nothing was posted: every comment of the review is `rejected` and the findings stay in the report. A comment is never tried on another line, and never sent again in a review of its own.
+
+**The "not named" case is a fallback, pending a check.** The parser looks for `comments[N]` in the `errors` of the 422 and no real answer of GitHub was captured yet, so which of the two cases happens in practice is not known. The milestone that runs publish on the sandbox (M10) will capture a real 422 body on a dedicated pull request and align the parser with it.
 
 ## Exit codes
 
