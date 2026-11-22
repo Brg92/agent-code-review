@@ -40,6 +40,10 @@ type Fault struct {
 	Header map[string]string
 	// Drop closes the connection without an answer.
 	Drop bool
+	// Apply makes the server do what was asked and then fail, as a
+	// platform does when the answer is lost on the way: the write is there
+	// and its caller does not know.
+	Apply bool
 	// Times is how many requests fail; 0 means every one. After a fault is
 	// spent the request is served as usual.
 	Times int
@@ -262,6 +266,9 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 			continue
 		}
 		f.used++
+		if f.Apply {
+			s.dispatch(httptest.NewRecorder(), req, body)
+		}
 		if f.Drop {
 			if hj, ok := w.(http.Hijacker); ok {
 				conn, _, _ := hj.Hijack()
@@ -275,6 +282,11 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 		reply(w, f.Status, f.Body)
 		return
 	}
+	s.dispatch(w, req, body)
+}
+
+// dispatch answers a request that no fault stops.
+func (s *Server) dispatch(w http.ResponseWriter, req *http.Request, body []byte) {
 	switch {
 	case req.URL.Path == "/user" && req.Method == http.MethodGet:
 		reply(w, 200, jsonOf(map[string]any{"login": s.Login}))
