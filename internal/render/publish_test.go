@@ -157,3 +157,119 @@ func TestPublishedTextsMentionNoAutomation(t *testing.T) {
 		}
 	}
 }
+
+func planOf(actions []core.Action, skipped ...core.PlanSkip) core.Plan {
+	return core.Plan{Schema: 1, Actions: actions, Skipped: skipped}
+}
+
+func TestPlanText(t *testing.T) {
+	parent := core.Key{Forge: core.GitHub, Host: "github.com", Project: "acme/lib", Number: 3}
+	app := core.Key{Forge: core.GitHub, Host: "github.com", Project: "acme/app", Number: 7}
+	views := []PlanView{
+		{CR: app, Title: "Greet by name", Head: strings.Repeat("a", 40), Path: "/w/app/plan.json", Plan: planOf([]core.Action{
+			{ID: 1, Kind: core.ActionLabelCreate, Label: &core.Label{Name: "review"}},
+			{ID: 2, Kind: core.ActionIssueCreate, Severity: core.Major, Rules: []string{"missing-tests", "missing-tests", "no-double-bang"}},
+			{ID: 3, Kind: core.ActionIssueUpdate, Severity: core.Minor, Number: 12, Rules: []string{"missing-kdoc"}},
+			{ID: 4, Kind: core.ActionReviewComment, Rules: []string{"global-scope"}},
+			{ID: 5, Kind: core.ActionReviewComment, Rules: []string{"logic-defect"}},
+			{ID: 6, Kind: core.ActionSummaryComment},
+			{ID: 7, Kind: core.ActionRelatedTick, Parent: &parent},
+		}, core.PlanSkip{Status: core.StatusAlreadyPosted, Kind: core.ActionReviewComment, Rule: "no-double-bang", Path: "a/B.kt", Line: 4},
+			core.PlanSkip{Status: core.StatusSecretBlocked, Kind: core.ActionIssueCreate, Target: "acr:v1:issue:acme/app#7:blocker", Pattern: "github-token"},
+			core.PlanSkip{Status: core.StatusNotEligible, Kind: core.ActionRelatedTick, Target: "x", Detail: "its verdict is BLOCKED"})},
+		{CR: parent, Title: "Load", Head: strings.Repeat("b", 40), Path: "/w/lib/plan.json", Plan: planOf(nil), Blocked: ""},
+		{CR: core.Key{Forge: core.GitHub, Host: "github.com", Project: "acme/gone", Number: 1}, Title: "Old", Head: strings.Repeat("c", 40), Path: "/w/gone/plan.json", Blocked: core.StatusNotOpen,
+			Plan: planOf(nil, core.PlanSkip{Status: core.StatusNotOpen, Target: "x", Detail: "the change request is closed"})},
+	}
+	got := PlanText("20261120T120000Z-52fdfc07", core.Both, core.GitHub, views)
+	want := `Plan for run 20261120T120000Z-52fdfc07 (both). Nothing was written to GitHub.
+
+acme/app#7 — Greet by name (head aaaaaaaa)
+  write  label review
+  write  issue MAJOR (new): missing-tests ×2, no-double-bang
+  write  issue MINOR (rewrite #12): missing-kdoc
+  write  2 inline comments: global-scope, logic-defect
+  write  the note that nothing blocks
+  write  a tick in acme/lib#3
+  skip   already-posted: no-double-bang a/B.kt:4
+  skip   secret-blocked: issue-create (github-token) acr:v1:issue:acme/app#7:blocker
+  skip   not-eligible: related-tick — its verdict is BLOCKED
+  plan   /w/app/plan.json
+
+acme/lib#3 — Load (head bbbbbbbb)
+  nothing to write
+  plan   /w/lib/plan.json
+
+acme/gone#1 — Old (head cccccccc)
+  skip   not-open: x — the change request is closed
+  plan   /w/gone/plan.json
+
+Next:
+  agent-code-review publish --apply   write exactly these plans, only after the user said yes
+  agent-code-review publish --plan <comments|issues|both>   plan again
+`
+	if got != want {
+		t.Errorf("PlanText =\n%s\nwant\n%s", got, want)
+	}
+	if strings.Contains(got, "github-token ") && strings.Contains(got, canaryPattern) {
+		t.Error("the text that matched is printed")
+	}
+	if one := PlanText("r", core.Comments, core.GitLab, nil); !strings.Contains(one, "Nothing was written to GitLab.") {
+		t.Errorf("GitLab: %q", one)
+	}
+}
+
+const canaryPattern = "ghp_"
+
+func TestApplyText(t *testing.T) {
+	parent := core.Key{Forge: core.GitHub, Host: "github.com", Project: "acme/lib", Number: 3}
+	app := core.Key{Forge: core.GitHub, Host: "github.com", Project: "acme/app", Number: 7}
+	plan := planOf([]core.Action{
+		{ID: 1, Kind: core.ActionLabelCreate, Label: &core.Label{Name: "review"}},
+		{ID: 2, Kind: core.ActionIssueCreate, Severity: core.Major},
+		{ID: 3, Kind: core.ActionIssueUpdate, Severity: core.Minor, Number: 12},
+		{ID: 4, Kind: core.ActionReviewComment, Rules: []string{"global-scope"}, Path: "a/B.kt", Line: 4},
+		{ID: 5, Kind: core.ActionSummaryComment},
+		{ID: 6, Kind: core.ActionRelatedTick, Parent: &parent},
+		{ID: 7, Kind: core.ActionReviewComment, Rules: []string{"logic-defect"}, Path: "a/C.kt", Line: 9},
+	})
+	outcomes := map[int]core.Outcome{
+		1: {ID: 1, Status: core.StatusPosted},
+		2: {ID: 2, Status: core.StatusPostedUnassigned, Number: 4, Detail: "the author cannot be assigned"},
+		3: {ID: 3, Status: core.StatusAlreadyPosted, Number: 12},
+		4: {ID: 4, Status: core.StatusFailed, Detail: "transport"},
+		// 5 and 7 were not tried.
+		6: {ID: 6, Status: core.StatusNotEligible, Detail: "its verdict is BLOCKED"},
+	}
+	views := []ApplyView{
+		{CR: app, Title: "Greet by name", Head: strings.Repeat("a", 40), Plan: plan, Outcomes: outcomes},
+		{CR: parent, Title: "Load", Head: strings.Repeat("b", 40), Plan: planOf(nil)},
+		{CR: core.Key{Forge: core.GitHub, Host: "github.com", Project: "acme/gone", Number: 1}, Title: "Old", Head: strings.Repeat("c", 40), Blocked: core.StatusHeadChanged, Detail: "reviewed at cccccccc, now at dddddddd"},
+	}
+	got := ApplyText("run-1", core.GitHub, views, false)
+	want := `Run run-1 is only partly published to GitHub.
+
+acme/app#7 — Greet by name (head aaaaaaaa)
+  posted  label review
+  posted-unassigned  issue MAJOR (new) (#4) — the author cannot be assigned
+  already-posted  issue MINOR (rewrite #12) (#12)
+  not-eligible  tick in acme/lib#3 — its verdict is BLOCKED
+  to do  inline comment global-scope a/B.kt:4 — failed: transport
+  to do  the note that nothing blocks — not tried
+  to do  inline comment logic-defect a/C.kt:9 — not tried
+
+acme/lib#3 — Load (head bbbbbbbb)
+  nothing to write
+
+acme/gone#1 — Old (head cccccccc)
+  nothing was written: head-changed — reviewed at cccccccc, now at dddddddd
+
+Run ` + "`agent-code-review publish --apply`" + ` again to do what is left; what was done is not done twice.
+`
+	if got != want {
+		t.Errorf("ApplyText =\n%s\nwant\n%s", got, want)
+	}
+	if done := ApplyText("run-1", core.GitLab, views[1:2], true); !strings.HasPrefix(done, "Published run run-1 to GitLab.\n") || strings.Contains(done, "again") {
+		t.Errorf("done: %q", done)
+	}
+}
