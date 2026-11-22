@@ -200,3 +200,39 @@ func TestForgeInterfacesExposeNoWrites(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+// TestWriterIsWhatTheGuardScans: the interface of the writes is in
+// internal/forges/base, which the guard above walks, and it names exactly
+// what publish writes; none of it is a forbidden action.
+func TestWriterIsWhatTheGuardScans(t *testing.T) {
+	path := filepath.Join(repoRoot, "internal", "forges", "base", "writer.go")
+	src, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	file, err := parser.ParseFile(token.NewFileSet(), path, src, parser.SkipObjectResolution)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var methods []string
+	ast.Inspect(file, func(n ast.Node) bool {
+		if spec, ok := n.(*ast.TypeSpec); ok && spec.Name.Name == "Writer" {
+			for _, m := range spec.Type.(*ast.InterfaceType).Methods.List {
+				methods = append(methods, m.Names[0].Name)
+			}
+		}
+		return true
+	})
+	want := []string{"CreateReview", "CreateComment", "CreateIssue", "UpdateIssue", "CreateLabel", "UpdateDescription"}
+	if !reflect.DeepEqual(methods, want) {
+		t.Errorf("Writer methods = %v, want %v", methods, want)
+	}
+	bad, err := forbiddenInterfaceMethods(path, src)
+	if err != nil || len(bad) != 0 {
+		t.Errorf("forbidden methods %v, %v", bad, err)
+	}
+	words, err := forbiddenFieldNames(path, src)
+	if err != nil || len(words) != 0 {
+		t.Errorf("forbidden parameters or fields %v, %v", words, err)
+	}
+}
