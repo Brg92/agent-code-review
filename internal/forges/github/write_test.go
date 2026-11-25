@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -124,6 +126,34 @@ func TestCreateReviewRejectedPositions(t *testing.T) {
 		if strings.Contains(err.Error(), "outside") {
 			t.Errorf("the error holds the text of a comment: %v", err)
 		}
+	}
+}
+
+// TestCreateReviewRejectedByTheRealAnswer replays the body that GitHub
+// answered, captured on the sandbox by tools/review422 for a review with one
+// comment on a line outside the diff. It says "Line could not be resolved"
+// and does not name the comment, so the review is refused as a whole and the
+// error says that no comment was named.
+func TestCreateReviewRejectedByTheRealAnswer(t *testing.T) {
+	body, err := os.ReadFile(filepath.Join("..", "..", "..", "testdata", "githubwrite", "review-422-line-outside-diff.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, srv, repo, _ := onServer(t)
+	srv.Fail("POST", `/reviews$`, ghserver.Fault{Status: 422, Body: string(body)})
+	err = p.CreateReview(context.Background(), synthKey, writeHead, []base.ReviewComment{
+		{Path: "app/A.kt", Side: core.Right, Line: 1, Body: "outside"},
+		{Path: "app/A.kt", Side: core.Right, Line: 2, Body: "inside"},
+	})
+	got, ok := base.RejectedOf(err)
+	if !isKind(err, base.ErrRejected) || !ok || got != nil {
+		t.Fatalf("error = %v, rejected = %v (%v): want ErrRejected with no comment named", err, got, ok)
+	}
+	if n := len(repo.PRs[7].Inlines); n != 0 {
+		t.Errorf("%d comments were posted by a refused review", n)
+	}
+	if strings.Contains(err.Error(), "outside") {
+		t.Errorf("the error holds the text of a comment: %v", err)
 	}
 }
 

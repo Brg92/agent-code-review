@@ -6,13 +6,6 @@
 useDefault = true
 
 [[allowlists]]
-description = "Test value of a test that checks that auth errors never quote what git printed (synthetic, not a credential)."
-condition = "AND"
-targetRules = ["generic-api-key"]
-paths = ['''^internal/auth/hardening_test\.go$''']
-regexes = ['''^echoed-secret-0123$''']
-
-[[allowlists]]
 description = "The 12 hexadecimal characters of a synthetic finding fingerprint in a contract example of the publish plan."
 condition = "AND"
 targetRules = ["generic-api-key"]

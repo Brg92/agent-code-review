@@ -18,11 +18,21 @@ Scenario pull requests are never merged, and their branches are never deleted.
 
 | Repository | Content | Scenarios |
 | --- | --- | --- |
-| `sample-app` | Android app with Compose and the `free`/`paid` flavors; consumes `core-lib` | S1, S2, S5, S6, S7 |
-| `core-lib` | Android library with Views and `maven-publish`; public API `SessionManager` | S2, S3, S6 |
+| `sample-app` | Android app with Compose and the `free`/`paid` flavors; consumes `core-lib` | S1, S2, S5, S6, S7, S8 |
+| `core-lib` | Android library with Views and `maven-publish`; public API `SessionManager` | S2, S3, S6, S8 |
 | `kmp-shared` | Kotlin Multiplatform library (`commonMain`, `androidMain`, `iosMain`, `expect`/`actual`) and a SwiftUI app in `iosApp/` | S2, S6, S7 |
 | `feature-lib` | Android library for edge cases | S2, S4 |
 | `token-probe` | Private repository with a single `probe` job on `main`, used only to check the recorder token permissions; never recorded | none |
+
+### S8: the end-to-end run
+
+S8 is the only scenario that is not for the recorder: it is the pull requests that `docs/e2e.md` publishes to, `sample-app#9` (root) and `core-lib#4` (related), opened by the author account like the others, with a review requested from the reviewer, and never merged. Its content is in `testdata/scenarios/S8/README.md`.
+
+**Its pull requests collect comments, a review and issues on purpose, and are never recorded.** Recording them would change what the recorder reads and break the recordings (see below). So the recorder configuration never lists S8, by name or through one of its pull requests, and `TestTheEndToEndScenarioIsNeverRecorded` in `tools/recorder` fails if it does. There is no `testdata/github/S8`.
+
+The reviewer is asked for a review on S8, so the review-requested search that the `queue` recording reads lists its two pull requests whenever it is recorded again. The recording that is in `testdata/github/queue/` was made before S8 existed; record `queue` again only with that in mind, and check the diff.
+
+To run `docs/e2e.md` again, the comments and issues on S8 have to be removed by hand, or a new head pushed to it (both options are in that document). The plugin never deletes anything.
 
 The four scenario repositories are public. A public repository does not prove read permissions, because its data can be read without them, so permission checks run against the private `token-probe`.
 

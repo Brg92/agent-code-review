@@ -31,6 +31,25 @@
       }
     },
     {
+      "id": "acr:v1:missing-tests:app/src/main/java/com/example/sample/data/SessionRepository.kt:c4e2fc0493b0",
+      "rule": "missing-tests",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/data/SessionRepository.kt",
+      "side": "RIGHT",
+      "line": 7,
+      "title": "Missing unit tests",
+      "why": "The component has no unit test, so regressions in its logic cannot be detected before release.",
+      "fix": "Add a unit test for the component under the module's `src/test` or `src/androidTest`.",
+      "references": [],
+      "placement": "inline",
+      "anchor": {
+        "kind": "relocated",
+        "side": "RIGHT",
+        "line": 15,
+        "requestedLine": 7
+      }
+    },
+    {
       "id": "acr:v1:global-scope:app/src/main/java/com/example/sample/data/SessionRepository.kt:9617645d09ba",
       "rule": "global-scope",
       "severity": "BLOCKER",
@@ -64,6 +83,25 @@
         "kind": "added",
         "side": "RIGHT",
         "line": 20
+      }
+    },
+    {
+      "id": "acr:v1:missing-tests:app/src/main/java/com/example/sample/ui/HomeViewModel.kt:093b37435374",
+      "rule": "missing-tests",
+      "severity": "MAJOR",
+      "path": "app/src/main/java/com/example/sample/ui/HomeViewModel.kt",
+      "side": "RIGHT",
+      "line": 10,
+      "title": "Missing unit tests",
+      "why": "The component has no unit test, so regressions in its logic cannot be detected before release.",
+      "fix": "Add a unit test for the component under the module's `src/test` or `src/androidTest`.",
+      "references": [],
+      "placement": "inline",
+      "anchor": {
+        "kind": "relocated",
+        "side": "RIGHT",
+        "line": 11,
+        "requestedLine": 10
       }
     },
     {

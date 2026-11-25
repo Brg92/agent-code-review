@@ -52,6 +52,42 @@ func TestRunUsageErrors(t *testing.T) {
 	}
 }
 
+// neverRecorded is the scenario of the end-to-end run of publish. Its pull
+// requests collect comments and issues on purpose, so recording them would
+// change what the recorder reads and break the other recordings.
+const neverRecorded = "S8"
+
+// TestTheEndToEndScenarioIsNeverRecorded fails when the recorder lists S8,
+// by name or through one of its pull requests.
+func TestTheEndToEndScenarioIsNeverRecorded(t *testing.T) {
+	if _, ok := scenarios[neverRecorded]; ok {
+		t.Errorf("scenario %s is in the recorder configuration; its pull requests are never recorded", neverRecorded)
+	}
+	names, err := scenarioNames([]string{"all"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range names {
+		if name == neverRecorded {
+			t.Errorf("\"all\" records scenario %s", neverRecorded)
+		}
+	}
+	if _, err := scenarioNames([]string{neverRecorded}); err == nil {
+		t.Errorf("scenario %s can be named on the command line", neverRecorded)
+	}
+	// The pull requests of S8, as the scenario README lists them.
+	s8 := []ghrecord.Target{pr("sample-app", 9), pr("core-lib", 4)}
+	for name, sc := range scenarios {
+		for _, target := range sc.targets {
+			for _, forbidden := range s8 {
+				if target == forbidden {
+					t.Errorf("scenario %s records %s/%s#%d, a pull request of %s", name, target.Owner, target.Repo, target.Number, neverRecorded)
+				}
+			}
+		}
+	}
+}
+
 func TestEveryScenarioHasARecording(t *testing.T) {
 	dirs, err := filepath.Glob(filepath.Join("..", "..", "testdata", "scenarios", "S*"))
 	if err != nil || len(dirs) == 0 {
@@ -59,6 +95,9 @@ func TestEveryScenarioHasARecording(t *testing.T) {
 	}
 	for _, dir := range dirs {
 		name := filepath.Base(dir)
+		if name == neverRecorded {
+			continue
+		}
 		if s, ok := scenarios[name]; !ok || len(s.targets) == 0 {
 			t.Errorf("scenario %s has no targets to record", name)
 		}

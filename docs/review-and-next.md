@@ -3,8 +3,10 @@
 The first two commands of the flow. `review` reads a pull request and everything its Related Changes section lists, and stops when every change request is **collected**. `next` hands the agent one part of one work package at a time. Neither writes to a platform. The exit codes are in [exit-codes.md](exit-codes.md).
 
 ```bash
-agent-code-review review [--verbose] <pull request URL | owner/repo#N>
+agent-code-review review [--verbose] <pull request>
 ```
+
+The pull request is its URL or `owner/repo#N`.
 
 ```bash
 agent-code-review next [--verbose] [--run <run id>] [--part <n>]

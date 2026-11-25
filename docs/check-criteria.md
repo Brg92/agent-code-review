@@ -3,7 +3,7 @@
 Checks the repository criteria in a working copy, as a review would read them from the target branch. It is the tool for the authors of a repository's criteria: it needs no token and no network, and it writes nothing. The exit codes are in [exit-codes.md](exit-codes.md).
 
 ```bash
-agent-code-review check-criteria [<dir>] [--verbose]
+agent-code-review check-criteria [<dir>]
 ```
 
 `<dir>` is the working copy, the current directory by default.

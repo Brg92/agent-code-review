@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "cr": "github:github.com/acr-plugin-sandbox/sample-app#9",
+  "headSha": "724b6e1024fae5f3f164fa88fb7a927411896e1e",
+  "findings": [],
+  "preExisting": [],
+  "signals": [
+    {
+      "id": "s1",
+      "decision": "confirm"
+    },
+    {
+      "id": "s2",
+      "decision": "confirm"
+    },
+    {
+      "id": "s3",
+      "decision": "confirm"
+    },
+    {
+      "id": "s4",
+      "decision": "confirm",
+      "severity": "MAJOR"
+    }
+  ]
+}
