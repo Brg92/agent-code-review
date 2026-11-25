@@ -3,8 +3,8 @@
 `publish` is the only command that writes to a platform, and it writes only what the user confirmed. It works on the most recent run that is `finalized` or `planned`, or on the run given with `--run`, and appends its events to the `run.log` of the run.
 
 ```text
-agent-code-review publish --plan <comments|issues|both> [--run <run id>] [--verbose]
-agent-code-review publish --apply [--run <run id>] [--verbose]
+agent-code-review publish --plan <comments|issues|both> [--verbose] [--run <run id>]
+agent-code-review publish --apply [--verbose] [--run <run id>]
 ```
 
 ## The rule for the agent
