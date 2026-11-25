@@ -128,7 +128,14 @@ func TestScenarioJudgementsValidateAgainstTheProductFlow(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if rel = filepath.ToSlash(rel); !reviewed[rel] {
+		rel = filepath.ToSlash(rel)
+		// S8 is never recorded, so no replay produces its work packages: its
+		// judgements are checked against the schema like the others, and by
+		// the end-to-end run of docs/e2e.md against the real pull requests.
+		if strings.HasPrefix(rel, "testdata/scenarios/S8/") {
+			continue
+		}
+		if !reviewed[rel] {
 			extra = append(extra, rel)
 		}
 	}
