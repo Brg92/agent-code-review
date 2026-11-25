@@ -32,10 +32,9 @@ func OpenRun(workDir, runID string, log *runlog.Log) (*Opened, error) {
 		return openNamed(workDir, runID, log)
 	}
 	runs := filepath.Join(workDir, "runs")
-	entries, err := os.ReadDir(runs)
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return nil, &Failure{Kind: KindUnexpected, What: "could not list the runs", Where: runs, Why: err.Error(), Err: err,
-			Hint: "check that the work directory can be read"}
+	entries, err := listRuns(runs)
+	if err != nil {
+		return nil, err
 	}
 	var ids []string
 	for _, e := range entries {
@@ -59,6 +58,30 @@ func OpenRun(workDir, runID string, log *runlog.Log) (*Opened, error) {
 	}
 	return nil, &Failure{Kind: KindState, What: "there is no run to continue", Where: runs,
 		Why: "no run that is not published", Hint: "run `agent-code-review review <pull request>` first"}
+}
+
+// listRuns lists the runs directory. One that is not there has no runs, and
+// one that is not a directory cannot be listed, on every system: Windows
+// would otherwise report it as not there.
+func listRuns(runs string) ([]fs.DirEntry, error) {
+	fail := func(err error) error {
+		return &Failure{Kind: KindUnexpected, What: "could not list the runs", Where: runs, Why: err.Error(), Err: err,
+			Hint: "check that the work directory can be read"}
+	}
+	info, err := os.Stat(runs)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return nil, nil
+	case err != nil:
+		return nil, fail(err)
+	case !info.IsDir():
+		return nil, fail(errors.New("it is not a directory"))
+	}
+	entries, err := os.ReadDir(runs)
+	if err != nil {
+		return nil, fail(err)
+	}
+	return entries, nil
 }
 
 func openNamed(workDir, runID string, log *runlog.Log) (*Opened, error) {

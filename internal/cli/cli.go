@@ -43,6 +43,9 @@ commands:
   publish --plan <comments|issues|both> [--run <id>]
                                  plan what to write to the platform; writes nothing there
   publish --apply [--run <id>]   write exactly the plans, only after the user said yes
+  queue [--limit N]              list the pull requests that ask for your review
+  doctor [--repo owner/repo]     check the environment, the token and the packs
+  check-criteria [<dir>]         check the repository criteria of a working copy
   auth login [--host <host>]     store a token read from stdin
   auth status [--host <host>]    say whether a token is available, and from where
   auth logout [--host <host>]    remove the stored token
@@ -100,6 +103,12 @@ func run(args []string, e env) int {
 		return runShow(args[1:], e)
 	case len(args) >= 1 && args[0] == "publish":
 		return runPublish(args[1:], e)
+	case len(args) >= 1 && args[0] == "queue":
+		return runQueue(args[1:], e)
+	case len(args) >= 1 && args[0] == "doctor":
+		return runDoctor(args[1:], e)
+	case len(args) >= 1 && args[0] == "check-criteria":
+		return runCheckCriteria(args[1:], e)
 	}
 	fmt.Fprint(e.stderr, usage)
 	return exitUsage

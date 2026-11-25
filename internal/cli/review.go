@@ -53,8 +53,13 @@ type options struct {
 	apply   bool
 	part    int
 	partSet bool
-	save    bool
-	args    []string
+	// limit is the argument of --limit.
+	limit    int
+	limitSet bool
+	// repo is the argument of --repo.
+	repo string
+	save bool
+	args []string
 }
 
 // allowed are the flags besides --verbose a command takes.
@@ -66,6 +71,8 @@ const (
 	flagSave
 	flagPlan
 	flagApply
+	flagLimit
+	flagRepo
 )
 
 // parseOptions reads the flags of a command wherever they are among its
@@ -80,6 +87,12 @@ func parseOptions(name string, args []string, allow allowed) (options, error) {
 	}
 	if allow&flagPart != 0 {
 		fs.IntVar(&o.part, "part", 0, "")
+	}
+	if allow&flagLimit != 0 {
+		fs.IntVar(&o.limit, "limit", 0, "")
+	}
+	if allow&flagRepo != 0 {
+		fs.StringVar(&o.repo, "repo", "", "")
 	}
 	if allow&flagSave != 0 {
 		fs.BoolVar(&o.save, "save", false, "")
@@ -96,12 +109,20 @@ func parseOptions(name string, args []string, allow allowed) (options, error) {
 			case strings.HasPrefix(err.Error(), "flag needs an argument"):
 				return o, err
 			case strings.Contains(err.Error(), "invalid value"):
-				return o, errors.New("--part is not a number")
+				// The value is not quoted: it may be anything.
+				name := "--part"
+				if strings.Contains(err.Error(), "flag -limit") {
+					name = "--limit"
+				}
+				return o, errors.New(name + " is not a number")
 			}
 			return o, errors.New("unknown flag")
 		}
 		if fs.NArg() == 0 {
-			fs.Visit(func(f *flag.Flag) { o.partSet = o.partSet || f.Name == "part" })
+			fs.Visit(func(f *flag.Flag) {
+				o.partSet = o.partSet || f.Name == "part"
+				o.limitSet = o.limitSet || f.Name == "limit"
+			})
 			return o, nil
 		}
 		o.args = append(o.args, fs.Arg(0))
@@ -125,7 +146,13 @@ func finish(e env, err error, log *runlog.Log) int {
 		f.LogPath = log.Path()
 	}
 	fmt.Fprint(e.stderr, f.Report())
-	switch f.Kind {
+	return exitCodeOf(f.Kind)
+}
+
+// exitCodeOf is the exit code of a failure of kind, as docs/exit-codes.md
+// lists them.
+func exitCodeOf(kind review.Kind) int {
+	switch kind {
 	case review.KindUsage:
 		return exitUsage
 	case review.KindAuth:

@@ -1,0 +1,14 @@
+Repository criteria in <dir>
+Layout: overlay
+Files read: .agent-code-review/config.json, .agent-code-review/criteria.md
+Packs named: android
+Profile: library
+
+Repository rules: 2
+  app-tracker — MAJOR — .agent-code-review/criteria.md:5
+  app-threads — BLOCKER — .agent-code-review/criteria.md:6
+
+disabledRules applied: app-tracker
+ruleOptions applied: line-too-long.max = 120
+
+Result: valid: nothing would be ignored by a review

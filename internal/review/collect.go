@@ -110,21 +110,28 @@ func (c *collector) activate(crit *core.RepoCriteria, paths []string, repo packs
 	if len(crit.Packs) == 0 {
 		return c.d.Packs.Activate(paths, repo)
 	}
+	return namedPacks(c.d.Packs, crit), nil
+}
+
+// namedPacks returns the packs a repository's criteria name, the highest
+// priority first. A name that is no loaded pack is left out, with an item
+// under the criteria ignored.
+func namedPacks(set *packs.Set, crit *core.RepoCriteria) []*packs.Pack {
 	var active []*packs.Pack
 	for _, id := range crit.Packs {
-		i := slices.IndexFunc(c.d.Packs.Packs, func(p *packs.Pack) bool { return p.ID == id })
+		i := slices.IndexFunc(set.Packs, func(p *packs.Pack) bool { return p.ID == id })
 		if i < 0 {
 			item := core.IgnoredItem{Item: "`" + id + "` in packs", Reason: "no pack with this id is loaded"}
 			crit.Ignored = append(crit.Ignored, item)
 			crit.Notes = append(crit.Notes, item.Note())
 			continue
 		}
-		if !slices.Contains(active, c.d.Packs.Packs[i]) {
-			active = append(active, c.d.Packs.Packs[i])
+		if !slices.Contains(active, set.Packs[i]) {
+			active = append(active, set.Packs[i])
 		}
 	}
 	sort.SliceStable(active, func(i, j int) bool { return active[i].Priority > active[j].Priority })
-	return active, nil
+	return active
 }
 
 // profileReason says why a profile was chosen, in a few words.

@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "packs": ["android", "no-such-pack"],
+  "disabledRules": ["no-double-bang", "app-unknown"],
+  "ruleOptions": {
+    "line-too-long": {
+      "max": 999
+    }
+  }
+}
