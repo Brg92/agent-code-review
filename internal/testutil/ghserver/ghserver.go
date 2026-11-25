@@ -598,9 +598,11 @@ func (s *Server) review(w http.ResponseWriter, r *Repo, seg []string, body []byt
 	if len(refused) > 0 {
 		var errs []any
 		for _, i := range refused {
-			msg := "Pull request review thread line must be part of the diff"
+			// Without NameRejected the answer is the one GitHub gave on the
+			// sandbox (testdata/githubwrite/review-422-line-outside-diff.json).
+			msg := "Line could not be resolved"
 			if s.NameRejected {
-				msg = fmt.Sprintf("comments[%d]: %s", i, msg)
+				msg = fmt.Sprintf("comments[%d]: Pull request review thread line must be part of the diff", i)
 			}
 			errs = append(errs, msg)
 		}
