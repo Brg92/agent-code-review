@@ -3,7 +3,6 @@ package review
 import (
 	"errors"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -59,13 +58,9 @@ func (l LocalReviews) Of(root core.Key) (LocalReview, bool) {
 func ReadLocalReviews(workDir string) (LocalReviews, error) {
 	out := LocalReviews{byKey: map[string]LocalReview{}}
 	runs := filepath.Join(workDir, "runs")
-	entries, err := os.ReadDir(runs)
-	if errors.Is(err, fs.ErrNotExist) {
-		return out, nil
-	}
+	entries, err := listRuns(runs)
 	if err != nil {
-		return out, &Failure{Kind: KindUnexpected, What: "could not list the runs", Where: runs, Why: err.Error(), Err: err,
-			Hint: "check that the work directory can be read"}
+		return out, err
 	}
 	var ids []string
 	for _, e := range entries {
