@@ -197,3 +197,51 @@ func TestWorkPackageExampleSignalsAgreeWithTheEngine(t *testing.T) {
 		}
 	}
 }
+
+// TestFindingsExampleAutomaticFindingsAgreeWithTheCatalog keeps the
+// missing-tests findings of the S1 findings example as the product writes
+// them: the product adds them on its own, with the title, severity, reason
+// and fix of the catalog rule, so TestScenarioS1 compares every finding of
+// the example with the result.
+func TestFindingsExampleAutomaticFindingsAgreeWithTheCatalog(t *testing.T) {
+	const rule = "missing-tests"
+	want, ok := catalogRulesFull(t, "packs/android/rules.json")[rule]
+	if !ok {
+		t.Fatalf("%s is not in the android catalog", rule)
+	}
+	for _, f := range globAll(t, "testdata/contracts/findings/valid/s1-blocked.json") {
+		doc := readJSON(t, f)
+		found := 0
+		for _, list := range []string{"findings", "preExisting"} {
+			items, _ := doc[list].([]any)
+			for _, it := range items {
+				finding, _ := it.(map[string]any)
+				if finding["rule"] != rule {
+					continue
+				}
+				found++
+				for _, field := range []string{"title", "severity", "why", "fix"} {
+					if finding[field] != want[field] {
+						t.Errorf("%s: %s finding at %v:%v has %s %q, the catalog has %q", f, rule, finding["path"], finding["line"], field, finding[field], want[field])
+					}
+				}
+			}
+		}
+		if found != 2 {
+			t.Errorf("%s: %d %s findings, the product adds one for SessionRepository.kt and one for HomeViewModel.kt", f, found, rule)
+		}
+	}
+}
+
+// catalogRulesFull reads the rules of a catalog file by id, as written.
+func catalogRulesFull(t *testing.T, path string) map[string]map[string]any {
+	t.Helper()
+	out := map[string]map[string]any{}
+	rules, _ := readJSON(t, filepath.Join(repoRoot, path))["rules"].([]any)
+	for _, r := range rules {
+		rule, _ := r.(map[string]any)
+		id, _ := rule["id"].(string)
+		out[id] = rule
+	}
+	return out
+}

@@ -120,8 +120,7 @@ func TestScenarioS1(t *testing.T) {
 	for _, f := range append(example.Findings, example.PreExisting...) {
 		want[fmt.Sprintf("%s %s %d", f.Rule, f.Path, f.Line)] = f.ID
 	}
-	// The example is the findings the scenario describes; the two automatic
-	// missing-tests findings that the product adds are not in it.
+	// Every finding of the result is in the example and the other way round.
 	seen := map[string]bool{}
 	for _, f := range append(res.Findings, res.PreExisting...) {
 		k := fmt.Sprintf("%s %s %d", f.Rule, f.Path, f.Line)
@@ -130,7 +129,7 @@ func TestScenarioS1(t *testing.T) {
 			if f.ID != id {
 				t.Errorf("%s: id %s, the contract example says %s", k, f.ID, id)
 			}
-		} else if f.Rule != "missing-tests" {
+		} else {
 			t.Errorf("%s is not in the contract example", k)
 		}
 	}
