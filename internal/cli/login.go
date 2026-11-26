@@ -118,6 +118,9 @@ func authLogin(e env, host string) int {
 		return fail(e, exitAuth, "%s: no token on stdin", host)
 	case errors.Is(err, auth.ErrNoHelper), errors.Is(err, auth.ErrPlainTextHelper):
 		return fail(e, exitUnsafeStorage, "%s: token not stored: %v", host, err)
+	case errors.Is(err, auth.ErrNotStored):
+		return fail(e, exitUnsafeStorage, "%s: token not stored: %v; the token that was approved has been rejected, so nothing is left stored\n%s",
+			host, err, helperSetupAdvice(e.hostOS(), host))
 	case err != nil:
 		return fail(e, exitAuth, "%s: token not stored: %v", host, err)
 	}

@@ -208,3 +208,47 @@ func TestAuthLoginPipedInMsys(t *testing.T) {
 		t.Errorf("got %+v", r)
 	}
 }
+
+func TestAuthLoginHelperThatDoesNotStore(t *testing.T) {
+	otherAccount := gitAnswer{stdout: "username=someone\npassword=other-token-value-4567\n"}
+	tests := []struct {
+		name   string
+		goos   string
+		fill   gitAnswer
+		helper string
+		parts  []string
+	}{
+		{"linux, nothing comes back", "linux", noEntry, "libsecret",
+			[]string{"returned nothing", "git-credential-libsecret", "Git Credential Manager"}},
+		{"linux, another account answers", "linux", otherAccount, "libsecret",
+			[]string{"another account", "git-credential-libsecret", "Git Credential Manager"}},
+		{"macOS", "darwin", noEntry, "osxkeychain", []string{"returned nothing", "osxkeychain"}},
+		{"windows", "windows", noEntry, "manager", []string{"returned nothing", "Git Credential Manager"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			git := loginGit("acme-vault")
+			git.answers[fill] = tt.fill
+			git.answers["credential reject"] = gitAnswer{}
+			r := runWith(t, env{git: git, goos: tt.goos, stdin: strings.NewReader(testToken + "\n")}, "auth", "login")
+			if r.code != exitUnsafeStorage || r.stdout != "" {
+				t.Fatalf("got %+v, want code %d and no output", r, exitUnsafeStorage)
+			}
+			parts := append([]string{"github.com: token not stored", "git config"}, tt.parts...)
+			parts = append(parts, auth.SetupCommands("github.com", tt.helper)...)
+			for _, part := range parts {
+				if !strings.Contains(r.stderr, part) {
+					t.Errorf("stderr %q does not say %q", r.stderr, part)
+				}
+			}
+			for _, secret := range []string{testToken, "other-token-value", "someone"} {
+				if strings.Contains(r.stderr, secret) {
+					t.Errorf("stderr leaks %q", secret)
+				}
+			}
+			if got := git.stdin["credential reject"]; got != "protocol=https\nhost=github.com\nusername=acr-api\n\n" {
+				t.Errorf("reject stdin = %q: what was approved must be rejected", got)
+			}
+		})
+	}
+}
