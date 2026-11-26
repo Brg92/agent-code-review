@@ -80,9 +80,8 @@ func TestSaveFailures(t *testing.T) {
 			helperQuery:          {stdout: nulEntries("credential.helper", "osxkeychain")},
 			"credential approve": {stderr: "helper said " + testToken, err: &ExitError{Code: 1}},
 		}},
-		"helper keeps nothing": keychainGit(answer{err: &ExitError{Code: 128}}),
-		"helper keeps another": keychainGit(storedFill("other-token-value-4567")),
-		"helper check fails":   {answers: map[string]answer{helperQuery: {err: &ExitError{Code: 5}}}},
+		"helper check fails": {answers: map[string]answer{helperQuery: {err: &ExitError{Code: 5}}}},
+		"read back fails":    keychainGit(answer{stderr: "error: keychain is locked\n" + promptsDisabled, err: &ExitError{Code: 128}}),
 	}
 	for name, git := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -90,10 +89,82 @@ func TestSaveFailures(t *testing.T) {
 			if err == nil {
 				t.Fatal("Save = nil error")
 			}
+			if errors.Is(err, ErrNotStored) {
+				t.Errorf("Save = %v, a failing helper is not a helper that does not store", err)
+			}
 			if strings.Contains(err.Error(), testToken) || strings.Contains(err.Error(), "other-token-value") {
 				t.Errorf("error leaks a token: %v", err)
 			}
 		})
+	}
+}
+
+func TestSaveNotStored(t *testing.T) {
+	tests := []struct {
+		name   string
+		fill   answer
+		reason NotStoredReason
+	}{
+		{"nothing comes back", answer{stderr: promptsDisabled, err: &ExitError{Code: 128}}, NotStoredNothing},
+		{"no password comes back", answer{stdout: "username=acr-api\n"}, NotStoredNothing},
+		{"another token for acr-api", storedFill("other-token-value-4567"), NotStoredOtherToken},
+		{"a token of another account", answer{stdout: "username=someone\npassword=other-token-value-4567\n"}, NotStoredOtherAccount},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			git := keychainGit(tt.fill)
+			git.answers["credential reject"] = answer{}
+			_, err := Resolver{Getenv: env(nil), Git: git}.Save(context.Background(), "github.com", testToken)
+			var ns *NotStoredError
+			if !errors.Is(err, ErrNotStored) || !errors.As(err, &ns) || ns.Reason != tt.reason {
+				t.Fatalf("Save = %v, want ErrNotStored with reason %v", err, tt.reason)
+			}
+			if msg := err.Error(); strings.Contains(msg, testToken) || strings.Contains(msg, "other-token-value") || strings.Contains(msg, "someone") {
+				t.Errorf("error leaks a token or a user: %v", err)
+			}
+			var rejects []string
+			for _, c := range git.calls {
+				if strings.Join(c.args, " ") == "credential reject" {
+					rejects = append(rejects, c.stdin)
+				}
+			}
+			if len(rejects) != 1 || rejects[0] != fillInput {
+				t.Errorf("rejects = %q, want one with %q: what was approved must not stay", rejects, fillInput)
+			}
+		})
+	}
+}
+
+func TestSaveNotStoredEvenIfTheRejectFails(t *testing.T) {
+	git := keychainGit(answer{stderr: promptsDisabled, err: &ExitError{Code: 128}})
+	git.answers["credential reject"] = answer{err: &ExitError{Code: 1}}
+	_, err := Resolver{Getenv: env(nil), Git: git}.Save(context.Background(), "github.com", testToken)
+	if !errors.Is(err, ErrNotStored) {
+		t.Errorf("Save = %v, want ErrNotStored", err)
+	}
+}
+
+func TestSaveDoesNotRejectAStoredToken(t *testing.T) {
+	git := keychainGit(storedFill(testToken))
+	if _, err := (Resolver{Getenv: env(nil), Git: git}).Save(context.Background(), "github.com", testToken); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range git.calls {
+		if c.args[0] == "credential" && c.args[1] == "reject" {
+			t.Error("Save rejected a token that was stored")
+		}
+	}
+}
+
+func TestNotStoredErrorsSayWhatHappened(t *testing.T) {
+	for reason, want := range map[NotStoredReason]string{
+		NotStoredNothing:      "returned nothing",
+		NotStoredOtherToken:   "different token",
+		NotStoredOtherAccount: "another account",
+	} {
+		if got := (&NotStoredError{Reason: reason}).Error(); !strings.Contains(got, want) {
+			t.Errorf("Error() for %v = %q, want it to contain %q", reason, got, want)
+		}
 	}
 }
 
