@@ -166,27 +166,132 @@ func TestShellExecCallsHonoursImports(t *testing.T) {
 	}
 }
 
-func TestProductionCodeRunsNoShell(t *testing.T) {
-	for _, dir := range []string{"cmd", "internal"} {
-		err := filepath.WalkDir(filepath.Join(repoRoot, dir), func(p string, d fs.DirEntry, err error) error {
-			if err != nil || d.IsDir() || !strings.HasSuffix(p, ".go") || strings.HasSuffix(p, "_test.go") {
-				return err
-			}
-			src, err := os.ReadFile(p)
+func TestShellLiterals(t *testing.T) {
+	tests := []struct {
+		name string
+		src  string
+		want []string
+	}{
+		{"a shell in a variable", "package x\nimport \"os/exec\"\nfunc f() { name := \"cmd.exe\"; _ = exec.Command(name) }\n", []string{"x.go:3:20"}},
+		{"in a slice", "package x\nimport \"os/exec\"\nvar shells = []string{\"bash\", \"ls\"}\nvar _ = exec.Command\n", []string{"x.go:3:23"}},
+		{"upper case", "package x\nimport \"os/exec\"\nvar a, b = \"PowerShell\", \"PWSH.EXE\"\nvar _ = exec.Command\n", []string{"x.go:3:12", "x.go:3:26"}},
+		{"sh, cmd and pwsh", "package x\nimport \"os/exec\"\nvar a, b, c = \"sh\", \"cmd\", \"pwsh\"\nvar _ = exec.Command\n", []string{"x.go:3:15", "x.go:3:21", "x.go:3:28"}},
+		{"raw string", "package x\nimport \"os/exec\"\nvar a = `bash`\nvar _ = exec.Command\n", []string{"x.go:3:9"}},
+		{"only the exact token", "package x\nimport \"os/exec\"\nvar a = []string{\"#!/bin/sh\", \"bash script\", \"shell\", \"/bin/sh\", \"ash\", \"\"}\nvar _ = exec.Command\n", nil},
+		{"without os/exec", "package x\nvar a = \"cmd.exe\"\n", nil},
+		{"a comment", "package x\nimport \"os/exec\"\n// \"bash\"\nvar _ = exec.Command\n", nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := shellLiterals("x.go", []byte(tt.src))
 			if err != nil {
-				return err
+				t.Fatal(err)
 			}
-			bad, err := shellExecCalls(p, src)
-			if err != nil {
-				return err
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("shellLiterals = %v, want %v", got, tt.want)
 			}
-			for _, pos := range bad {
-				t.Errorf("shell execution at %s", pos)
+		})
+	}
+}
+
+// shellLiterals returns the position of every string literal that is the name
+// of a shell, in a file that imports os/exec: a program name that reaches
+// exec.Command through a variable, a slice or a constant is not seen by
+// shellExecCalls, but its name is written down somewhere. The name is the
+// whole literal, whatever its case, with or without .exe.
+func shellLiterals(filename string, src []byte) ([]string, error) {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, filename, src, parser.SkipObjectResolution)
+	if err != nil {
+		return nil, err
+	}
+	if importName(file, "os/exec") == "" {
+		return nil, nil
+	}
+	var bad []string
+	ast.Inspect(file, func(n ast.Node) bool {
+		lit, ok := n.(*ast.BasicLit)
+		if !ok || lit.Kind != token.STRING {
+			return true
+		}
+		if s, err := strconv.Unquote(lit.Value); err == nil && shells[strings.TrimSuffix(strings.ToLower(s), ".exe")] {
+			bad = append(bad, fset.Position(lit.Pos()).String())
+		}
+		return true
+	})
+	return bad, nil
+}
+
+// shellExecExceptions is the closed list of files that may run a shell, with
+// the reason. The product never does: this is only for tests that play the
+// host of the plugin, which starts a launcher the way a shell would.
+var shellExecExceptions = map[string]string{
+	"tools/releasetree/launcher_windows_test.go": "starts the batch launcher through PowerShell and cmd.exe, as a host does, to test absolute paths and arguments with spaces",
+}
+
+// TestNoCodeRunsAShell checks every Go file of the repository, tests and tools
+// included: only the files of shellExecExceptions may run a shell or name one
+// in a file that imports os/exec, and each one of them must still need it.
+func TestNoCodeRunsAShell(t *testing.T) {
+	needed := map[string]bool{}
+	err := filepath.WalkDir(repoRoot, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if name := d.Name(); name == ".git" || name == "testdata" {
+				return filepath.SkipDir
 			}
 			return nil
-		})
-		if err != nil {
-			t.Fatal(err)
 		}
+		if !strings.HasSuffix(p, ".go") {
+			return nil
+		}
+		src, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		bad, err := shellExecCalls(p, src)
+		if err != nil {
+			return err
+		}
+		names, err := shellLiterals(p, src)
+		if err != nil {
+			return err
+		}
+		bad = append(bad, names...)
+		rel, _ := filepath.Rel(repoRoot, p)
+		rel = filepath.ToSlash(rel)
+		if _, ok := shellExecExceptions[rel]; ok {
+			needed[rel] = len(bad) > 0
+			return nil
+		}
+		for _, pos := range bad {
+			t.Errorf("shell execution at %s", pos)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for file, reason := range shellExecExceptions {
+		if reason == "" {
+			t.Errorf("the exception for %s has no reason", file)
+		}
+		if !needed[file] {
+			t.Errorf("%s no longer runs a shell: remove it from shellExecExceptions", file)
+		}
+	}
+}
+
+// The case that made shellLiterals necessary: shellExecCalls does not see a
+// shell started through a variable, and the whole-repository guard does.
+func TestAShellStartedThroughAVariableIsCaught(t *testing.T) {
+	src := []byte("package x\nimport \"os/exec\"\nfunc f(dir string) {\n\tcmdExe := dir + \"cmd.exe\"\n\tshell := \"cmd.exe\"\n\t_ = exec.Command(shell, \"x\")\n\t_ = cmdExe\n}\n")
+	if calls, err := shellExecCalls("x.go", src); err != nil || len(calls) != 0 {
+		t.Fatalf("shellExecCalls = %v, %v: the fixture must be one it cannot see", calls, err)
+	}
+	if names, err := shellLiterals("x.go", src); err != nil || !reflect.DeepEqual(names, []string{"x.go:4:18", "x.go:5:11"}) {
+		t.Errorf("shellLiterals = %v, %v, want the two literals", names, err)
 	}
 }

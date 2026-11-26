@@ -1,12 +1,10 @@
 package cli
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"time"
 
@@ -191,11 +189,7 @@ func (e env) logFor(command string, verbose bool) *runlog.Log {
 
 // workDir is the base of the work directories.
 func (e env) workDir() (string, error) {
-	cache := e.userCacheDir
-	if cache == nil {
-		cache = os.UserCacheDir
-	}
-	dir, err := state.WorkDirBase(e.getenv, cache)
+	dir, err := state.WorkDirBase(e.getenv, e.cacheDir())
 	if err != nil {
 		return "", &review.Failure{Kind: review.KindUnexpected, What: "could not find the work directory", Where: state.WorkDirEnv, Why: err.Error(), Err: err,
 			Hint: "set " + state.WorkDirEnv + " to an absolute path, or make the user cache directory available"}
@@ -205,11 +199,7 @@ func (e env) workDir() (string, error) {
 
 // userConfig reads the user configuration.
 func (e env) userConfig() (state.UserConfig, error) {
-	cfgDir := e.userConfigDir
-	if cfgDir == nil {
-		cfgDir = os.UserConfigDir
-	}
-	path, err := state.UserConfigPath(cfgDir)
+	path, err := state.UserConfigPath(e.configDir())
 	if err != nil {
 		return state.UserConfig{KeepDays: state.DefaultKeepDays}, nil
 	}
@@ -223,10 +213,10 @@ func (e env) userConfig() (state.UserConfig, error) {
 
 // loadPacks finds and loads the packs.
 func (e env) loadPacks(cfg state.UserConfig) (*packs.Set, error) {
-	dirs, err := packs.Locate(packs.LocateInput{Getenv: e.getenv, PackPaths: cfg.PackPaths})
+	layout, err := e.locate(cfg)
 	if err == nil {
 		var set *packs.Set
-		if set, err = packs.Load(dirs...); err == nil {
+		if set, err = packs.Load(layout.Dirs...); err == nil {
 			return set, nil
 		}
 	}
@@ -296,7 +286,7 @@ func runReview(args []string, e env) int {
 	if err != nil {
 		return finish(e, err, nil)
 	}
-	run, err := review.Collect(context.Background(), review.Deps{
+	run, err := review.Collect(e.context(), review.Deps{
 		Reader: reader, Registries: registries, Packs: set, WorkDir: work, KeepDays: cfg.KeepDays, Now: e.clock(), Random: e.random, Log: log,
 	}, root)
 	if err != nil {
@@ -335,6 +325,12 @@ func runNext(args []string, e env) int {
 	if err != nil {
 		return finish(e, err, log)
 	}
-	fmt.Fprint(e.stdout, served.Text)
+	// Without the schema beside the packs the line is left out: doctor says so.
+	cfg, _ := e.userConfig()
+	var schema string
+	if layout, err := e.locate(cfg); err == nil {
+		schema, _ = layout.Schema(judgementSchema)
+	}
+	fmt.Fprint(e.stdout, served.WithSchema(schema).Text)
 	return exitOK
 }

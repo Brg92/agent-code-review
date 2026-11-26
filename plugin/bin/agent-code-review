@@ -1,0 +1,37 @@
+#!/bin/sh
+# Starts the executable of this system, which sits in <os>-<arch>/ beside this
+# file, with the arguments it was given. It does nothing else.
+
+fail() {
+  printf 'agent-code-review: %s\n  why: %s\n  what to do: %s\n' "$1" "$2" "$3" >&2
+  exit 1
+}
+
+self=$0
+while [ -h "$self" ]; do
+  link=$(readlink "$self") || fail "cannot start" "cannot read the link $self" "run the launcher where the plugin put it, or reinstall the plugin"
+  case $link in
+    /*) self=$link ;;
+    *) self=$(dirname -- "$self")/$link ;;
+  esac
+done
+dir=$(cd -- "$(dirname -- "$self")" && pwd) || fail "cannot start" "cannot find the folder of $self" "run the launcher where the plugin put it, or reinstall the plugin"
+
+system=$(uname -s)
+case $system in
+  Linux) os=linux ;;
+  Darwin) os=darwin ;;
+  *) fail "cannot start on this system" "there is no executable for $system; this launcher supports Linux and macOS, and Windows through agent-code-review.cmd" "use the launcher of your system, or install the executable of the GitHub Release" ;;
+esac
+
+machine=$(uname -m)
+case $machine in
+  x86_64 | amd64) arch=amd64 ;;
+  aarch64 | arm64) arch=arm64 ;;
+  *) fail "cannot start on this processor" "there is no executable for $machine; the supported ones are x86_64 and arm64" "install the executable of the GitHub Release if it has one for your processor" ;;
+esac
+
+exe=$dir/$os-$arch/agent-code-review
+[ -x "$exe" ] || fail "the executable for $os-$arch is missing" "$exe is not there, or it cannot be run" "reinstall the plugin, or install the executable of the GitHub Release for your system"
+
+exec "$exe" "$@"

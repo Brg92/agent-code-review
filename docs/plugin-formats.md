@@ -259,7 +259,7 @@ applicable, no agent is shipped.
 **How does the agent find files inside the installed plugin?**
 Claude Code: `${CLAUDE_PLUGIN_ROOT}` in skill and agent text; `bin/` is on PATH.
 Copilot: `${PLUGIN_ROOT}` only in MCP/LSP config; skill base directory; no
-documented `bin/` PATH. The launcher lookup is M2's problem; this is the
+documented `bin/` PATH. The launcher lookup is in [runtime-layout.md](runtime-layout.md); this is the
 constraint it starts from.
 
 **Which tool names map to `shell`, `read`, `write`?** Section 6.

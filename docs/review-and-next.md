@@ -34,11 +34,19 @@ Chooses the most recent run that is not `published`, by run id, or the run given
 Judge github:github.com/o/r#3 part 1 of 2 — write the judgement to <work dir>/runs/<run id>/o_r-3-1a2b3c4d/judgement.json
 ```
 
+When `schemas/judgement.schema.json` is found beside the packs, a line with its absolute path follows, and the agent follows that schema ([runtime-layout.md](runtime-layout.md)):
+
+```text
+Judgement schema: /opt/agent-code-review/schemas/judgement.schema.json
+```
+
 The change request is the first one in review order without a judgement that parses. Its parts are served in order, one per call, and `next` only moves forward: the count of the parts served is kept in the file `served` of the change request's directory and never goes back. Once every part was served, `next` repeats one line until the judgement is there, then moves to the next change request:
 
 ```text
 Write the judgement to <work dir>/runs/<run id>/o_r-3-1a2b3c4d/judgement.json, then run agent-code-review next
 ```
+
+with the same `Judgement schema:` line under it.
 
 When every change request has a judgement it prints `Done: run agent-code-review finalize`. `next --part N` prints part N of the change request that is up again, without moving the count; a part it does not have is a usage error (exit 2). `next` never changes the phase of the run, and whether a judgement is valid is for `finalize` to say. Every part served, and every time `next` waits, is a line of `run.log`.
 

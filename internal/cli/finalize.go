@@ -100,7 +100,7 @@ func runShow(args []string, e env) int {
 	if err != nil {
 		return finish(e, err, log)
 	}
-	deps := review.ShowDeps{Registries: registries(), Version: version.Version, Now: e.clock(), HomeDir: e.userHomeDir}
+	deps := review.ShowDeps{Registries: registries(), Version: version.Version, Now: e.clock(), HomeDir: e.homeDir()}
 	if !o.save {
 		text, err := review.Show(opened, deps, log, cr)
 		if err != nil {

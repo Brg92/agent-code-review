@@ -10,7 +10,7 @@ agent-code-review check-criteria [<dir>]
 
 ## What it reads
 
-The criteria of the neutral layout (`.agent-code-review/config.json` and `.agent-code-review/criteria.md`) or, without them, of the legacy layout (`.github/skills/*-code-review/` and `.github/mr-review.json`), with the packs loaded: the packs found by `ACR_PACKS_DIR`, next to the executable or in `packPaths`, as in a review.
+The criteria of the neutral layout (`.agent-code-review/config.json` and `.agent-code-review/criteria.md`) or, without them, of the legacy layout (`.github/skills/*-code-review/` and `.github/mr-review.json`), with the packs loaded: the packs found as in a review ([runtime-layout.md](runtime-layout.md)).
 
 It reads **only the files of `<dir>`**. It does not look in the directories above to find the root of a repository, it does not follow a link to a file outside `<dir>`, and it never reads git objects: a `.git` directory is not opened. A criteria file larger than 1 MiB is refused.
 

@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -98,7 +97,7 @@ func authLogin(e env, host string) int {
 	if e.term.isMsysPty(e.stdin) {
 		return fail(e, exitUnexpected, "%s: %s", host, msysTerminalHint)
 	}
-	ctx := context.Background()
+	ctx := e.context()
 	r := e.resolver()
 	// Check the helpers before asking for the token, so nobody types it for nothing.
 	check, err := r.CheckHelpers(ctx, host)

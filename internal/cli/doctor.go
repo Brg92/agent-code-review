@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/Brg92/agent-code-review/internal/auth"
@@ -125,7 +126,7 @@ func runDoctor(args []string, e env) int {
 	}
 	log := e.logFor("doctor", o.verbose)
 	defer log.Close()
-	d := &doctor{e: e, log: log, ctx: context.Background()}
+	d := &doctor{e: e, log: log, ctx: e.context()}
 
 	var checks []check
 	emit := func(c ...check) { checks = append(checks, c...) }
@@ -141,9 +142,12 @@ func runDoctor(args []string, e env) int {
 	if o.repo != "" {
 		emit(d.repository(project, accountCheck, acct)...)
 	}
-	emit(d.packs())
+	cfg, _ := e.userConfig()
+	layout, locateErr := e.locate(cfg)
+	emit(d.packs(layout, locateErr))
 	emit(d.userConfig())
 	emit(d.workDir())
+	emit(d.layout(layout)...)
 
 	for _, c := range checks {
 		fmt.Fprintln(e.stdout, c.line())
@@ -382,14 +386,12 @@ func (d *doctor) repository(project core.Key, account check, acct base.Account) 
 	return out
 }
 
-func (d *doctor) packs() check {
+func (d *doctor) packs(layout packs.Layout, err error) check {
 	const what = "packs"
-	cfg, _ := d.e.userConfig()
-	dirs, err := packs.Locate(packs.LocateInput{Getenv: d.e.getenv, PackPaths: cfg.PackPaths})
 	if err != nil {
 		return failed(exitUnexpected, what, err.Error(), "install the packs next to the executable, or set "+packs.PacksDirEnv+" or packPaths in the user configuration")
 	}
-	set, err := packs.Load(dirs...)
+	set, err := packs.Load(layout.Dirs...)
 	if err != nil {
 		return failed(exitValidation, what, err.Error(), "fix the pack it names, or remove it from the directories above")
 	}
@@ -397,16 +399,41 @@ func (d *doctor) packs() check {
 	for i, p := range set.Packs {
 		ids[i] = p.ID
 	}
-	return pass(what, fmt.Sprintf("%s (from %s)", strings.Join(ids, ", "), strings.Join(dirs, ", ")))
+	return pass(what, fmt.Sprintf("%s (from %s)", strings.Join(ids, ", "), strings.Join(layout.Dirs, ", ")))
+}
+
+// judgementSchema is the file the agent writes the judgement against.
+const judgementSchema = "judgement.schema.json"
+
+// layout says where the executable was started from and where the packs and
+// the schemas were found, and warns when the schema of the judgement is not
+// there: the review still works, but the agent is not told where it is.
+func (d *doctor) layout(layout packs.Layout) []check {
+	out := []check{pass("executable", "started from "+orDefault(layout.ExeDir, "an unknown folder"))}
+	if layout.Root == "" {
+		out = append(out, warn("root of packs and schemas", "none: the packs come only from packPaths in the user configuration",
+			"install the plugin or the release archive, which hold packs/ and schemas/ together, or set "+packs.PacksDirEnv+" to the packs/ folder of one"))
+		return append(out, warn("judgement schema", "not looked for, there is no root",
+			"give the agent the schema by installing the plugin or the release archive: schemas/"+judgementSchema+" must sit beside packs/"))
+	}
+	out = append(out, pass("root of packs and schemas", layout.Root))
+	if path, ok := layout.Schema(judgementSchema); ok {
+		return append(out, pass("judgement schema", path))
+	}
+	return append(out, warn("judgement schema", filepath.Join(layout.Root, "schemas", judgementSchema)+" is not there",
+		"restore the schemas/ folder beside packs/ in "+layout.Root+" (reinstall the plugin or the release archive); until then next does not print the schema path"))
+}
+
+func orDefault(s, def string) string {
+	if s == "" {
+		return def
+	}
+	return s
 }
 
 func (d *doctor) userConfig() check {
 	const what = "user config"
-	cfgDir := d.e.userConfigDir
-	if cfgDir == nil {
-		cfgDir = os.UserConfigDir
-	}
-	path, err := state.UserConfigPath(cfgDir)
+	path, err := state.UserConfigPath(d.e.configDir())
 	if err != nil {
 		return pass(what, "there is no user configuration directory, the defaults apply")
 	}

@@ -119,6 +119,12 @@ jobs:
           cache-dependency-path: go.mod
       - name: validate the generator
         run: go test -count=1 ./tools/releasetree
+      - name: launchers start the executable built for this system
+        # Builds the executable into a temporary release layout and runs it
+        # through the launcher of the system: version, an argument with
+        # spaces, an exit code that is not 0, and a system it has no
+        # executable for.
+        run: go test -count=1 -v -run 'Launcher' ./tools/releasetree
       - name: generate the tree twice
         run: |
           go run ./tools/releasetree -out "$RUNNER_TEMP/tree-a" -digest "$RUNNER_TEMP/digest.txt"

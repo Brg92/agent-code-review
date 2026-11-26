@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,7 +17,14 @@ import (
 // hangEnv makes the test binary, run in place of git, wait until it is killed.
 const hangEnv = "ACR_AUTH_TEST_HANG"
 
+// echoEnv makes the test binary, run in place of git, print its environment.
+const echoEnv = "ACR_AUTH_TEST_ECHO"
+
 func TestMain(m *testing.M) {
+	if os.Getenv(echoEnv) != "" {
+		fmt.Print(strings.Join(os.Environ(), "\n"))
+		os.Exit(0)
+	}
 	if os.Getenv(hangEnv) != "" {
 		time.Sleep(time.Minute)
 		os.Exit(0)

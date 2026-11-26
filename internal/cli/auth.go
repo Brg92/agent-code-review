@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -101,7 +100,7 @@ func loginHint(host string) string {
 }
 
 func authStatus(e env, host string) int {
-	tok, err := e.resolver().Resolve(context.Background(), host)
+	tok, err := e.resolver().Resolve(e.context(), host)
 	switch {
 	case errors.Is(err, auth.ErrNoToken):
 		return fail(e, exitAuth, "%s: no token; run %s", host, loginHint(host))
@@ -113,7 +112,7 @@ func authStatus(e env, host string) int {
 }
 
 func authLogout(e env, host string) int {
-	if err := e.resolver().Erase(context.Background(), host); err != nil {
+	if err := e.resolver().Erase(e.context(), host); err != nil {
 		return fail(e, exitAuth, "%s: %v", host, err)
 	}
 	if v := auth.EnvVar(host); v != "" && strings.TrimSpace(e.getenv(v)) != "" {

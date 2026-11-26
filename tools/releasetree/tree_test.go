@@ -80,6 +80,8 @@ func TestBuildTreeHasWhatShips(t *testing.T) {
 		"com.github.copilot/agents/code-reviewer.agent.md",
 		"packs/android/manifest.json",
 		"schemas/judgement.schema.json",
+		"bin/agent-code-review",
+		"bin/agent-code-review.cmd",
 		"LICENSE",
 		"README.md",
 	} {
@@ -88,8 +90,10 @@ func TestBuildTreeHasWhatShips(t *testing.T) {
 		}
 	}
 	for _, p := range sortedPaths(files) {
-		if strings.HasPrefix(p, "bin/") || strings.HasPrefix(p, "hooks/") {
-			t.Errorf("%s: launchers and hooks are not part of this tree", p)
+		// Only the two launchers are in bin/, and no binary: the executables
+		// are added to the release branch by the build.
+		if strings.HasPrefix(p, "bin/") && p != shLauncher && p != cmdLauncher || strings.HasPrefix(p, "hooks/") {
+			t.Errorf("%s: only the launchers are part of bin/, and hooks are not part of this tree", p)
 		}
 	}
 }
@@ -327,7 +331,7 @@ func TestBuildIsDeterministicAndUsesLF(t *testing.T) {
 		t.Error("two builds differ")
 	}
 	for p, data := range first {
-		if bytes.Contains(data, []byte("\r")) {
+		if bytes.Contains(data, []byte("\r")) && p != cmdLauncher {
 			t.Errorf("%s has a carriage return", p)
 		}
 	}
@@ -344,6 +348,8 @@ func crlfSources(t *testing.T) fstest.MapFS {
 		"plugin/manifests/agent-plugins.json",
 		"plugin/manifests/claude-plugin.json",
 		"plugin/manifests/claude-marketplace.json",
+		"plugin/bin/agent-code-review",
+		"plugin/bin/agent-code-review.cmd",
 		"LICENSE",
 		"README.md",
 		"packs/p/data.json",
@@ -364,7 +370,8 @@ func TestBuildNormalisesLineEndings(t *testing.T) {
 		t.Fatal(err)
 	}
 	for p, data := range files {
-		if bytes.Contains(data, []byte("\r")) {
+		// The batch launcher has CRLF line endings on every system.
+		if bytes.Contains(data, []byte("\r")) && p != cmdLauncher {
 			t.Errorf("%s has a carriage return", p)
 		}
 	}
