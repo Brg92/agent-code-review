@@ -134,6 +134,7 @@ func runDoctor(args []string, e env) int {
 	emit(d.storage())
 	_, tokenCheck := d.token()
 	emit(tokenCheck)
+	emit(d.otherAccount()...)
 	emit(d.ignoredVariables()...)
 	acct, accountCheck := d.account(tokenCheck)
 	emit(accountCheck)
@@ -219,6 +220,40 @@ func (d *doctor) token() (found bool, c check) {
 		return false, failed(exitAuth, what, err.Error(), "run "+loginHint(defaultHost))
 	}
 	return true, pass(what, "from "+tok.Describe())
+}
+
+// otherAccount warns of a credential helper that was not chosen for acr-api
+// but answers for github.com, such as the helper of the GitHub CLI: git
+// asks the helpers in order and the first answer wins, so acr-api would get
+// the token of another account, and a token stored for it would never be
+// read back. It looks at what `git credential fill` returns, and only says
+// whether a token came back and for which username, never the token. With
+// the token in the environment nothing is stored or read, so the helpers are
+// not asked.
+func (d *doctor) otherAccount() []check {
+	if d.tokenInEnvironment() {
+		return nil
+	}
+	r := d.e.resolver()
+	probe, err := r.Probe(d.ctx, defaultHost)
+	if err != nil || !probe.OtherAccount() {
+		// A helper that fails is reported by the token check.
+		return nil
+	}
+	which := "a helper that was not chosen for " + auth.Username
+	if configured, err := r.CheckHelpers(d.ctx, defaultHost); err == nil && len(configured.Helpers) > 0 {
+		values := make([]string, len(configured.Helpers))
+		for i, h := range configured.Helpers {
+			values[i] = h.Value
+		}
+		which += " (configured: " + strings.Join(values, ", ") + ")"
+	}
+	commands := auth.SetupCommands(defaultHost, auth.SuggestedHelper(d.e.hostOS()))
+	return []check{warn("credential helper for "+defaultHost,
+		"git credential fill for "+auth.Username+" returns a token of another account (user "+probe.Username+") from "+which+
+			", so "+auth.Username+" cannot read back a token it stores",
+		"give "+auth.Username+" its own helper, which leaves your other git commands alone: "+strings.Join(commands, "; ")+
+			"; then run "+loginHint(defaultHost))}
 }
 
 // ignoredVariables warns of the variables of CI that are set while the
