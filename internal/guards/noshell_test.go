@@ -166,27 +166,59 @@ func TestShellExecCallsHonoursImports(t *testing.T) {
 	}
 }
 
-func TestProductionCodeRunsNoShell(t *testing.T) {
-	for _, dir := range []string{"cmd", "internal"} {
-		err := filepath.WalkDir(filepath.Join(repoRoot, dir), func(p string, d fs.DirEntry, err error) error {
-			if err != nil || d.IsDir() || !strings.HasSuffix(p, ".go") || strings.HasSuffix(p, "_test.go") {
-				return err
-			}
-			src, err := os.ReadFile(p)
-			if err != nil {
-				return err
-			}
-			bad, err := shellExecCalls(p, src)
-			if err != nil {
-				return err
-			}
-			for _, pos := range bad {
-				t.Errorf("shell execution at %s", pos)
+// shellExecExceptions is the closed list of files that may run a shell, with
+// the reason. The product never does: this is only for tests that play the
+// host of the plugin, which starts a launcher the way a shell would.
+var shellExecExceptions = map[string]string{
+	"tools/releasetree/launcher_windows_test.go": "starts the batch launcher through PowerShell and cmd.exe, as a host does, to test absolute paths and arguments with spaces",
+}
+
+// TestNoCodeRunsAShell checks every Go file of the repository, tests and tools
+// included: only the files of shellExecExceptions may run a shell, and each
+// one of them must still need it.
+func TestNoCodeRunsAShell(t *testing.T) {
+	needed := map[string]bool{}
+	err := filepath.WalkDir(repoRoot, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if name := d.Name(); name == ".git" || name == "testdata" {
+				return filepath.SkipDir
 			}
 			return nil
-		})
+		}
+		if !strings.HasSuffix(p, ".go") {
+			return nil
+		}
+		src, err := os.ReadFile(p)
 		if err != nil {
-			t.Fatal(err)
+			return err
+		}
+		bad, err := shellExecCalls(p, src)
+		if err != nil {
+			return err
+		}
+		rel, _ := filepath.Rel(repoRoot, p)
+		rel = filepath.ToSlash(rel)
+		if _, ok := shellExecExceptions[rel]; ok {
+			needed[rel] = len(bad) > 0
+			return nil
+		}
+		for _, pos := range bad {
+			t.Errorf("shell execution at %s", pos)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for file, reason := range shellExecExceptions {
+		if reason == "" {
+			t.Errorf("the exception for %s has no reason", file)
+		}
+		if !needed[file] {
+			t.Errorf("%s no longer runs a shell: remove it from shellExecExceptions", file)
 		}
 	}
 }
