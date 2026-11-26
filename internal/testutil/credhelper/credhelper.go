@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -28,8 +29,24 @@ import (
 )
 
 // Name is the helper name git is configured with: git runs it as
-// git-credential-acrtest, found on PATH.
+// git-credential-acrtest, found on PATH. It keeps what it is given.
 const Name = "acrtest"
+
+// NameDrop is a helper that accepts every request and keeps nothing, as a
+// helper that ignores store does.
+const NameDrop = "acrdrop"
+
+// NameOther is a helper that answers every get with the account OtherUser
+// and the token OtherToken, whatever the request names, and ignores store
+// and erase, as the helper of the GitHub CLI does for github.com.
+const NameOther = "acrother"
+
+// OtherUser and OtherToken are what NameOther answers: canary values, so a
+// test can tell which token git returned. They are not secrets.
+const (
+	OtherUser  = "other-user"
+	OtherToken = "canary-other-token-0001"
+)
 
 // envStore carries the store path to the helper process.
 const envStore = "ACR_TEST_CREDENTIAL_STORE"
@@ -70,6 +87,14 @@ func Main() {
 		fmt.Fprintln(os.Stderr, msg)
 		os.Exit(1)
 	}
+	switch modeOf(os.Args[0]) {
+	case NameOther:
+		serveOther(op, os.Stdin, os.Stdout)
+		os.Exit(0)
+	case NameDrop:
+		serveDrop(op, os.Stdin, os.Stdout)
+		os.Exit(0)
+	}
 	if err := serve(op, os.Stdin, os.Stdout, store, os.Getenv); err != nil {
 		fmt.Fprintln(os.Stderr, "credhelper:", err)
 		os.Exit(1)
@@ -77,11 +102,38 @@ func Main() {
 	os.Exit(0)
 }
 
+// modeOf names the helper a program was started as, from its file name, or
+// "" if it is none of ours.
+func modeOf(arg0 string) string {
+	base := path.Base(strings.ReplaceAll(arg0, `\`, "/"))
+	base = strings.TrimSuffix(base, ".exe")
+	name, ok := strings.CutPrefix(base, "git-credential-")
+	if ok && (name == Name || name == NameDrop || name == NameOther) {
+		return name
+	}
+	return ""
+}
+
+// serveOther answers like a helper for another account: the same user and
+// token for any request, and nothing is stored or erased.
+func serveOther(op string, in io.Reader, out io.Writer) {
+	_, _ = io.Copy(io.Discard, in)
+	if op == "get" {
+		fmt.Fprintf(out, "username=%s\npassword=%s\n", OtherUser, OtherToken)
+	}
+}
+
+// serveDrop accepts every request, keeps nothing and answers nothing.
+func serveDrop(_ string, in io.Reader, _ io.Writer) { _, _ = io.Copy(io.Discard, in) }
+
 // Config describes the git configuration Install writes.
 type Config struct {
 	// Helpers are the credential.helper values, in order; nil means the
-	// test helper only.
+	// test helper only. The helpers Name, NameDrop and NameOther are
+	// installed when named here.
 	Helpers []string
+	// Extra is added to the git configuration after the helpers.
+	Extra string
 }
 
 // Install puts the test helper on PATH and isolates git from the user's
@@ -101,21 +153,32 @@ func Install(t *testing.T, cfg Config) (store, home string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := "git-credential-" + Name
-	if runtime.GOOS == "windows" {
-		name += ".exe"
-	}
-	copyFile(t, exe, filepath.Join(bin, name))
-
 	helpers := cfg.Helpers
 	if helpers == nil {
 		helpers = []string{Name}
+	}
+	// The test binary is every helper named in the configuration, found on
+	// PATH under the name git gives it.
+	for _, h := range append(append([]string{}, helpers...), cfg.Extra) {
+		for _, name := range []string{Name, NameDrop, NameOther} {
+			if !strings.Contains(h, name) {
+				continue
+			}
+			file := "git-credential-" + name
+			if runtime.GOOS == "windows" {
+				file += ".exe"
+			}
+			if _, err := os.Stat(filepath.Join(bin, file)); err != nil {
+				copyFile(t, exe, filepath.Join(bin, file))
+			}
+		}
 	}
 	var conf strings.Builder
 	conf.WriteString("[credential]\n")
 	for _, h := range helpers {
 		fmt.Fprintf(&conf, "\thelper = %s\n", h)
 	}
+	conf.WriteString(cfg.Extra)
 	gitconfig := filepath.Join(dir, "gitconfig")
 	if err := os.WriteFile(gitconfig, []byte(conf.String()), 0o600); err != nil {
 		t.Fatal(err)
