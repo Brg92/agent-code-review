@@ -22,3 +22,21 @@ The command line is complete for the first stable release:
 | `check-criteria [<dir>]` | Validates the repository criteria of a working copy, offline. | [check-criteria.md](docs/check-criteria.md) |
 
 Every command ends with an exit code that scripts and agents can branch on: [docs/exit-codes.md](docs/exit-codes.md).
+
+## Install the plugin from a local path (development)
+
+The plugin is not released yet. To try it in Claude Code, write the release tree from the sources and install it from that directory:
+
+```bash
+go run ./tools/releasetree -out /tmp/acr-tree
+```
+
+```bash
+claude plugin marketplace add /tmp/acr-tree
+```
+
+```bash
+claude plugin install agent-code-review@agent-code-review
+```
+
+The directory must not exist or must be empty. The tree has no binary yet: the `agent-code-review` command it asks the agent to run has to be on your `PATH`, for example from `go build ./cmd/agent-code-review`. Pass `-version <semver>` to put another version in the manifests (the default is `0.0.0-dev`). Run `claude plugin validate /tmp/acr-tree` to check what was written. The generated files are never committed.

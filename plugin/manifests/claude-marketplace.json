@@ -1,0 +1,14 @@
+{
+  "name": "agent-code-review",
+  "owner": {
+    "name": "Brg92"
+  },
+  "description": "Code review of pull requests and their related changes.",
+  "plugins": [
+    {
+      "name": "agent-code-review",
+      "source": "./",
+      "description": "Reviews a pull request and the changes it lists under Related Changes, each with the criteria of its own repository. Writes to the platform only on request."
+    }
+  ]
+}

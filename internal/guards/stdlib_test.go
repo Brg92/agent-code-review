@@ -1,3 +1,5 @@
+// Package guards holds the checks behind the repository's structural guards.
+// The guards themselves are tests; the package has no other code.
 package guards
 
 import (
