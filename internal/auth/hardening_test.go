@@ -202,3 +202,42 @@ func containsAll(list []string, items ...string) bool {
 	}
 	return true
 }
+
+// envOf runs the test binary as git with the runner g and returns the
+// environment it sees, one variable per line.
+func envOf(t *testing.T, g GitRunner) string {
+	t.Helper()
+	exe, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.Dir, g.program = t.TempDir(), exe
+	stdout, _, err := g.Run(context.Background(), "")
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	return stdout
+}
+
+// TestGitRunnerEnv checks that the environment of git is the one given, plus
+// the variables that keep it from prompting, and that without one it is the
+// environment of the process.
+func TestGitRunnerEnv(t *testing.T) {
+	t.Setenv(echoEnv, "1")
+	t.Setenv("ACR_AUTH_TEST_PARENT", "parent")
+	given := envOf(t, GitRunner{Env: []string{echoEnv + "=1", "ACR_AUTH_TEST_GIVEN=given"}})
+	for _, want := range []string{"ACR_AUTH_TEST_GIVEN=given", "GIT_TERMINAL_PROMPT=0", "LC_ALL=C"} {
+		if !strings.Contains(given, want) {
+			t.Errorf("given environment: %q is missing from\n%s", want, given)
+		}
+	}
+	if strings.Contains(given, "ACR_AUTH_TEST_PARENT") {
+		t.Errorf("a variable of the process leaked into the given environment:\n%s", given)
+	}
+	inherited := envOf(t, GitRunner{})
+	for _, want := range []string{"ACR_AUTH_TEST_PARENT=parent", "GIT_TERMINAL_PROMPT=0"} {
+		if !strings.Contains(inherited, want) {
+			t.Errorf("inherited environment: %q is missing from\n%s", want, inherited)
+		}
+	}
+}

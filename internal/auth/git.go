@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -45,8 +44,21 @@ type GitRunner struct {
 	Dir string
 	// Timeout bounds each command; 0 or less means DefaultGitTimeout.
 	Timeout time.Duration
+	// Env is the environment of git, one NAME=value per entry; nil means
+	// the environment of the process. The variables of nonInteractive are
+	// added in both cases.
+	Env []string
 	// program replaces git in tests; "" means git.
 	program string
+}
+
+// environ is the environment git starts with, before the variables that keep
+// it from prompting.
+func (g GitRunner) environ(cmd *exec.Cmd) []string {
+	if g.Env == nil {
+		return cmd.Environ()
+	}
+	return append([]string(nil), g.Env...)
 }
 
 func (g GitRunner) timeout() time.Duration {
@@ -68,7 +80,7 @@ func (g GitRunner) Run(parent context.Context, stdin string, args ...string) (st
 	cmd := exec.CommandContext(ctx, program, args...)
 	cmd.WaitDelay = killDelay
 	cmd.Dir = g.Dir
-	cmd.Env = append(os.Environ(), nonInteractive...)
+	cmd.Env = append(g.environ(cmd), nonInteractive...)
 	cmd.Stdin = strings.NewReader(stdin)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
