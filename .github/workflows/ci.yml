@@ -121,10 +121,16 @@ jobs:
         run: go test -count=1 ./tools/releasetree
       - name: generate the tree twice
         run: |
-          go run ./tools/releasetree -out "$RUNNER_TEMP/tree-a"
+          go run ./tools/releasetree -out "$RUNNER_TEMP/tree-a" -digest "$RUNNER_TEMP/digest.txt"
           go run ./tools/releasetree -out "$RUNNER_TEMP/tree-b"
       - name: the two trees are identical
         run: diff -r "$RUNNER_TEMP/tree-a" "$RUNNER_TEMP/tree-b"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-tree-digest-${{ matrix.os }}
+          path: ${{ runner.temp }}/digest.txt
+          if-no-files-found: error
+          retention-days: 3
       - name: no generated file in the working copy
         run: |
           untracked=$(git status --porcelain)
@@ -133,6 +139,25 @@ jobs:
             echo "$untracked"
             exit 1
           fi
+
+  release-tree-digests:
+    name: release tree digests
+    needs: release-tree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache-dependency-path: go.mod
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: release-tree-digest-*
+          path: digests
+      - name: the trees of the three systems are identical
+        run: go run ./tools/digestcheck -n 3 digests
 
   build:
     name: build (${{ matrix.goos }}, ${{ matrix.goarch }})
