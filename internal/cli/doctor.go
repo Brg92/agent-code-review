@@ -125,7 +125,7 @@ func runDoctor(args []string, e env) int {
 	}
 	log := e.logFor("doctor", o.verbose)
 	defer log.Close()
-	d := &doctor{e: e, log: log, ctx: context.Background()}
+	d := &doctor{e: e, log: log, ctx: e.context()}
 
 	var checks []check
 	emit := func(c ...check) { checks = append(checks, c...) }

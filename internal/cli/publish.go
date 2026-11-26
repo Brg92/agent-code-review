@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/Brg92/agent-code-review/internal/core"
@@ -62,7 +61,7 @@ func runPublish(args []string, e env) int {
 	}
 	deps := review.PublishDeps{Provider: provider, Registries: registries(), Now: e.clock()}
 	if o.apply {
-		applied, err := review.ApplyPublish(context.Background(), opened, deps, log)
+		applied, err := review.ApplyPublish(e.context(), opened, deps, log)
 		if applied != nil {
 			fmt.Fprint(e.stdout, applied.Text)
 		}
@@ -71,7 +70,7 @@ func runPublish(args []string, e env) int {
 		}
 		return exitOK
 	}
-	planned, err := review.PlanPublish(context.Background(), opened, deps, choice, log)
+	planned, err := review.PlanPublish(e.context(), opened, deps, choice, log)
 	if planned != nil {
 		fmt.Fprint(e.stdout, planned.Text)
 	}

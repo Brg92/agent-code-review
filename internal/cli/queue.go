@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	crand "crypto/rand"
 	"fmt"
 	"io"
@@ -56,7 +55,7 @@ func runQueue(args []string, e env) int {
 		return finish(e, &review.Failure{Kind: review.KindUnexpected, What: "the platform cannot list a review queue", Where: defaultHost,
 			Why: "its reader has no review queue", Hint: "report it"}, nil)
 	}
-	ctx := context.Background()
+	ctx := e.context()
 	res, err := queue.ReviewQueue(ctx, limit)
 	if err != nil {
 		return finish(e, review.PlatformFailure(err, defaultHost, "could not read the review queue", defaultHost+", review queue"), nil)

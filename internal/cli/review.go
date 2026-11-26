@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -287,7 +286,7 @@ func runReview(args []string, e env) int {
 	if err != nil {
 		return finish(e, err, nil)
 	}
-	run, err := review.Collect(context.Background(), review.Deps{
+	run, err := review.Collect(e.context(), review.Deps{
 		Reader: reader, Registries: registries, Packs: set, WorkDir: work, KeepDays: cfg.KeepDays, Now: e.clock(), Random: e.random, Log: log,
 	}, root)
 	if err != nil {

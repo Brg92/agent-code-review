@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	crand "crypto/rand"
 	"fmt"
 	"io"
@@ -53,7 +52,7 @@ func runCheckCriteria(args []string, e env) int {
 	if err != nil {
 		return finish(e, err, nil)
 	}
-	criteria, err := review.CheckCriteria(context.Background(), dir, set)
+	criteria, err := review.CheckCriteria(e.context(), dir, set)
 	if err != nil {
 		return finish(e, err, nil)
 	}

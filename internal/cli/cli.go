@@ -2,10 +2,13 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"runtime"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/Brg92/agent-code-review/internal/auth"
@@ -54,6 +57,8 @@ commands:
 
 // env is what a command may use from the outside world.
 type env struct {
+	// ctx stops the commands that wait for the platform; nil is never done.
+	ctx            context.Context
 	stdin          io.Reader
 	stdout, stderr io.Writer
 	getenv         func(string) string
@@ -75,6 +80,14 @@ type env struct {
 	// goos names the operating system the advice on credential helpers
 	// is for; "" means runtime.GOOS.
 	goos string
+}
+
+// context is the context of the command.
+func (e env) context() context.Context {
+	if e.ctx == nil {
+		return context.Background()
+	}
+	return e.ctx
 }
 
 // dirs finds the directories of the user in the environment of the command.
@@ -111,20 +124,71 @@ func (e env) hostOS() string {
 	return e.goos
 }
 
-// Run executes the command in args (program name excluded) and returns its exit code.
-func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+// Run executes the command in args (program name excluded) and returns its
+// exit code. It is the only entry point: it reads nothing from the process
+// but the files it is told to open. The environment is the map vars, which
+// is also the environment of the git it starts; the standard streams are
+// the ones given; ctx stops the commands that wait for the platform.
+// Nothing is kept between two calls.
+func Run(ctx context.Context, args []string, vars map[string]string, stdin io.Reader, stdout, stderr io.Writer) int {
 	return run(args, env{
+		ctx:    ctx,
 		stdin:  stdin,
 		stdout: stdout,
 		stderr: stderr,
-		getenv: os.Getenv,
-		git:    auth.GitRunner{},
+		getenv: lookup(vars, runtime.GOOS),
+		git:    auth.GitRunner{Env: environList(vars)},
 		term:   systemTerminal{},
 		notify: notifyInterrupts,
 	})
 }
 
+// EnvMap turns the environment of a process, as os.Environ lists it, into
+// the map Run takes. The last of two entries with a name wins; an entry
+// without "=" is dropped. A name may start with "=", as Windows has for the
+// current directory of each drive.
+func EnvMap(environ []string) map[string]string {
+	vars := make(map[string]string, len(environ))
+	for _, kv := range environ {
+		if i := strings.Index(kv[min(1, len(kv)):], "="); i >= 0 {
+			i += min(1, len(kv))
+			vars[kv[:i]] = kv[i+1:]
+		}
+	}
+	return vars
+}
+
+// environList is vars as NAME=value entries, sorted, for a child process.
+func environList(vars map[string]string) []string {
+	list := make([]string, 0, len(vars))
+	for k, v := range vars {
+		list = append(list, k+"="+v)
+	}
+	slices.Sort(list)
+	return list
+}
+
+// lookup returns the function that reads vars. Names are case-insensitive
+// on Windows, as the system has them.
+func lookup(vars map[string]string, goos string) func(string) string {
+	return func(name string) string {
+		if v, ok := vars[name]; ok || goos != "windows" {
+			return v
+		}
+		for k, v := range vars {
+			if strings.EqualFold(k, name) {
+				return v
+			}
+		}
+		return ""
+	}
+}
+
 func run(args []string, e env) int {
+	if e.context().Err() != nil {
+		fmt.Fprintln(e.stderr, "agent-code-review: interrupted")
+		return exitInterrupted
+	}
 	switch {
 	case len(args) == 1 && (args[0] == "version" || args[0] == "--version"):
 		fmt.Fprintln(e.stdout, version.Version)
