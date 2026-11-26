@@ -21,6 +21,7 @@ These invariants describe the product. They do not restrict the development agen
 - **Stack-extensible**: the core never knows Android, KMP, iOS or web. Stack knowledge lives in data packs `packs/<stack>/` (manifest, rules catalog, lexer tables, templates) loaded at runtime; review checklists are generated from the rules catalog, filtered by profile and dimensions. Packs for the first stable release: `android`, `kotlin-multiplatform`.
 - **Fat CLI, thin agent**: commands `queue`, `review`, `next`, `finalize`, `show`, `publish --plan|--apply`, `auth`, `doctor`, `check-criteria`, `version`. A state machine (`resolved → collected → judged → finalized → planned → published`) drives the flow; the agent only fills a `judgement` file.
 - Only binaries, launchers, packs, JSON schemas, skills, agents, hooks and manifests reach users, via the `release` branch (see `docs/release-allowlist.txt`). Tests and fixtures never ship.
+- **Runtime layout**: commands run in-process through `cli.Run(ctx, args, env, stdin, stdout, stderr)`; only `cmd/agent-code-review/main.go` reads `os.Args`, `os.Environ` and the standard files (guarded in `internal/guards`). Packs are looked up in `ACR_PACKS_DIR`, then `packs/` next to the executable (Release archive), then the plugin root two levels above it if it holds `plugin.json` (`release` branch: `bin/<os>-<arch>/`), plus `packPaths`; `schemas/` comes from the same root. Described once in `docs/runtime-layout.md`.
 
 Target repository layout (directories appear only when their first real file is added; this section is the single description of the structure):
 
@@ -31,7 +32,8 @@ internal/                cli, review, runlog, state, core, cascade, lexer, symbo
                          release (allowlist, used by tools only),
                          forges/{base,github,gitlab}
 packs/                   stack packs (data)
-plugin/                  skills, agents, manifests (templates), hooks, launchers
+plugin/                  skills, agents, manifests (templates), hooks,
+                         bin/ (launchers: sh and cmd, no logic but picking the executable)
 schemas/                 JSON Schemas (schema: 1)
 testdata/                synthetic fixtures only
 tools/                   dev-only tools, never shipped (releasetree writes the release tree)

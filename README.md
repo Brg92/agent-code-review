@@ -39,4 +39,13 @@ claude plugin marketplace add /tmp/acr-tree
 claude plugin install agent-code-review@agent-code-review
 ```
 
-The directory must not exist or must be empty. The tree has no binary yet: the `agent-code-review` command it asks the agent to run has to be on your `PATH`, for example from `go build ./cmd/agent-code-review`. Pass `-version <semver>` to put another version in the manifests (the default is `0.0.0-dev`). Run `claude plugin validate /tmp/acr-tree` to check what was written. The generated files are never committed.
+The directory must not exist or must be empty. The tree holds the launchers in `bin/` but no executable yet (`bin/<os>-<arch>/` is filled by the release build): the `agent-code-review` command has to be on your `PATH`, for example from `go build ./cmd/agent-code-review`. Pass `-version <semver>` to put another version in the manifests (the default is `0.0.0-dev`). Run `claude plugin validate /tmp/acr-tree` to check what was written. The generated files are never committed.
+
+## Running the command from an agent
+
+The plugin starts the command through a launcher, `bin/agent-code-review` (Windows: `bin\agent-code-review.cmd`) in the plugin root, which picks the executable for your system and the packs and schemas beside it ([docs/runtime-layout.md](docs/runtime-layout.md)). The skill tells the agent to use it. Claude Code puts the plugin's `bin/` on the `PATH` of its shell; the other hosts do not say where the plugin is, so the agent may not find the launcher. In that case put the command on the `PATH` yourself, in either of two ways:
+
+- add the `bin/` folder of the installed plugin to the `PATH`;
+- or install the executable of the GitHub Release: unpack the archive, keep `packs/` and `schemas/` beside the executable, and add that folder to the `PATH`.
+
+Then `agent-code-review doctor` shows the folder the command was started from and where it found the packs and schemas.

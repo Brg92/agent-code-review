@@ -5,7 +5,7 @@ description: Review a pull request and every change it lists under Related Chang
 
 # Code review
 
-Run everything through the `agent-code-review` command. The CLI reads the platform and holds the state; you read the briefs and write the judgements.
+Run everything through the launcher `bin/agent-code-review` (Windows: `bin\agent-code-review.cmd`) in the plugin root, two folders above this `SKILL.md`. If `agent-code-review` is on the PATH, that works too. Below, `agent-code-review` means whichever you run. The CLI reads the platform and holds the state; you read the briefs and write the judgements.
 
 ## Flow
 
@@ -14,7 +14,7 @@ Run everything through the `agent-code-review` command. The CLI reads the platfo
 3. Repeat until the output says `Done`:
    - run `agent-code-review next`;
    - read the brief it prints;
-   - write the judgement to the path it prints, following the JSON schema whose path `next` prints.
+   - write the judgement to the path it prints, following the JSON schema at the path of the `Judgement schema:` line `next` prints.
 4. Run `agent-code-review finalize`. Show the user only its summary and the report paths. Do not paste a report.
 5. Publish only when the user asks for it. If they do not say what, ask whether to post `comments`, `issues` or `both`. Run `agent-code-review publish --plan <choice>`, show its summary and ask "Apply this plan?". Only after an explicit yes, run `agent-code-review publish --apply`. A yes given before the plan, or to something else, does not count.
 
