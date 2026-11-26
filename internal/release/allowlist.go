@@ -1,7 +1,7 @@
-// Package guards holds the checks behind the repository's structural guards.
-// The guards themselves are tests; what lives outside test files is only what
-// the release tooling reuses.
-package guards
+// Package release holds what the release tooling reuses: the allowlist that
+// decides which repository paths may reach the release branch. Nothing the
+// shipped binary runs imports it.
+package release
 
 import (
 	"path"

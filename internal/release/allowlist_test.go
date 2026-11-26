@@ -1,4 +1,4 @@
-package guards
+package release
 
 import (
 	"os"
@@ -48,6 +48,9 @@ func TestDisallowedPaths(t *testing.T) {
 		})
 	}
 }
+
+// repoRoot is the module root, relative to this package's test directory.
+var repoRoot = filepath.Join("..", "..")
 
 func TestReleaseAllowlist(t *testing.T) {
 	data, err := os.ReadFile(filepath.Join(repoRoot, "docs", "release-allowlist.txt"))
