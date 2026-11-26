@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-code-review",
+  "version": "@VERSION@",
+  "description": "Reviews a pull request and the changes it lists under Related Changes, each with the criteria of its own repository. Writes to the platform only on request.",
+  "homepage": "https://github.com/Brg92/agent-code-review",
+  "repository": "https://github.com/Brg92/agent-code-review",
+  "license": "Apache-2.0",
+  "keywords": ["code-review", "pull-request"]
+}
