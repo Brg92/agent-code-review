@@ -40,4 +40,4 @@ If your shell drops the empty argument, run `git config --global --edit` and wri
 
 ## `doctor`
 
-[`doctor`](doctor.md) checks the storage before you log in. When `git credential fill` for `acr-api` answers with a token of another account, it adds the warning `credential helper for github.com`, with the same commands, and the exit code does not change.
+[`doctor`](doctor.md) checks the storage before you log in. When `git credential fill` for `acr-api` answers with a token of another account, or the helper of the GitHub CLI is configured and no helper that keeps a token comes before it, it adds the warning `credential helper for github.com`, with the same commands, and the exit code does not change. A recent `gh` answers nothing when the username is not its own, which is the second case; a helper that answers for any username is the first.
