@@ -118,6 +118,11 @@ func authLogin(e env, host string) int {
 		return fail(e, exitAuth, "%s: no token on stdin", host)
 	case errors.Is(err, auth.ErrNoHelper), errors.Is(err, auth.ErrPlainTextHelper):
 		return fail(e, exitUnsafeStorage, "%s: token not stored: %v", host, err)
+	case errors.Is(err, auth.ErrNotStored):
+		var ns *auth.NotStoredError
+		errors.As(err, &ns)
+		return fail(e, exitUnsafeStorage, "%s: token not stored: %v; %s\n%s",
+			host, err, previousTokenNote(ns), helperSetupAdvice(e.hostOS(), host))
 	case err != nil:
 		return fail(e, exitAuth, "%s: token not stored: %v", host, err)
 	}
@@ -129,4 +134,16 @@ func authLogin(e env, host string) int {
 	}
 	fmt.Fprintf(e.stdout, "%s: token stored in the git credential helper (username %s)\n", host, auth.Username)
 	return exitOK
+}
+
+// previousTokenNote says what became of the tokens: the new one was rejected,
+// and the one acr-api had before was put back, could not be, or did not exist.
+func previousTokenNote(ns *auth.NotStoredError) string {
+	switch ns.Previous {
+	case auth.PreviousKept:
+		return "the new token was rejected and your previous token was kept"
+	case auth.PreviousLost:
+		return "the new token was rejected, and your previous token could not be put back: it is not stored any more"
+	}
+	return "the token that was approved has been rejected, so nothing is left stored"
 }

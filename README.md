@@ -11,7 +11,7 @@ The command line is complete for the first stable release:
 | Command | What it does | Documentation |
 | --- | --- | --- |
 | `version` | Prints the version. | |
-| `auth login`, `auth status`, `auth logout` | Stores, shows the source of, or removes the token in the git credential helper. | |
+| `auth login`, `auth status`, `auth logout` | Stores, shows the source of, or removes the token in the git credential helper. | [auth.md](docs/auth.md) |
 | `queue [--limit N]` | Lists the pull requests that ask for your review, with the local state of each. | [queue.md](docs/queue.md) |
 | `review <pull request>` | Collects a pull request and every change in its Related Changes. | [review-and-next.md](docs/review-and-next.md) |
 | `next` | Prints the next part to judge. | [review-and-next.md](docs/review-and-next.md) |

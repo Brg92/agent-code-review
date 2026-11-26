@@ -70,6 +70,31 @@ type Helper struct {
 	Kind  HelperKind
 }
 
+// IsGitHubCLI reports whether the helper is the one of the GitHub CLI,
+// `!gh auth git-credential`, which `gh auth setup-git` configures. It
+// answers for github.com with the token of its own account and ignores
+// store, so it can never keep the token of acr-api.
+func (h Helper) IsGitHubCLI() bool {
+	cmd, ok := strings.CutPrefix(strings.TrimSpace(h.Value), "!")
+	if !ok {
+		return false
+	}
+	cmd = strings.TrimSpace(cmd)
+	var program, rest string
+	if cmd != "" && (cmd[0] == '"' || cmd[0] == '\'') {
+		end := strings.IndexByte(cmd[1:], cmd[0])
+		if end < 0 {
+			return false
+		}
+		program, rest = cmd[1:end+1], cmd[end+2:]
+	} else {
+		program, rest, _ = strings.Cut(cmd, " ")
+	}
+	name := strings.TrimSuffix(strings.ToLower(path.Base(strings.ReplaceAll(program, `\`, "/"))), ".exe")
+	args := strings.Fields(rest)
+	return name == "gh" && len(args) >= 2 && args[0] == "auth" && args[1] == "git-credential"
+}
+
 // Check is the credential helper set git would use for a host.
 type Check struct {
 	Helpers []Helper

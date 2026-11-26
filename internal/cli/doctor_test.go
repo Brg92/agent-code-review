@@ -452,3 +452,141 @@ func TestDoctorIsListedInTheUsage(t *testing.T) {
 		t.Error("the usage does not list doctor")
 	}
 }
+
+const otherAccountFill = "username=someone\npassword=other-token-value-4567\n"
+
+// fills makes the git of the world answer every fill with out, and counts them.
+func fills(w *world, out string, err error, stderr string) *int {
+	n := new(int)
+	w.git.fill = func() (string, string, error) { *n++; return out, stderr, err }
+	return n
+}
+
+func TestDoctorWarnsOfAHelperThatAnswersForAnotherAccount(t *testing.T) {
+	w := newWorld(t)
+	noToken(w)
+	w.git.helpers = "credential.https://github.com.helper\n\x00credential.https://github.com.helper\n!/usr/bin/gh auth git-credential\x00"
+	w.e.goos = "linux"
+	fills(w, otherAccountFill, nil, "")
+	got := w.run(t)
+	for _, secret := range []string{"other-token-value", "password"} {
+		if strings.Contains(got.stdout, secret) {
+			t.Errorf("stdout leaks %q:\n%s", secret, got.stdout)
+		}
+	}
+	l := line(t, got.stdout, "credential helper for github.com:")
+	for _, part := range []string{"warn  ", "returns a token of another account", "acr-api", "!/usr/bin/gh auth git-credential",
+		`git config --global --add credential.https://acr-api@github.com.helper ""`,
+		"git config --global --add credential.https://acr-api@github.com.helper libsecret", "auth login"} {
+		if !strings.Contains(l, part) {
+			t.Errorf("line %q does not say %q", l, part)
+		}
+	}
+	// Order of D243: the new line follows the token, before the account.
+	lines := strings.Split(got.stdout, "\n")
+	for i, want := range []string{"version:", "git:", "credential storage:", "token for github.com:", "credential helper for github.com:", "GET /user:"} {
+		if !strings.Contains(lines[i], want) {
+			t.Errorf("line %d = %q, want %q", i+1, lines[i], want)
+		}
+	}
+	// It is a warning: the exit code is the one of the failed token check.
+	if got.code != exitAuth {
+		t.Errorf("code = %d, want %d from the missing token", got.code, exitAuth)
+	}
+}
+
+func TestDoctorAdviceFollowsTheOperatingSystem(t *testing.T) {
+	for goos, helper := range map[string]string{"linux": "libsecret", "darwin": "osxkeychain", "windows": "manager"} {
+		w := newWorld(t)
+		noToken(w)
+		w.e.goos = goos
+		fills(w, otherAccountFill, nil, "")
+		l := line(t, w.run(t).stdout, "credential helper for github.com:")
+		if !strings.Contains(l, "credential.https://acr-api@github.com.helper "+helper) {
+			t.Errorf("%s: line %q does not name the helper %s", goos, l, helper)
+		}
+	}
+}
+
+func TestDoctorSaysNothingOfHelpersThatAnswerForAcrApiOrNotAtAll(t *testing.T) {
+	tests := map[string]struct {
+		out    string
+		err    error
+		stderr string
+	}{
+		"its own token":    {out: "username=acr-api\npassword=" + testToken + "\n"},
+		"no token":         {err: &auth.ExitError{Code: 128}, stderr: "fatal: could not read Username for 'https://github.com': terminal prompts disabled\n"},
+		"a failing helper": {err: &auth.ExitError{Code: 1}, stderr: "error: keychain is locked\n"},
+		"a user, no token": {out: "username=someone\n"},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			w := newWorld(t)
+			noToken(w)
+			fills(w, tt.out, tt.err, tt.stderr)
+			got := w.run(t)
+			for _, l := range strings.Split(got.stdout, "\n") {
+				if strings.Contains(l, "credential helper for github.com:") {
+					t.Errorf("unexpected line %q", l)
+				}
+			}
+		})
+	}
+}
+
+func TestDoctorDoesNotAskTheHelpersWhenTheTokenIsInTheEnvironment(t *testing.T) {
+	w := newWorld(t)
+	n := fills(w, otherAccountFill, nil, "")
+	got := w.run(t)
+	if *n != 0 {
+		t.Errorf("git credential fill ran %d times with the token in the environment", *n)
+	}
+	if strings.Contains(got.stdout, "credential helper for github.com:") || got.code != exitOK {
+		t.Errorf("code %d:\n%s", got.code, got.stdout)
+	}
+}
+
+const ghHelper = "credential.https://github.com.helper\n\x00credential.https://github.com.helper\n!/usr/bin/gh auth git-credential\x00"
+
+func TestDoctorWarnsOfTheGitHubCLIHelperThatAnswersNothing(t *testing.T) {
+	tests := []struct {
+		name    string
+		helpers string
+		fill    string
+		warns   bool
+	}{
+		{"the helper is alone and answers nothing", ghHelper, "", true},
+		// No reset between them: the helper that keeps the token is asked first.
+		{"a helper that keeps the token is configured too", "credential.helper\nlibsecret\x00credential.helper\n!/usr/bin/gh auth git-credential\x00", "", false},
+		// The reset of the GitHub CLI's own section drops the helpers before it.
+		{"the reset of the GitHub CLI drops the helper before it", "credential.helper\nlibsecret\x00" + ghHelper, "", true},
+		{"acr-api has its token", ghHelper, "username=acr-api\npassword=" + testToken + "\n", false},
+		{"no GitHub CLI helper", "credential.helper\nlibsecret\x00", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := newWorld(t)
+			noToken(w)
+			w.git.helpers = tt.helpers
+			w.e.goos = "linux"
+			if tt.fill != "" {
+				fills(w, tt.fill, nil, "")
+			}
+			got := w.run(t)
+			has := strings.Contains(got.stdout, "credential helper for github.com:")
+			if has != tt.warns {
+				t.Fatalf("warning present = %v, want %v:\n%s", has, tt.warns, got.stdout)
+			}
+			if !tt.warns {
+				return
+			}
+			l := line(t, got.stdout, "credential helper for github.com:")
+			for _, part := range []string{"warn  ", "GitHub CLI", "ignores store", "auth login ends with exit 10", "!/usr/bin/gh auth git-credential",
+				"git config --global --add credential.https://acr-api@github.com.helper libsecret"} {
+				if !strings.Contains(l, part) {
+					t.Errorf("line %q does not say %q", l, part)
+				}
+			}
+		})
+	}
+}

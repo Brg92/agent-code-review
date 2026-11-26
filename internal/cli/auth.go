@@ -82,12 +82,18 @@ func fail(e env, code int, format string, a ...any) int {
 	return code
 }
 
-// loginHint is the command that stores a token for host.
-func loginHint(host string) string {
-	cmd := "`agent-code-review auth login`"
+// loginCommand is the command that stores a token for host.
+func loginCommand(host string) string {
 	if host != defaultHost {
-		cmd = "`agent-code-review auth login --host " + host + "`"
+		return "`agent-code-review auth login --host " + host + "`"
 	}
+	return "`agent-code-review auth login`"
+}
+
+// loginHint is the command that stores a token for host, or the variable
+// that gives one.
+func loginHint(host string) string {
+	cmd := loginCommand(host)
 	if v := auth.EnvVar(host); v != "" {
 		return cmd + " or set " + v
 	}

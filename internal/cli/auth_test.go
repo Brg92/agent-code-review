@@ -25,6 +25,9 @@ type gitAnswer struct {
 type scriptedGit struct {
 	answers map[string]gitAnswer
 	stdin   map[string]string
+	// sequence answers the successive runs of a command line, before
+	// answers does.
+	sequence map[string][]gitAnswer
 }
 
 func (g *scriptedGit) Run(_ context.Context, stdin string, args ...string) (string, string, error) {
@@ -33,6 +36,10 @@ func (g *scriptedGit) Run(_ context.Context, stdin string, args ...string) (stri
 		g.stdin = map[string]string{}
 	}
 	g.stdin[key] = stdin
+	if seq := g.sequence[key]; len(seq) > 0 {
+		g.sequence[key] = seq[1:]
+		return seq[0].stdout, seq[0].stderr, seq[0].err
+	}
 	a, ok := g.answers[key]
 	if !ok {
 		return "", "", fmt.Errorf("unexpected git %s", key)

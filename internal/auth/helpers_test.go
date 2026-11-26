@@ -134,3 +134,24 @@ func TestHelperKindString(t *testing.T) {
 		}
 	}
 }
+
+func TestHelperIsGitHubCLI(t *testing.T) {
+	tests := map[string]bool{
+		"!/usr/bin/gh auth git-credential":                          true,
+		"!gh auth git-credential":                                   true,
+		`!"C:\Program Files\GitHub CLI\gh.exe" auth git-credential`: true,
+		"!'/opt/my tools/gh' auth git-credential":                   true,
+		"osxkeychain":                  false,
+		"libsecret":                    false,
+		"!f() { echo password=x; }; f": false,
+		"!gh auth login":               false,
+		"!ghost auth git-credential":   false,
+		"gh auth git-credential":       false,
+		"":                             false,
+	}
+	for value, want := range tests {
+		if got := (Helper{Value: value}).IsGitHubCLI(); got != want {
+			t.Errorf("Helper{%q}.IsGitHubCLI() = %v, want %v", value, got, want)
+		}
+	}
+}
