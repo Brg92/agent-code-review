@@ -96,3 +96,35 @@ func TestServeDrop(t *testing.T) {
 		t.Errorf("a helper that keeps nothing answered %q", out.String())
 	}
 }
+
+func TestServeStale(t *testing.T) {
+	store := filepath.Join(t.TempDir(), "stale.json")
+	getenv := func(string) string { return "" }
+	run := func(op, in string) string {
+		t.Helper()
+		var out bytes.Buffer
+		if err := serveStale(op, strings.NewReader(in), &out, store, getenv); err != nil {
+			t.Fatalf("serveStale %s: %v", op, err)
+		}
+		return out.String()
+	}
+	entry := func(pass string) string { return "protocol=https\nhost=h\nusername=u\npassword=" + pass + "\n\n" }
+	query := "protocol=https\nhost=h\nusername=u\n\n"
+
+	run("store", entry("first"))
+	run("store", entry("second"))
+	if got := run("get", query); got != "username=u\npassword=first\n" {
+		t.Errorf("get after a second store = %q, want the first token: a stale helper ignores updates", got)
+	}
+	run("erase", query)
+	if got := run("get", query); got != "" {
+		t.Errorf("get after erase = %q", got)
+	}
+	run("store", entry("third"))
+	if got := run("get", query); got != "username=u\npassword=third\n" {
+		t.Errorf("get after erase and store = %q", got)
+	}
+	if got := StaleStore("/x/store.json"); got != "/x/store.json.stale" {
+		t.Errorf("StaleStore = %q", got)
+	}
+}

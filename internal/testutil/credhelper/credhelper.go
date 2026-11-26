@@ -15,6 +15,7 @@ package credhelper
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,6 +41,11 @@ const NameDrop = "acrdrop"
 // and the token OtherToken, whatever the request names, and ignores store
 // and erase, as the helper of the GitHub CLI does for github.com.
 const NameOther = "acrother"
+
+// NameStale is a helper that keeps the first token it is given for an entry
+// and ignores every later store, as a helper that does not update. It has
+// a store of its own, StaleStore, apart from the one of Name.
+const NameStale = "acrstale"
 
 // OtherUser and OtherToken are what NameOther answers: canary values, so a
 // test can tell which token git returned. They are not secrets.
@@ -94,6 +100,12 @@ func Main() {
 	case NameDrop:
 		serveDrop(op, os.Stdin, os.Stdout)
 		os.Exit(0)
+	case NameStale:
+		if err := serveStale(op, os.Stdin, os.Stdout, StaleStore(store), os.Getenv); err != nil {
+			fmt.Fprintln(os.Stderr, "credhelper:", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
 	}
 	if err := serve(op, os.Stdin, os.Stdout, store, os.Getenv); err != nil {
 		fmt.Fprintln(os.Stderr, "credhelper:", err)
@@ -108,7 +120,7 @@ func modeOf(arg0 string) string {
 	base := path.Base(strings.ReplaceAll(arg0, `\`, "/"))
 	base = strings.TrimSuffix(base, ".exe")
 	name, ok := strings.CutPrefix(base, "git-credential-")
-	if ok && (name == Name || name == NameDrop || name == NameOther) {
+	if ok && (name == Name || name == NameDrop || name == NameOther || name == NameStale) {
 		return name
 	}
 	return ""
@@ -123,14 +135,46 @@ func serveOther(op string, in io.Reader, out io.Writer) {
 	}
 }
 
+// StaleStore is the file the helper NameStale keeps its entries in, for the
+// store Install returned.
+func StaleStore(store string) string { return store + ".stale" }
+
+// serveStale is serve, except that a store of an entry that is already there
+// changes nothing.
+func serveStale(op string, in io.Reader, out io.Writer, store string, getenv func(string) string) error {
+	data, err := io.ReadAll(in)
+	if err != nil {
+		return err
+	}
+	if op == "store" {
+		attrs := map[string]string{}
+		sc := bufio.NewScanner(bytes.NewReader(data))
+		for sc.Scan() && sc.Text() != "" {
+			if k, v, ok := strings.Cut(sc.Text(), "="); ok {
+				attrs[k] = v
+			}
+		}
+		st, err := load(store)
+		if err != nil {
+			return err
+		}
+		for _, e := range st.Entries {
+			if e.Host == attrs["host"] && e.Username == attrs["username"] {
+				return nil
+			}
+		}
+	}
+	return serve(op, bytes.NewReader(data), out, store, getenv)
+}
+
 // serveDrop accepts every request, keeps nothing and answers nothing.
 func serveDrop(_ string, in io.Reader, _ io.Writer) { _, _ = io.Copy(io.Discard, in) }
 
 // Config describes the git configuration Install writes.
 type Config struct {
 	// Helpers are the credential.helper values, in order; nil means the
-	// test helper only. The helpers Name, NameDrop and NameOther are
-	// installed when named here.
+	// test helper only. The helpers Name, NameDrop, NameOther and NameStale
+	// are installed when named here.
 	Helpers []string
 	// Extra is added to the git configuration after the helpers.
 	Extra string
@@ -160,7 +204,7 @@ func Install(t *testing.T, cfg Config) (store, home string) {
 	// The test binary is every helper named in the configuration, found on
 	// PATH under the name git gives it.
 	for _, h := range append(append([]string{}, helpers...), cfg.Extra) {
-		for _, name := range []string{Name, NameDrop, NameOther} {
+		for _, name := range []string{Name, NameDrop, NameOther, NameStale} {
 			if !strings.Contains(h, name) {
 				continue
 			}
