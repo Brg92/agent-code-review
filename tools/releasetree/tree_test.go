@@ -507,3 +507,24 @@ func TestWrittenTreesAreIdentical(t *testing.T) {
 		t.Error("two written trees differ")
 	}
 }
+
+func TestTreeDigest(t *testing.T) {
+	base := map[string][]byte{"a/b": []byte("x"), "c": []byte("y")}
+	d := treeDigest(base)
+	if len(d) != 64 {
+		t.Fatalf("digest %q is not 64 hex digits", d)
+	}
+	if treeDigest(map[string][]byte{"c": []byte("y"), "a/b": []byte("x")}) != d {
+		t.Error("the digest depends on the order of the files")
+	}
+	for name, other := range map[string]map[string][]byte{
+		"content":        {"a/b": []byte("z"), "c": []byte("y")},
+		"path":           {"a/d": []byte("x"), "c": []byte("y")},
+		"extra file":     {"a/b": []byte("x"), "c": []byte("y"), "d": nil},
+		"moved boundary": {"a/bx": nil, "c": []byte("y")},
+	} {
+		if treeDigest(other) == d {
+			t.Errorf("the digest does not change with the %s", name)
+		}
+	}
+}

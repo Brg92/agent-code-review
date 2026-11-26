@@ -9,7 +9,8 @@
 //	go run ./tools/releasetree -out <dir> [-src <repository>] [-version <semver>]
 //
 // <dir> must not exist or be empty. The version defaults to 0.0.0-dev. The
-// output is the same, byte for byte, on every run and every system. The
+// output is the same, byte for byte, on every run and every system; the
+// last line printed ends with the SHA-256 of the tree, to compare runs. The
 // optional MCP server entry of the hosts is not reachable from the command
 // line: it is never part of a release.
 // Exit codes: 0 the tree was written, 1 it could not be built or written,
@@ -66,6 +67,6 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "releasetree: %v\n", err)
 		return 1
 	}
-	fmt.Fprintf(stdout, "wrote %d files, version %s, to %s\n", len(files), *version, *out)
+	fmt.Fprintf(stdout, "wrote %d files, version %s, to %s, sha256 %s\n", len(files), *version, *out, treeDigest(files))
 	return 0
 }

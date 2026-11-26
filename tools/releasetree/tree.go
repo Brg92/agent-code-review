@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -226,4 +228,16 @@ func writeTree(dir string, files map[string][]byte) error {
 		}
 	}
 	return nil
+}
+
+// treeDigest is the SHA-256 of the whole tree: every path and every file in
+// path order, each framed by its length. Equal trees have equal digests, on
+// any system, so the logs of CI runs can be compared.
+func treeDigest(files map[string][]byte) string {
+	h := sha256.New()
+	for _, p := range sortedKeys(files) {
+		fmt.Fprintf(h, "%d %s\n%d\n", len(p), p, len(files[p]))
+		h.Write(files[p])
+	}
+	return hex.EncodeToString(h.Sum(nil))
 }

@@ -25,6 +25,10 @@ func TestRunWritesTheTree(t *testing.T) {
 	if !strings.Contains(stdout, "0.0.0-dev") || !strings.Contains(stdout, out) {
 		t.Errorf("stdout = %q, want the version and the directory", stdout)
 	}
+	want := treeDigest(buildReal(t, func(o *options) { o.Version = "0.0.0-dev" }))
+	if !strings.Contains(stdout, "sha256 "+want) {
+		t.Errorf("stdout = %q, want the digest of the tree, sha256 %s", stdout, want)
+	}
 	data, err := os.ReadFile(filepath.Join(out, "plugin.json"))
 	if err != nil {
 		t.Fatal(err)
