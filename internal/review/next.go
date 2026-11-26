@@ -36,6 +36,21 @@ type Served struct {
 	Total         int
 }
 
+// WithSchema adds the line that tells where the schema of the judgement is,
+// right under the first line, which says where to write it. With no schema,
+// or when nothing is left to judge, it changes nothing.
+func (s Served) WithSchema(path string) Served {
+	if path == "" || s.Done {
+		return s
+	}
+	head, rest, found := strings.Cut(s.Text, "\n")
+	if !found {
+		return s
+	}
+	s.Text = head + "\nJudgement schema: " + path + "\n" + rest
+	return s
+}
+
 // reviewOrder returns the change requests to review, related first and the
 // root last: the post-order of the cascade, which the entries of the state
 // hold in discovery order, depth first.

@@ -14,6 +14,8 @@ import (
 	"github.com/Brg92/agent-code-review/internal/auth"
 	"github.com/Brg92/agent-code-review/internal/forges/base"
 	"github.com/Brg92/agent-code-review/internal/forges/github"
+	"github.com/Brg92/agent-code-review/internal/packs"
+	"github.com/Brg92/agent-code-review/internal/state"
 	"github.com/Brg92/agent-code-review/internal/version"
 )
 
@@ -77,6 +79,8 @@ type env struct {
 	userConfigDir func() (string, error)
 	// userHomeDir is where reports are saved when no folder is named.
 	userHomeDir func() (string, error)
+	// executable is the path of the running program; nil is os.Executable.
+	executable func() (string, error)
 	// goos names the operating system the advice on credential helpers
 	// is for; "" means runtime.GOOS.
 	goos string
@@ -114,6 +118,12 @@ func (e env) homeDir() func() (string, error) {
 		return e.userHomeDir
 	}
 	return e.dirs().home
+}
+
+// locate finds the packs and the schemas, with the pack paths of the user
+// configuration added.
+func (e env) locate(cfg state.UserConfig) (packs.Layout, error) {
+	return packs.Locate(packs.LocateInput{Getenv: e.getenv, Executable: e.executable, PackPaths: cfg.PackPaths})
 }
 
 // hostOS is the operating system the advice on credential helpers is for.

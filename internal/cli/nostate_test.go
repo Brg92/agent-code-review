@@ -42,7 +42,7 @@ func worldCall(setup func(w *world), args ...string) func(t *testing.T) call {
 	return func(t *testing.T) call {
 		w := newWorld(t)
 		setup(w)
-		return call{w.e, append([]string{"doctor"}, args...), []string{w.work}}
+		return call{w.e, append([]string{"doctor"}, args...), []string{w.work, w.exeDir}}
 	}
 }
 

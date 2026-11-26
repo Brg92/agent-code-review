@@ -140,7 +140,7 @@ func Locate(in LocateInput) (Layout, error) {
 		}
 	}
 	if len(loc.Dirs) == 0 {
-		return Layout{}, &NoPacksError{Tried: tried}
+		return Layout{ExeDir: loc.ExeDir}, &NoPacksError{Tried: tried}
 	}
 	return loc, nil
 }

@@ -213,7 +213,7 @@ func (e env) userConfig() (state.UserConfig, error) {
 
 // loadPacks finds and loads the packs.
 func (e env) loadPacks(cfg state.UserConfig) (*packs.Set, error) {
-	layout, err := packs.Locate(packs.LocateInput{Getenv: e.getenv, PackPaths: cfg.PackPaths})
+	layout, err := e.locate(cfg)
 	if err == nil {
 		var set *packs.Set
 		if set, err = packs.Load(layout.Dirs...); err == nil {
@@ -325,6 +325,12 @@ func runNext(args []string, e env) int {
 	if err != nil {
 		return finish(e, err, log)
 	}
-	fmt.Fprint(e.stdout, served.Text)
+	// Without the schema beside the packs the line is left out: doctor says so.
+	cfg, _ := e.userConfig()
+	var schema string
+	if layout, err := e.locate(cfg); err == nil {
+		schema, _ = layout.Schema(judgementSchema)
+	}
+	fmt.Fprint(e.stdout, served.WithSchema(schema).Text)
 	return exitOK
 }

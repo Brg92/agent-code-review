@@ -19,6 +19,9 @@ ok    GET /user: logged in as ann; classic token (scopes: repo)
 ok    packs: android, kotlin-multiplatform (from /opt/agent-code-review/packs)
 ok    user config: /home/ann/.config/agent-code-review/config.json is not there, the defaults apply
 ok    work directory: /home/ann/.cache/agent-code-review is writable
+ok    executable: started from /opt/agent-code-review/bin/linux-amd64
+ok    root of packs and schemas: /opt/agent-code-review
+ok    judgement schema: /opt/agent-code-review/schemas/judgement.schema.json
 ```
 
 Every check runs, whatever failed before it. A check that needs what a failed one gives, such as the account without a token, is a `fail` that says it was not checked.
@@ -31,9 +34,12 @@ Every check runs, whatever failed before it. A check that needs what a failed on
 4. **token** for github.com is available, from `ACR_GITHUB_TOKEN` or from `git credential`, and which one. If `ACR_GITHUB_TOKEN` is not set and a helper that was not chosen for `acr-api` answers for github.com, an extra `warn` line `credential helper for github.com` follows. That is the case when `git credential fill` for `acr-api` returns a token of another account, or when the helper of the GitHub CLI (`!gh auth git-credential`, configured globally or for `https://github.com` by `gh auth setup-git`) is configured, no helper that keeps a token comes before it, and nothing comes back for `acr-api`: the helper ignores `store`, so `auth login` would end with exit 10. It names the helpers configured and the two `git config` commands that give `acr-api` its own helper, and says to run `auth login` afterwards. It tells which username answered and that a token came back, never the token. It is a `warn`: it does not change the exit code, and a token that is missing is still the `fail` of this check. With the token in the environment nothing is stored or read, so the helpers are not asked. If `GITHUB_TOKEN` or `GH_TOKEN` is set and `ACR_GITHUB_TOKEN` is not, an extra `warn` line says they are never read as a token, and how to pass the token. In GitHub Actions: `ACR_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`.
 5. **`GET /user`** works: the login, and the kind of token as far as the headers say. A classic token has an `X-OAuth-Scopes` header, and its scopes are listed. Any other token has none, and is reported as not classic (a fine-grained token, for example).
 6. **With `--repo`**, what the token can do in the repository, one line each, by reading it: the repository, its pull requests, its contents, its issues and its check runs (a fine-grained token needs `Actions: read` for the last). When the platform refuses and says which permission was needed, the line names it, from `X-Accepted-GitHub-Permissions`. Then whether the token can **write** to pull requests and to issues, which only `publish` needs. Nothing is written to find out: a classic token writes with the `repo` scope, or `public_repo` on a public repository, and a missing one is a `warn`. For a token that is not classic only a write would show it, so the line is `ok` and says it cannot be checked; `publish` names the permission it lacks.
-7. **packs** are found and valid: their ids, and where they were loaded from. A pack manifest has no version, so none is shown.
+7. **packs** are found and valid: their ids, and where they were loaded from. A pack manifest has no version, so none is shown. Where they are looked for is in [runtime-layout.md](runtime-layout.md).
 8. **user config** is valid: `config.json` in the user configuration directory. A file that is not there is valid.
 9. **work directory** is writable: it is created if it is not there, and a file is written in it and removed.
+10. **executable** is where it was started from: the folder of the executable, its symbolic links resolved. It is shown even when no pack is found, since that is what to look at.
+11. **root of packs and schemas** is the folder that holds the packs in use, with `schemas/` beside them: see [runtime-layout.md](runtime-layout.md). With the packs coming only from `packPaths` there is no root, and the line is a `warn`.
+12. **judgement schema** is there: `schemas/judgement.schema.json` in the root, the file `next` tells the agent to follow. When it is not there, `next` leaves its line out and this is a `warn` that says where to put the file back. It does not change the exit code.
 
 There is no option for another host: github.com is the only one.
 

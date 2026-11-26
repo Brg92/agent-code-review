@@ -518,3 +518,27 @@ func TestNextRefusesAJudgementPathOutsideTheRun(t *testing.T) {
 		}
 	}
 }
+
+func TestServedWithSchema(t *testing.T) {
+	const schema = "/opt/acr/schemas/judgement.schema.json"
+	tests := []struct {
+		name   string
+		served Served
+		schema string
+		want   string
+	}{
+		{"a part", Served{Text: "Judge x part 1 of 1 — write the judgement to /j\nbrief\nmore\n"}, schema,
+			"Judge x part 1 of 1 — write the judgement to /j\nJudgement schema: " + schema + "\nbrief\nmore\n"},
+		{"waiting", Served{Text: "Write the judgement to /j, then run agent-code-review next\n", Waiting: true}, schema,
+			"Write the judgement to /j, then run agent-code-review next\nJudgement schema: " + schema + "\n"},
+		{"done", Served{Text: DoneText, Done: true}, schema, DoneText},
+		{"no schema", Served{Text: "Judge x part 1 of 1 — write the judgement to /j\nbrief\n"}, "", "Judge x part 1 of 1 — write the judgement to /j\nbrief\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.served.WithSchema(tt.schema).Text; got != tt.want {
+				t.Errorf("Text = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

@@ -97,7 +97,10 @@ func TestLocateFollowsTheExecutableSymlink(t *testing.T) {
 func TestLocateErrors(t *testing.T) {
 	empty := realDir(t)
 	none := func() (string, error) { return filepath.Join(empty, "agent-code-review"), nil }
-	_, err := Locate(LocateInput{Getenv: func(string) string { return "" }, Executable: none, PackPaths: []string{empty}})
+	got, err := Locate(LocateInput{Getenv: func(string) string { return "" }, Executable: none, PackPaths: []string{empty}})
+	if got.ExeDir != empty {
+		t.Errorf("ExeDir = %q, want %q: doctor shows it when nothing is found", got.ExeDir, empty)
+	}
 	var nf *NoPacksError
 	if !errors.As(err, &nf) {
 		t.Fatalf("error %v, want a *NoPacksError", err)

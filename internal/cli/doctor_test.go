@@ -3,9 +3,11 @@ package cli
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -48,6 +50,8 @@ type world struct {
 	git  *scriptGit
 	srv  *sandbox.Replay
 	work string
+	// exeDir is the folder the executable is said to be started from.
+	exeDir string
 }
 
 func serve(r *sandbox.Replay, status int, path string, query, header map[string]string, body string) {
@@ -64,7 +68,7 @@ func newWorld(t *testing.T) *world {
 	serve(srv, 200, "/repos/acme/app/issues", map[string]string{"per_page": "1"}, nil, `[]`)
 	serve(srv, 200, "/repos/acme/app/commits/main/check-runs", map[string]string{"per_page": "1"}, nil, `{"total_count":0,"check_runs":[]}`)
 	e, work := reviewEnv(t, srv)
-	vars := map[string]string{"ACR_WORKDIR": work, "ACR_PACKS_DIR": packsDir(t), "ACR_GITHUB_TOKEN": reviewreplay.Canary}
+	vars := map[string]string{"ACR_WORKDIR": work, "ACR_PACKS_DIR": repoPacksDir(t), "ACR_GITHUB_TOKEN": reviewreplay.Canary}
 	e.getenv = func(k string) string { return vars[k] }
 	git := &scriptGit{
 		version: func() (string, error) { return "git version 2.43.0\n", nil },
@@ -74,7 +78,9 @@ func newWorld(t *testing.T) *world {
 		},
 	}
 	e.git = git
-	return &world{e: e, vars: vars, git: git, srv: srv, work: work}
+	exeDir := realTempDir(t)
+	e.executable = func() (string, error) { return filepath.Join(exeDir, "agent-code-review"), nil }
+	return &world{e: e, vars: vars, git: git, srv: srv, work: work, exeDir: exeDir}
 }
 
 // run runs doctor and returns its result, with no token in its output.
@@ -112,7 +118,7 @@ func TestDoctorAllWell(t *testing.T) {
 	if got.code != exitOK || got.stderr != "" {
 		t.Fatalf("doctor: code %d\nstderr: %s\nstdout: %s", got.code, got.stderr, got.stdout)
 	}
-	if s := statuses(got.stdout); strings.Join(s, " ") != "ok ok ok ok ok ok ok ok" {
+	if s := statuses(got.stdout); strings.Join(s, " ") != "ok ok ok ok ok ok ok ok ok ok ok" {
 		t.Errorf("statuses = %v:\n%s", s, got.stdout)
 	}
 	wants := []string{
@@ -121,9 +127,12 @@ func TestDoctorAllWell(t *testing.T) {
 		"ok    credential storage: libsecret (OS keychain)",
 		"ok    token for github.com: from the environment variable ACR_GITHUB_TOKEN",
 		"ok    GET /user: logged in as ann; classic token (scopes: repo)",
-		"ok    packs: android, kotlin-multiplatform (from " + packsDir(t) + ")",
+		"ok    packs: android, kotlin-multiplatform (from " + repoPacksDir(t) + ")",
 		"ok    user config: " + filepath.Join(w.work, "config", "agent-code-review", "config.json") + " is not there, the defaults apply",
 		"ok    work directory: " + w.work + " is writable",
+		"ok    executable: started from " + w.exeDir,
+		"ok    root of packs and schemas: " + filepath.Dir(repoPacksDir(t)),
+		"ok    judgement schema: " + filepath.Join(filepath.Dir(repoPacksDir(t)), "schemas", "judgement.schema.json"),
 	}
 	lines := strings.Split(strings.TrimSuffix(got.stdout, "\n"), "\n")
 	for i, want := range wants {
@@ -588,5 +597,93 @@ func TestDoctorWarnsOfTheGitHubCLIHelperThatAnswersNothing(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// realTempDir is a temporary directory with its symbolic links resolved, as
+// the executable's folder is shown.
+func realTempDir(t *testing.T) string {
+	t.Helper()
+	dir, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return dir
+}
+
+// Without the schemas beside the packs the review still works, and doctor
+// warns, naming where to look and what to do.
+func TestDoctorWarnsWhenTheSchemasAreMissing(t *testing.T) {
+	w := newWorld(t)
+	bare := filepath.Join(realTempDir(t), "packs")
+	copyTree(t, repoPacksDir(t), bare)
+	w.vars["ACR_PACKS_DIR"] = bare
+	got := w.run(t)
+	if got.code != exitOK {
+		t.Fatalf("code %d, want %d: a warning does not fail doctor\n%s%s", got.code, exitOK, got.stdout, got.stderr)
+	}
+	l := line(t, got.stdout, "judgement schema:")
+	for _, want := range []string{"warn  ", filepath.Join(filepath.Dir(bare), "schemas", "judgement.schema.json"), "to do: ", "schemas/"} {
+		if !strings.Contains(l, want) {
+			t.Errorf("schema line = %q, want it to hold %q", l, want)
+		}
+	}
+	if l := line(t, got.stdout, "root of packs and schemas:"); !strings.HasPrefix(l, "ok    ") || !strings.Contains(l, filepath.Dir(bare)) {
+		t.Errorf("root line = %q", l)
+	}
+}
+
+// With the packs coming only from the user configuration there is no root.
+func TestDoctorSaysThereIsNoRootWhenPacksComeFromTheConfiguration(t *testing.T) {
+	w := newWorld(t)
+	delete(w.vars, "ACR_PACKS_DIR")
+	cfg := filepath.Join(w.work, "config", "agent-code-review", "config.json")
+	if err := os.MkdirAll(filepath.Dir(cfg), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cfg, []byte(`{"schema":1,"packPaths":[`+strconv.Quote(repoPacksDir(t))+`]}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	got := w.run(t)
+	if l := line(t, got.stdout, "root of packs and schemas:"); !strings.HasPrefix(l, "warn  ") || !strings.Contains(l, "packPaths") || !strings.Contains(l, "to do: ") {
+		t.Errorf("root line = %q", l)
+	}
+	if l := line(t, got.stdout, "judgement schema:"); !strings.HasPrefix(l, "warn  ") {
+		t.Errorf("schema line = %q", l)
+	}
+	if got.code != exitOK {
+		t.Errorf("code %d, want %d", got.code, exitOK)
+	}
+}
+
+// When no pack is found the folder of the executable is still shown, which is
+// what the user needs to see to fix the installation.
+func TestDoctorShowsTheExecutableFolderWhenNoPacksAreFound(t *testing.T) {
+	w := newWorld(t)
+	w.vars["ACR_PACKS_DIR"] = t.TempDir()
+	got := w.run(t)
+	if l := line(t, got.stdout, "executable:"); l != "ok    executable: started from "+w.exeDir {
+		t.Errorf("executable line = %q", l)
+	}
+}
+
+func copyTree(t *testing.T, from, to string) {
+	t.Helper()
+	err := filepath.WalkDir(from, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, _ := filepath.Rel(from, p)
+		if d.IsDir() {
+			return os.MkdirAll(filepath.Join(to, rel), 0o700)
+		}
+		data, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(filepath.Join(to, rel), data, 0o600)
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 }

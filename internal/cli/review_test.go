@@ -31,12 +31,23 @@ func (c *instantClock) Sleep(ctx context.Context, d time.Duration) error {
 	return ctx.Err()
 }
 
-func packsDir(t *testing.T) string {
+// repoPacksDir is the packs/ of this repository: schemas/ is beside it.
+func repoPacksDir(t *testing.T) string {
 	t.Helper()
 	dir, err := filepath.Abs(filepath.Join("..", "..", "packs"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	return dir
+}
+
+// packsDir is a copy of the packs with nothing beside it, which is what the
+// goldens of the commands were recorded with: no schema is found, and
+// `next` prints no line for it.
+func packsDir(t *testing.T) string {
+	t.Helper()
+	dir := filepath.Join(t.TempDir(), "packs")
+	copyTree(t, repoPacksDir(t), dir)
 	return dir
 }
 
@@ -461,4 +472,43 @@ func TestEnvironmentFailures(t *testing.T) {
 			t.Errorf("code %d, stderr:\n%s", r.code, r.stderr)
 		}
 	})
+}
+
+// withRepoSchemas makes e find the packs of the repository, with schemas/ beside
+// them, as an installation has.
+func withRepoSchemas(t *testing.T, e *env) {
+	t.Helper()
+	inner := e.getenv
+	e.getenv = func(k string) string {
+		if k == "ACR_PACKS_DIR" {
+			return repoPacksDir(t)
+		}
+		return inner(k)
+	}
+}
+
+// With the schema found, `next` names its absolute path on a line of its own
+// under the first one, whether it serves a part or waits for the judgement. The
+// rest is what it prints without the schema.
+func TestNextPrintsThePathOfTheJudgementSchema(t *testing.T) {
+	e, work := reviewEnv(t, reviewreplay.S2(t))
+	withRepoSchemas(t, &e)
+	if r := runWith(t, e, "review", s2Root); r.code != exitOK {
+		t.Fatalf("review: %d\n%s", r.code, r.stderr)
+	}
+	schema := filepath.Join(filepath.Dir(repoPacksDir(t)), "schemas", "judgement.schema.json")
+	line := "Judgement schema: " + schema + "\n"
+	first := runWith(t, e, "next")
+	head, rest, _ := strings.Cut(first.stdout, "\n")
+	if first.code != exitOK || !strings.HasPrefix(rest, line) {
+		t.Fatalf("next: code %d\n%s", first.code, first.stdout)
+	}
+	if got, want := portable(head+"\n"+strings.TrimPrefix(rest, line), work), goldenText(t, "s2-next-1.txt"); got != want {
+		t.Errorf("without the schema line, next prints\n%s\nwant the golden\n%s", got, want)
+	}
+	judgement := strings.TrimPrefix(head, "Judge github:github.com/acr-plugin-sandbox/feature-lib#1 part 1 of 1 — write the judgement to ")
+	wait := runWith(t, e, "next")
+	if want := "Write the judgement to " + judgement + ", then run agent-code-review next\n" + line; wait.stdout != want {
+		t.Errorf("waiting: %q, want %q", wait.stdout, want)
+	}
 }

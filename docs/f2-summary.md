@@ -140,7 +140,7 @@ The live test of the OS keychains (Git Credential Manager on Windows, Keychain o
 
 F3 is the plugin and the release (launchers and the release branch, manifests, thin skills, agents and hooks, verification on the hosts). It starts from a complete, tested CLI whose contracts are binding and whose exit codes are documented. What it needs to decide or do first:
 
-- **Where the packs are found at runtime.** `doctor` and `review` look next to the executable or in `ACR_PACKS_DIR`; the launcher has to put them there, or they have to be embedded.
+- **Where the packs are found at runtime.** `doctor` and `review` look next to the executable or in `ACR_PACKS_DIR`; the launcher has to put them there, or they have to be embedded. Settled in F3/M2: see [runtime-layout.md](runtime-layout.md).
 - **The keychain checks before the beta** (Windows with Git Credential Manager, macOS with Keychain), then the end-to-end commands on each.
 - **The message of `auth login` when the helper does not store.** On Linux it should say what to install, as it does for no helper or for `store`.
 - **The `queue` recording and S8.** Decide whether the recorder should leave S8 out of the review-requested search, or the recording should simply be kept as it is.
