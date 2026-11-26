@@ -43,7 +43,7 @@ func lf(data []byte) []byte {
 }
 
 // buildTree returns the files of the release branch, by slash-separated path,
-// without binaries and launchers.
+// with the launchers and without binaries.
 func buildTree(o options) (map[string][]byte, error) {
 	if !validVersion(o.Version) {
 		return nil, fmt.Errorf("version %q is not a SemVer string", o.Version)
@@ -86,6 +86,10 @@ func buildTree(o options) (map[string][]byte, error) {
 	}
 
 	if err := addManifests(files, o, read); err != nil {
+		return nil, err
+	}
+
+	if err := addLaunchers(files, read); err != nil {
 		return nil, err
 	}
 
@@ -204,7 +208,8 @@ func readAllowlist(src fs.FS) ([]string, error) {
 }
 
 // writeTree writes the files below dir, which must not exist or be empty.
-// Files are written in path order, with the same modes everywhere.
+// Files are written in path order, with the same modes everywhere: 0644, and
+// 0755 for the executable ones.
 func writeTree(dir string, files map[string][]byte) error {
 	for p := range files {
 		if !fs.ValidPath(p) || p == "." || strings.Contains(p, `\`) {
@@ -223,20 +228,24 @@ func writeTree(dir string, files map[string][]byte) error {
 		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
 			return err
 		}
-		if err := os.WriteFile(full, files[p], 0o644); err != nil {
+		mode := os.FileMode(0o644)
+		if isExecutable(p) {
+			mode = 0o755
+		}
+		if err := os.WriteFile(full, files[p], mode); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// treeDigest is the SHA-256 of the whole tree: every path and every file in
-// path order, each framed by its length. Equal trees have equal digests, on
+// treeDigest is the SHA-256 of the whole tree: every path, its git mode and
+// every file in path order, each framed by its length. Equal trees have equal digests, on
 // any system, so the logs of CI runs can be compared.
 func treeDigest(files map[string][]byte) string {
 	h := sha256.New()
 	for _, p := range sortedKeys(files) {
-		fmt.Fprintf(h, "%d %s\n%d\n", len(p), p, len(files[p]))
+		fmt.Fprintf(h, "%d %s\n%s %d\n", len(p), p, gitMode(p), len(files[p]))
 		h.Write(files[p])
 	}
 	return hex.EncodeToString(h.Sum(nil))
