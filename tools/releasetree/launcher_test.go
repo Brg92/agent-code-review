@@ -155,12 +155,25 @@ func (r installed) start(t *testing.T, env []string, args ...string) (stdout, st
 	return startLauncher(t, r.launcher, env, args...)
 }
 
+// startLauncher runs launcher with args. An entry of env that is NAME= removes
+// the variable instead of setting it empty, which Windows would keep as a
+// variable that is defined.
 func startLauncher(t *testing.T, launcher string, env []string, args ...string) (stdout, stderr string, code int) {
 	t.Helper()
 	var out, errOut bytes.Buffer
-	cmd := exec.Command(launcher, args...)
+	name := launcher
+	dir := ""
+	if runtime.GOOS == "windows" {
+		// Go starts a batch file through cmd /c, which cannot take a path
+		// with spaces together with an argument with spaces. The launcher
+		// is started by a relative name from its folder; it finds itself
+		// through %~dp0, spaces and all.
+		name, dir = `.\`+filepath.Base(launcher), filepath.Dir(launcher)
+	}
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
 	cmd.Stdout, cmd.Stderr = &out, &errOut
-	cmd.Env = append(os.Environ(), env...)
+	cmd.Env = withEnv(os.Environ(), env)
 	if err := cmd.Run(); err != nil {
 		var exit *exec.ExitError
 		if !errors.As(err, &exit) {
@@ -169,6 +182,29 @@ func startLauncher(t *testing.T, launcher string, env []string, args ...string) 
 		code = exit.ExitCode()
 	}
 	return out.String(), errOut.String(), code
+}
+
+// withEnv sets the variables of changes in base, and removes those that
+// changes gives as NAME= with no value.
+func withEnv(base, changes []string) []string {
+	var out []string
+	for _, kv := range base {
+		keep := true
+		for _, c := range changes {
+			if name, _, _ := strings.Cut(c, "="); strings.EqualFold(name, strings.SplitN(kv, "=", 2)[0]) {
+				keep = false
+			}
+		}
+		if keep {
+			out = append(out, kv)
+		}
+	}
+	for _, c := range changes {
+		if _, value, _ := strings.Cut(c, "="); value != "" {
+			out = append(out, c)
+		}
+	}
+	return out
 }
 
 // refusal checks that stderr is the message of a launcher that cannot
