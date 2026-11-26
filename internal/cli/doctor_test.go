@@ -545,3 +545,48 @@ func TestDoctorDoesNotAskTheHelpersWhenTheTokenIsInTheEnvironment(t *testing.T) 
 		t.Errorf("code %d:\n%s", got.code, got.stdout)
 	}
 }
+
+const ghHelper = "credential.https://github.com.helper\n\x00credential.https://github.com.helper\n!/usr/bin/gh auth git-credential\x00"
+
+func TestDoctorWarnsOfTheGitHubCLIHelperThatAnswersNothing(t *testing.T) {
+	tests := []struct {
+		name    string
+		helpers string
+		fill    string
+		warns   bool
+	}{
+		{"the helper is alone and answers nothing", ghHelper, "", true},
+		// No reset between them: the helper that keeps the token is asked first.
+		{"a helper that keeps the token is configured too", "credential.helper\nlibsecret\x00credential.helper\n!/usr/bin/gh auth git-credential\x00", "", false},
+		// The reset of the GitHub CLI's own section drops the helpers before it.
+		{"the reset of the GitHub CLI drops the helper before it", "credential.helper\nlibsecret\x00" + ghHelper, "", true},
+		{"acr-api has its token", ghHelper, "username=acr-api\npassword=" + testToken + "\n", false},
+		{"no GitHub CLI helper", "credential.helper\nlibsecret\x00", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := newWorld(t)
+			noToken(w)
+			w.git.helpers = tt.helpers
+			w.e.goos = "linux"
+			if tt.fill != "" {
+				fills(w, tt.fill, nil, "")
+			}
+			got := w.run(t)
+			has := strings.Contains(got.stdout, "credential helper for github.com:")
+			if has != tt.warns {
+				t.Fatalf("warning present = %v, want %v:\n%s", has, tt.warns, got.stdout)
+			}
+			if !tt.warns {
+				return
+			}
+			l := line(t, got.stdout, "credential helper for github.com:")
+			for _, part := range []string{"warn  ", "GitHub CLI", "ignores store", "auth login ends with exit 10", "!/usr/bin/gh auth git-credential",
+				"git config --global --add credential.https://acr-api@github.com.helper libsecret"} {
+				if !strings.Contains(l, part) {
+					t.Errorf("line %q does not say %q", l, part)
+				}
+			}
+		})
+	}
+}
