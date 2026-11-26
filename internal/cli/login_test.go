@@ -256,3 +256,38 @@ func TestAuthLoginHelperThatDoesNotStore(t *testing.T) {
 		})
 	}
 }
+
+const previousToken = "previous-token-value-7890"
+
+func TestAuthLoginSaysWhatBecameOfThePreviousToken(t *testing.T) {
+	previous := gitAnswer{stdout: "username=acr-api\npassword=" + previousToken + "\n"}
+	tests := []struct {
+		name  string
+		fills []gitAnswer // the previous token, the read-back, the check of the restore
+		want  string
+		not   string
+	}{
+		{"kept", []gitAnswer{previous, noEntry, previous}, "the new token was rejected and your previous token was kept", "nothing is left stored"},
+		{"lost", []gitAnswer{previous, noEntry, noEntry}, "your previous token could not be put back", "was kept"},
+		{"none", []gitAnswer{noEntry, noEntry}, "nothing is left stored", "previous"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			git := loginGit("acme-vault")
+			git.sequence = map[string][]gitAnswer{fill: tt.fills}
+			git.answers["credential reject"] = gitAnswer{}
+			r := runWith(t, env{git: git, goos: "linux", stdin: strings.NewReader(testToken + "\n")}, "auth", "login")
+			if r.code != exitUnsafeStorage || r.stdout != "" {
+				t.Fatalf("got %+v, want code %d and no output", r, exitUnsafeStorage)
+			}
+			if !strings.Contains(r.stderr, tt.want) || strings.Contains(r.stderr, tt.not) {
+				t.Errorf("stderr %q does not say %q, or says %q", r.stderr, tt.want, tt.not)
+			}
+			for _, secret := range []string{testToken, previousToken} {
+				if strings.Contains(r.stderr, secret) {
+					t.Errorf("stderr leaks a token")
+				}
+			}
+		})
+	}
+}
