@@ -28,12 +28,13 @@ Target repository layout (directories appear only when their first real file is 
 cmd/agent-code-review/   entry point
 internal/                cli, review, runlog, state, core, cascade, lexer, symbols, rules,
                          packs, render, refs, transport, auth, mcp, version,
+                         release (allowlist, used by tools only),
                          forges/{base,github,gitlab}
 packs/                   stack packs (data)
-plugin/                  manifests, skills, agents, hooks, launchers
+plugin/                  skills, agents, manifests (templates), hooks, launchers
 schemas/                 JSON Schemas (schema: 1)
 testdata/                synthetic fixtures only
-tools/                   dev-only tools, never shipped
+tools/                   dev-only tools, never shipped (releasetree writes the release tree)
 docs/                    project docs for humans
 ```
 

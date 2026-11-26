@@ -334,10 +334,24 @@ input. The server name and the command below are placeholders.
 7. **No `bin/` on PATH outside Claude Code** is documented; this is a constraint
    for M2.
 
-## 11. Open points to settle before the generator is written
+## 11. Decisions and checks
 
-- Kiro, Codex and Cursor ship the skill only, with no agent file (section 5).
-- Schema checks are hand-coded in a test, not a vendored schema copy (section 9).
-- `source: "./"` and `owner.name` in the marketplace file are checked with
-  `claude plugin validate` and a local install once the generator exists.
-- Plugin-qualified skill name for `skills:` in the Claude agent is checked in M6.
+Confirmed by the developer, and applied by the generator:
+
+- Kiro, Codex and Cursor ship the skill only, with no agent file in 1.0.0
+  (section 5).
+- Schema constraints are written out in `tools/releasetree/check.go`, not
+  vendored (section 9).
+
+Checked on the generated tree with Claude Code, in a throwaway configuration
+directory:
+
+- `claude plugin validate <tree>` and `claude plugin validate
+  <tree>/.claude-plugin/marketplace.json` pass.
+- `claude plugin marketplace add <tree>` and `claude plugin install
+  agent-code-review@agent-code-review` work; `source: "./"` and `owner.name` are
+  accepted, and the plugin is read from the tree at the version given to the
+  generator.
+
+Still open for M6: the plugin-qualified skill name for `skills:` in the Claude
+agent, and everything about Copilot in Android Studio.
