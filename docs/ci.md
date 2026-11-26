@@ -9,6 +9,7 @@ The workflow `.github/workflows/ci.yml` runs on every push to `main` and on ever
 | `lint` | `gofmt -l .` is empty, `go vet ./...` passes, `staticcheck ./...` passes |
 | `security` | `govulncheck ./...` finds no vulnerabilities; `gitleaks` finds no secrets in the whole git history |
 | `test (<os>, go <version>)` | `go test -race -coverprofile=coverage.out ./...` passes; prints the total coverage; on `ubuntu-latest` with Go `stable`, the [coverage gate](#coverage-gate) passes |
+| `release tree (<os>)` | `tools/releasetree` passes its tests, writes the release tree twice, the two trees are identical, and the working copy is unchanged afterwards. It runs on `ubuntu-latest`, `macos-latest` and `windows-latest`; each run prints the SHA-256 of the tree, which is the same on every system |
 | `build (<goos>, <goarch>)` | `CGO_ENABLED=0 go build -trimpath` succeeds; uploads the binary as an artifact kept for 3 days |
 
 The test matrix covers `ubuntu-latest`, `macos-latest` and `windows-latest` with Go `stable` and `oldstable`. The build matrix covers `linux`, `darwin` and `windows` on `amd64` and `arm64`. CI binaries report the version `0.0.0-ci+<short sha>`.
@@ -47,6 +48,8 @@ The `protect-main` ruleset requires these checks on `main`, each from the GitHub
 - `build (darwin, arm64)`
 - `build (windows, amd64)`
 - `build (windows, arm64)`
+
+`release tree (...)` is not in the list yet: the maintainer adds `release tree (ubuntu-latest)`, `release tree (macos-latest)` and `release tree (windows-latest)` to the ruleset, as it does for any new job.
 
 Renaming a job or changing a matrix value changes these names, so that pull request cannot be merged until the ruleset lists the new names.
 
