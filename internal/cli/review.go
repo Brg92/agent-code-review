@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"time"
 
@@ -191,11 +190,7 @@ func (e env) logFor(command string, verbose bool) *runlog.Log {
 
 // workDir is the base of the work directories.
 func (e env) workDir() (string, error) {
-	cache := e.userCacheDir
-	if cache == nil {
-		cache = os.UserCacheDir
-	}
-	dir, err := state.WorkDirBase(e.getenv, cache)
+	dir, err := state.WorkDirBase(e.getenv, e.cacheDir())
 	if err != nil {
 		return "", &review.Failure{Kind: review.KindUnexpected, What: "could not find the work directory", Where: state.WorkDirEnv, Why: err.Error(), Err: err,
 			Hint: "set " + state.WorkDirEnv + " to an absolute path, or make the user cache directory available"}
@@ -205,11 +200,7 @@ func (e env) workDir() (string, error) {
 
 // userConfig reads the user configuration.
 func (e env) userConfig() (state.UserConfig, error) {
-	cfgDir := e.userConfigDir
-	if cfgDir == nil {
-		cfgDir = os.UserConfigDir
-	}
-	path, err := state.UserConfigPath(cfgDir)
+	path, err := state.UserConfigPath(e.configDir())
 	if err != nil {
 		return state.UserConfig{KeepDays: state.DefaultKeepDays}, nil
 	}

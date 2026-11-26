@@ -402,11 +402,7 @@ func (d *doctor) packs() check {
 
 func (d *doctor) userConfig() check {
 	const what = "user config"
-	cfgDir := d.e.userConfigDir
-	if cfgDir == nil {
-		cfgDir = os.UserConfigDir
-	}
-	path, err := state.UserConfigPath(cfgDir)
+	path, err := state.UserConfigPath(d.e.configDir())
 	if err != nil {
 		return pass(what, "there is no user configuration directory, the defaults apply")
 	}

@@ -77,6 +77,32 @@ type env struct {
 	goos string
 }
 
+// dirs finds the directories of the user in the environment of the command.
+func (e env) dirs() userDirs { return userDirs{getenv: e.getenv, goos: runtime.GOOS} }
+
+// cacheDir, configDir and homeDir are the user directories, from the
+// injected function when there is one, else from the environment.
+func (e env) cacheDir() func() (string, error) {
+	if e.userCacheDir != nil {
+		return e.userCacheDir
+	}
+	return e.dirs().cache
+}
+
+func (e env) configDir() func() (string, error) {
+	if e.userConfigDir != nil {
+		return e.userConfigDir
+	}
+	return e.dirs().config
+}
+
+func (e env) homeDir() func() (string, error) {
+	if e.userHomeDir != nil {
+		return e.userHomeDir
+	}
+	return e.dirs().home
+}
+
 // hostOS is the operating system the advice on credential helpers is for.
 func (e env) hostOS() string {
 	if e.goos == "" {
