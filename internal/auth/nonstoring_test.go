@@ -115,3 +115,39 @@ func TestRealGitSetupCommandsGiveAcrApiItsOwnHelper(t *testing.T) {
 		t.Errorf("a request without acr-api no longer reaches the user's helper: %v", err)
 	}
 }
+
+// A helper that ignores updates answers first with the old token, so the new
+// one is not kept. Rejecting the new entry removes the old one from both
+// helpers, so it must be put back in both.
+func TestRealGitPreviousTokenSurvivesAFailedLogin(t *testing.T) {
+	requireGit(t)
+	store, _ := credhelper.Install(t, credhelper.Config{Helpers: []string{credhelper.NameStale, credhelper.Name}})
+	ctx := context.Background()
+	r := realResolver(t)
+	const previous = "previous-token-value-7890"
+	if _, err := r.Save(ctx, "github.com", previous); err != nil {
+		t.Fatalf("first login: %v", err)
+	}
+
+	_, err := r.Save(ctx, "github.com", testToken)
+	var ns *NotStoredError
+	if !errors.As(err, &ns) || ns.Reason != NotStoredOtherToken || ns.Previous != PreviousKept {
+		t.Fatalf("second login = %v, want a NotStoredError with the previous token kept", err)
+	}
+	for _, secret := range []string{testToken, previous} {
+		if strings.Contains(err.Error(), secret) {
+			t.Errorf("error leaks a token: %v", err)
+		}
+	}
+
+	tok, err := r.Resolve(ctx, "github.com")
+	if err != nil || tok.Value() != previous {
+		t.Fatalf("Resolve after the failed login = %v, %v; want the previous token", tok, err)
+	}
+	for name, path := range map[string]string{"helper that stores": store, "helper that ignores updates": credhelper.StaleStore(store)} {
+		entries, _ := credhelper.Read(t, path)
+		if len(entries) != 1 || entries[0] != (credhelper.Entry{Host: "github.com", Username: Username, Password: previous}) {
+			t.Errorf("%s: %d entries, want only the previous token", name, len(entries))
+		}
+	}
+}
