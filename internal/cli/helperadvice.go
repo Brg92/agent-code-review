@@ -28,6 +28,6 @@ func helperSetupAdvice(goos, host string) string {
 	for _, c := range auth.SetupCommands(host, helper) {
 		b.WriteString("\n  " + c)
 	}
-	b.WriteString("\nthen run " + loginHint(host) + " again.")
+	b.WriteString("\nthen run " + loginCommand(host) + " again.")
 	return b.String()
 }

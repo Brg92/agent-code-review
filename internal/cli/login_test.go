@@ -241,6 +241,9 @@ func TestAuthLoginHelperThatDoesNotStore(t *testing.T) {
 					t.Errorf("stderr %q does not say %q", r.stderr, part)
 				}
 			}
+			if !strings.HasSuffix(r.stderr, "\nthen run `agent-code-review auth login` again.\n") {
+				t.Errorf("stderr %q does not end by saying to run auth login again", r.stderr)
+			}
 			for _, secret := range []string{testToken, "other-token-value", "someone"} {
 				if strings.Contains(r.stderr, secret) {
 					t.Errorf("stderr leaks %q", secret)
