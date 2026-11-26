@@ -66,8 +66,8 @@ func TestLocate(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("locations %q, want %q", got, tt.want)
+			if !reflect.DeepEqual(got.Dirs, tt.want) {
+				t.Errorf("locations %q, want %q", got.Dirs, tt.want)
 			}
 		})
 	}
@@ -89,8 +89,8 @@ func TestLocateFollowsTheExecutableSymlink(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := filepath.Join(install, "packs"); len(got) != 1 || got[0] != want {
-		t.Errorf("locations %q, want %q", got, want)
+	if want := filepath.Join(install, "packs"); len(got.Dirs) != 1 || got.Dirs[0] != want {
+		t.Errorf("locations %q, want %q", got.Dirs, want)
 	}
 }
 
@@ -114,13 +114,12 @@ func TestLocateErrors(t *testing.T) {
 	}
 }
 
-// TestLocateDefaults checks that the zero input reads the real
-// environment and executable.
+// TestLocateDefaults checks that the zero functions of the input read the
+// real executable and symbolic links.
 func TestLocateDefaults(t *testing.T) {
 	dir := packsRoot(t, false)
-	t.Setenv(PacksDirEnv, dir)
-	got, err := Locate(LocateInput{})
-	if err != nil || len(got) != 1 || got[0] != dir {
-		t.Errorf("Locate() = %q, %v; want %s from the environment", got, err, dir)
+	got, err := Locate(LocateInput{Getenv: func(string) string { return dir }})
+	if err != nil || len(got.Dirs) != 1 || got.Dirs[0] != dir || got.ExeDir == "" {
+		t.Errorf("Locate() = %+v, %v; want %s from the environment", got, err, dir)
 	}
 }

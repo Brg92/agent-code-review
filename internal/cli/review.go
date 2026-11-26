@@ -213,10 +213,10 @@ func (e env) userConfig() (state.UserConfig, error) {
 
 // loadPacks finds and loads the packs.
 func (e env) loadPacks(cfg state.UserConfig) (*packs.Set, error) {
-	dirs, err := packs.Locate(packs.LocateInput{Getenv: e.getenv, PackPaths: cfg.PackPaths})
+	layout, err := packs.Locate(packs.LocateInput{Getenv: e.getenv, PackPaths: cfg.PackPaths})
 	if err == nil {
 		var set *packs.Set
-		if set, err = packs.Load(dirs...); err == nil {
+		if set, err = packs.Load(layout.Dirs...); err == nil {
 			return set, nil
 		}
 	}

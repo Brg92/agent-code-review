@@ -385,7 +385,8 @@ func (d *doctor) repository(project core.Key, account check, acct base.Account) 
 func (d *doctor) packs() check {
 	const what = "packs"
 	cfg, _ := d.e.userConfig()
-	dirs, err := packs.Locate(packs.LocateInput{Getenv: d.e.getenv, PackPaths: cfg.PackPaths})
+	layout, err := packs.Locate(packs.LocateInput{Getenv: d.e.getenv, PackPaths: cfg.PackPaths})
+	dirs := layout.Dirs
 	if err != nil {
 		return failed(exitUnexpected, what, err.Error(), "install the packs next to the executable, or set "+packs.PacksDirEnv+" or packPaths in the user configuration")
 	}
