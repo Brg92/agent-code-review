@@ -128,9 +128,12 @@ type installed struct {
 	target             string
 }
 
-func newRelease(t *testing.T) installed {
+func newRelease(t *testing.T) installed { return newReleaseIn(t, "plugin root") }
+
+// newReleaseIn is newRelease with the plugin root in a folder of this name.
+func newReleaseIn(t *testing.T, name string) installed {
 	t.Helper()
-	dir := filepath.Join(t.TempDir(), "plugin root")
+	dir := filepath.Join(t.TempDir(), name)
 	if err := writeTree(dir, buildReal(t, func(o *options) { o.Version = "0.0.0-dev" })); err != nil {
 		t.Fatal(err)
 	}
