@@ -146,9 +146,27 @@ const (
 	NotStoredOtherAccount
 )
 
+// PreviousToken says what became of the token acr-api had before a login
+// that failed.
+type PreviousToken int
+
+// What became of the previous token.
+const (
+	// PreviousNone: there was none.
+	PreviousNone PreviousToken = iota
+	// PreviousKept: it was put back, and read again to make sure.
+	PreviousKept
+	// PreviousLost: it could not be put back.
+	PreviousLost
+)
+
 // NotStoredError is the helpers' answer to reading back a token that was
 // just approved. It never quotes a token or a username.
-type NotStoredError struct{ Reason NotStoredReason }
+type NotStoredError struct {
+	Reason NotStoredReason
+	// Previous says what became of the token acr-api had before.
+	Previous PreviousToken
+}
 
 func (e *NotStoredError) Error() string {
 	switch e.Reason {
@@ -167,7 +185,8 @@ func (e *NotStoredError) Is(target error) bool { return target == ErrNotStored }
 // Save stores token for host in the git credential helpers under the username
 // acr-api, after the helper check, and reads it back to confirm a helper
 // kept it. If none did, it rejects what it approved, so no half-stored
-// credential stays, and returns a *NotStoredError. The returned Check
+// credential stays, puts back the token acr-api had before, if any, and
+// returns a *NotStoredError that says whether it did. The returned Check
 // carries the warnings to show.
 func (r Resolver) Save(ctx context.Context, host, token string) (Check, error) {
 	token, err := normalizeToken(token)
@@ -179,6 +198,10 @@ func (r Resolver) Save(ctx context.Context, host, token string) (Check, error) {
 		return check, err
 	}
 	if err := check.Err(); err != nil {
+		return check, err
+	}
+	previous, err := r.previous(ctx, host)
+	if err != nil {
 		return check, err
 	}
 	// stderr is not quoted: a helper could echo what it received.
@@ -194,10 +217,51 @@ func (r Resolver) Save(ctx context.Context, host, token string) (Check, error) {
 	}
 	if err != nil {
 		// Best effort: the error to report is why the token was not kept.
+		// Rejecting removes the entry from every helper, the previous token
+		// included, so it is put back.
 		_ = r.Erase(ctx, host)
+		restored := r.restore(ctx, host, previous)
+		var ns *NotStoredError
+		if errors.As(err, &ns) {
+			ns.Previous = restored
+		}
 		return check, err
 	}
 	return check, nil
+}
+
+// previous reads, in memory, the token acr-api has now: "" if there is
+// none, or if what git returns is not acr-api's. A failing git or helper is
+// an error: nothing may be changed that cannot be put back.
+func (r Resolver) previous(ctx context.Context, host string) (string, error) {
+	username, password, err := r.ask(ctx, host)
+	switch {
+	case errors.Is(err, ErrNoToken):
+		return "", nil
+	case err != nil:
+		return "", err
+	case username != Username:
+		return "", nil
+	}
+	if value, err := normalizeToken(password); err == nil {
+		return value, nil
+	}
+	return "", nil
+}
+
+// restore approves the previous token again and reads it back.
+func (r Resolver) restore(ctx context.Context, host, previous string) PreviousToken {
+	if previous == "" {
+		return PreviousNone
+	}
+	if _, _, err := r.Git.Run(ctx, credentialInput(host, previous), "credential", "approve"); err != nil {
+		return PreviousLost
+	}
+	username, password, err := r.ask(ctx, host)
+	if got, nerr := normalizeToken(password); err != nil || nerr != nil || username != Username || got != previous {
+		return PreviousLost
+	}
+	return PreviousKept
 }
 
 // readBack compares, in memory, what the helpers returned with the token

@@ -148,6 +148,7 @@ func TestAuthLoginFailures(t *testing.T) {
 		{"too long", loginGit("osxkeychain"), strings.Repeat("a", maxTokenBytes+1) + "\n", nil, exitAuth, "too long"},
 		{"approve fails", &scriptedGit{answers: map[string]gitAnswer{
 			helperQuery:          {stdout: "credential.helper\nosxkeychain\x00"},
+			fill:                 noEntry,
 			"credential approve": {err: errExit1},
 		}}, testToken + "\n", nil, exitAuth, "approve"},
 	}
