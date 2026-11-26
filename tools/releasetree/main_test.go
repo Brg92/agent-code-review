@@ -104,3 +104,34 @@ func TestRunFailures(t *testing.T) {
 		t.Errorf("output below a file: exit %d, want 1", code)
 	}
 }
+
+func TestRunWritesTheDigestFile(t *testing.T) {
+	dir := t.TempDir()
+	digest := filepath.Join(dir, "digest.txt")
+	out := filepath.Join(dir, "tree")
+	if code, _, stderr := runTool(t, "-src", repoRoot, "-out", out, "-digest", digest); code != 0 {
+		t.Fatalf("exit %d, stderr %q", code, stderr)
+	}
+	got, err := os.ReadFile(digest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := treeDigest(buildReal(t, func(o *options) { o.Version = "0.0.0-dev" })) + "\n"
+	if string(got) != want {
+		t.Errorf("digest file = %q, want %q", got, want)
+	}
+
+	// A tree that is not written leaves no digest behind.
+	other := filepath.Join(dir, "other.txt")
+	if code, _, _ := runTool(t, "-src", repoRoot, "-out", out, "-digest", other); code != 1 {
+		t.Fatalf("second run: exit %d, want 1", code)
+	}
+	if _, err := os.Stat(other); err == nil {
+		t.Error("a digest file was written for a tree that was refused")
+	}
+
+	// A digest file that cannot be written is a failure.
+	if code, _, _ := runTool(t, "-src", repoRoot, "-out", filepath.Join(dir, "tree2"), "-digest", filepath.Join(dir, "no", "such", "digest.txt")); code != 1 {
+		t.Errorf("unwritable digest: exit %d, want 1", code)
+	}
+}
