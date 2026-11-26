@@ -528,3 +528,23 @@ func TestTreeDigest(t *testing.T) {
 		}
 	}
 }
+
+func TestAuthorAndOwnerAreTheHandleOnly(t *testing.T) {
+	files := buildReal(t, nil)
+	want := map[string]any{"name": "Brg92"}
+	for _, p := range []string{"plugin.json", ".claude-plugin/plugin.json"} {
+		if got := parseJSON(t, files, p)["author"]; !reflect.DeepEqual(got, want) {
+			t.Errorf("%s: author = %v, want only the name Brg92", p, got)
+		}
+	}
+	if got := parseJSON(t, files, ".claude-plugin/marketplace.json")["owner"]; !reflect.DeepEqual(got, want) {
+		t.Errorf("marketplace owner = %v, want only the name Brg92", got)
+	}
+	for p, data := range files {
+		if strings.HasPrefix(p, "plugin.json") || strings.HasPrefix(p, ".claude-plugin/") {
+			if bytes.Contains(data, []byte("@")) {
+				t.Errorf("%s has an @: no email address belongs in a manifest", p)
+			}
+		}
+	}
+}
