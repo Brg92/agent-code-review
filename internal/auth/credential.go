@@ -77,21 +77,33 @@ func noCredential(exit *ExitError, stderr string) bool {
 	return seen
 }
 
-// fill asks the credential helpers for the tool's token on host.
-func (r Resolver) fill(ctx context.Context, host string) (Token, error) {
+// ask runs `git credential fill` for the tool's entry on host and returns
+// the username and the password git got from the helpers. It returns
+// ErrNoToken when no helper has the entry, and a *HelperError when git or a
+// helper failed.
+func (r Resolver) ask(ctx context.Context, host string) (username, password string, err error) {
 	stdout, stderr, err := r.Git.Run(ctx, credentialInput(host, ""), "credential", "fill")
 	var exit *ExitError
 	switch {
 	case errors.As(err, &exit) && noCredential(exit, stderr):
-		return Token{}, ErrNoToken
+		return "", "", ErrNoToken
 	case err != nil:
-		return Token{}, &HelperError{Op: "git credential fill", Err: err}
+		return "", "", &HelperError{Op: "git credential fill", Err: err}
 	}
 	attrs := parseCredential(stdout)
-	if attrs["username"] != Username || attrs["password"] == "" {
+	return attrs["username"], attrs["password"], nil
+}
+
+// fill asks the credential helpers for the tool's token on host.
+func (r Resolver) fill(ctx context.Context, host string) (Token, error) {
+	username, password, err := r.ask(ctx, host)
+	if err != nil {
+		return Token{}, err
+	}
+	if username != Username || password == "" {
 		return Token{}, ErrNoToken
 	}
-	value, err := normalizeToken(attrs["password"])
+	value, err := normalizeToken(password)
 	if err != nil {
 		return Token{}, fmt.Errorf("the git credential helper: %w", err)
 	}
@@ -116,9 +128,66 @@ func normalizeToken(token string) (string, error) {
 	return token, nil
 }
 
+// ErrNotStored means git accepted the token but no credential helper kept
+// it. It is the error of a *NotStoredError.
+var ErrNotStored = errors.New("auth: no git credential helper kept the token")
+
+// NotStoredReason says what git answered when the token was read back.
+type NotStoredReason int
+
+// Reasons a token was not kept.
+const (
+	// NotStoredNothing: no helper had a token for acr-api.
+	NotStoredNothing NotStoredReason = iota + 1
+	// NotStoredOtherToken: a helper had another token for acr-api.
+	NotStoredOtherToken
+	// NotStoredOtherAccount: a helper answered with a token of another
+	// account, for example the helper of the GitHub CLI.
+	NotStoredOtherAccount
+)
+
+// PreviousToken says what became of the token acr-api had before a login
+// that failed.
+type PreviousToken int
+
+// What became of the previous token.
+const (
+	// PreviousNone: there was none.
+	PreviousNone PreviousToken = iota
+	// PreviousKept: it was put back, and read again to make sure.
+	PreviousKept
+	// PreviousLost: it could not be put back.
+	PreviousLost
+)
+
+// NotStoredError is the helpers' answer to reading back a token that was
+// just approved. It never quotes a token or a username.
+type NotStoredError struct {
+	Reason NotStoredReason
+	// Previous says what became of the token acr-api had before.
+	Previous PreviousToken
+}
+
+func (e *NotStoredError) Error() string {
+	switch e.Reason {
+	case NotStoredOtherToken:
+		return "auth: git accepted the token, but reading it back returned a different token"
+	case NotStoredOtherAccount:
+		return "auth: git accepted the token, but reading it back returned a token of another account: a helper that is not meant for " +
+			Username + " answers for this host"
+	}
+	return "auth: git accepted the token, but reading it back returned nothing: no configured helper keeps it"
+}
+
+// Is makes errors.Is(err, ErrNotStored) true.
+func (e *NotStoredError) Is(target error) bool { return target == ErrNotStored }
+
 // Save stores token for host in the git credential helpers under the username
 // acr-api, after the helper check, and reads it back to confirm a helper
-// kept it. The returned Check carries the warnings to show.
+// kept it. If none did, it rejects what it approved, so no half-stored
+// credential stays, puts back the token acr-api had before, if any, and
+// returns a *NotStoredError that says whether it did. The returned Check
+// carries the warnings to show.
 func (r Resolver) Save(ctx context.Context, host, token string) (Check, error) {
 	token, err := normalizeToken(token)
 	if err != nil {
@@ -131,15 +200,83 @@ func (r Resolver) Save(ctx context.Context, host, token string) (Check, error) {
 	if err := check.Err(); err != nil {
 		return check, err
 	}
+	previous, err := r.previous(ctx, host)
+	if err != nil {
+		return check, err
+	}
 	// stderr is not quoted: a helper could echo what it received.
 	if _, _, err := r.Git.Run(ctx, credentialInput(host, token), "credential", "approve"); err != nil {
 		return check, &HelperError{Op: "git credential approve", Err: err}
 	}
-	stored, err := r.fill(ctx, host)
-	if err != nil || stored.value != token {
-		return check, errors.New("auth: the git credential helper did not keep the token; check its configuration")
+	username, password, err := r.ask(ctx, host)
+	switch {
+	case errors.Is(err, ErrNoToken):
+		err = &NotStoredError{Reason: NotStoredNothing}
+	case err == nil:
+		err = readBack(username, password, token)
+	}
+	if err != nil {
+		// Best effort: the error to report is why the token was not kept.
+		// Rejecting removes the entry from every helper, the previous token
+		// included, so it is put back.
+		_ = r.Erase(ctx, host)
+		restored := r.restore(ctx, host, previous)
+		var ns *NotStoredError
+		if errors.As(err, &ns) {
+			ns.Previous = restored
+		}
+		return check, err
 	}
 	return check, nil
+}
+
+// previous reads, in memory, the token acr-api has now: "" if there is
+// none, or if what git returns is not acr-api's. A failing git or helper is
+// an error: nothing may be changed that cannot be put back.
+func (r Resolver) previous(ctx context.Context, host string) (string, error) {
+	username, password, err := r.ask(ctx, host)
+	switch {
+	case errors.Is(err, ErrNoToken):
+		return "", nil
+	case err != nil:
+		return "", err
+	case username != Username:
+		return "", nil
+	}
+	if value, err := normalizeToken(password); err == nil {
+		return value, nil
+	}
+	return "", nil
+}
+
+// restore approves the previous token again and reads it back.
+func (r Resolver) restore(ctx context.Context, host, previous string) PreviousToken {
+	if previous == "" {
+		return PreviousNone
+	}
+	if _, _, err := r.Git.Run(ctx, credentialInput(host, previous), "credential", "approve"); err != nil {
+		return PreviousLost
+	}
+	username, password, err := r.ask(ctx, host)
+	if got, nerr := normalizeToken(password); err != nil || nerr != nil || username != Username || got != previous {
+		return PreviousLost
+	}
+	return PreviousKept
+}
+
+// readBack compares, in memory, what the helpers returned with the token
+// that was approved.
+func readBack(username, password, token string) error {
+	switch {
+	case password == "":
+		return &NotStoredError{Reason: NotStoredNothing}
+	case username != Username:
+		return &NotStoredError{Reason: NotStoredOtherAccount}
+	}
+	if got, err := normalizeToken(password); err != nil || got != token {
+		return &NotStoredError{Reason: NotStoredOtherToken}
+	}
+	return nil
 }
 
 // Erase removes the acr-api entry for host from the git credential helpers.

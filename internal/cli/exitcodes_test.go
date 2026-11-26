@@ -95,6 +95,12 @@ func errorPaths() []errorPath {
 		{"auth", "plain text helper", exitUnsafeStorage, func(t *testing.T) result {
 			return runWith(t, env{git: loginGit("store"), term: &fakeTerm{}, stdin: strings.NewReader(testToken + "\n")}, "auth", "login")
 		}},
+		{"auth", "helper that does not store", exitUnsafeStorage, func(t *testing.T) result {
+			git := loginGit("acme-vault")
+			git.answers[fill] = noEntry
+			git.answers["credential reject"] = gitAnswer{}
+			return runWith(t, env{git: git, term: &fakeTerm{}, stdin: strings.NewReader(testToken + "\n")}, "auth", "login")
+		}},
 		{"auth", "echo cannot be hidden", exitUnexpected, func(t *testing.T) result {
 			term := &fakeTerm{terminal: true, disableErr: errors.New("not a terminal")}
 			return runWith(t, env{git: loginGit("osxkeychain"), term: term, stdin: strings.NewReader("")}, "auth", "login")

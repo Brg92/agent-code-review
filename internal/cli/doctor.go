@@ -134,6 +134,7 @@ func runDoctor(args []string, e env) int {
 	emit(d.storage())
 	_, tokenCheck := d.token()
 	emit(tokenCheck)
+	emit(d.otherAccount()...)
 	emit(d.ignoredVariables()...)
 	acct, accountCheck := d.account(tokenCheck)
 	emit(accountCheck)
@@ -219,6 +220,55 @@ func (d *doctor) token() (found bool, c check) {
 		return false, failed(exitAuth, what, err.Error(), "run "+loginHint(defaultHost))
 	}
 	return true, pass(what, "from "+tok.Describe())
+}
+
+// otherAccount warns of a credential helper that was not chosen for acr-api
+// but answers for github.com, such as the helper of the GitHub CLI. git asks
+// the helpers in order and the first answer wins: a helper that answers
+// with the token of another account is read instead of acr-api's, and one
+// that ignores store, as the helper of the GitHub CLI does, keeps nothing.
+// Either way `auth login` ends with exit 10. It is based on the helpers
+// configured and on what `git credential fill` returns for acr-api, and only
+// says which username answered and whether a token came back, never the
+// token. With the token in the environment nothing is stored or read, so the
+// helpers are not asked.
+func (d *doctor) otherAccount() []check {
+	if d.tokenInEnvironment() {
+		return nil
+	}
+	r := d.e.resolver()
+	probe, err := r.Probe(d.ctx, defaultHost)
+	if err != nil {
+		// A helper that fails is reported by the token check.
+		return nil
+	}
+	configured, _ := r.CheckHelpers(d.ctx, defaultHost)
+	values := make([]string, len(configured.Helpers))
+	var githubCLI string
+	keeps := false
+	for i, h := range configured.Helpers {
+		values[i] = h.Value
+		if h.IsGitHubCLI() && githubCLI == "" {
+			githubCLI = h.Value
+		}
+		keeps = keeps || h.Kind == auth.HelperKeychain
+	}
+	var detail string
+	switch {
+	case probe.OtherAccount():
+		detail = "git credential fill for " + auth.Username + " returns a token of another account (user " + probe.Username +
+			") from a helper that was not chosen for " + auth.Username + " (configured: " + strings.Join(values, ", ") +
+			"), so " + auth.Username + " cannot read back a token it stores"
+	case githubCLI != "" && !keeps && !probe.HasToken:
+		detail = "the helper of the GitHub CLI (" + githubCLI + ") is configured for " + defaultHost +
+			" and ignores store, and no other helper keeps a token: auth login ends with exit 10"
+	default:
+		return nil
+	}
+	commands := auth.SetupCommands(defaultHost, auth.SuggestedHelper(d.e.hostOS()))
+	return []check{warn("credential helper for "+defaultHost, detail,
+		"give "+auth.Username+" its own helper, which leaves your other git commands alone: "+strings.Join(commands, "; ")+
+			"; then run "+loginHint(defaultHost))}
 }
 
 // ignoredVariables warns of the variables of CI that are set while the

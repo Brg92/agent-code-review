@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/Brg92/agent-code-review/internal/auth"
@@ -71,6 +72,17 @@ type env struct {
 	userConfigDir func() (string, error)
 	// userHomeDir is where reports are saved when no folder is named.
 	userHomeDir func() (string, error)
+	// goos names the operating system the advice on credential helpers
+	// is for; "" means runtime.GOOS.
+	goos string
+}
+
+// hostOS is the operating system the advice on credential helpers is for.
+func (e env) hostOS() string {
+	if e.goos == "" {
+		return runtime.GOOS
+	}
+	return e.goos
 }
 
 // Run executes the command in args (program name excluded) and returns its exit code.

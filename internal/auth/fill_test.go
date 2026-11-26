@@ -19,6 +19,9 @@ type call struct {
 type fakeGit struct {
 	calls   []call
 	answers map[string]answer
+	// sequence answers the successive runs of a command line, before answers
+	// does: the first run gets the first answer, and so on.
+	sequence map[string][]answer
 }
 
 type answer struct {
@@ -28,7 +31,12 @@ type answer struct {
 
 func (f *fakeGit) Run(_ context.Context, stdin string, args ...string) (string, string, error) {
 	f.calls = append(f.calls, call{stdin, args})
-	a, ok := f.answers[strings.Join(args, " ")]
+	key := strings.Join(args, " ")
+	if seq := f.sequence[key]; len(seq) > 0 {
+		f.sequence[key] = seq[1:]
+		return seq[0].stdout, seq[0].stderr, seq[0].err
+	}
+	a, ok := f.answers[key]
 	if !ok {
 		return "", "", fmt.Errorf("fakeGit: unexpected git %v", args)
 	}

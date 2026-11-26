@@ -148,6 +148,7 @@ func TestAuthLoginFailures(t *testing.T) {
 		{"too long", loginGit("osxkeychain"), strings.Repeat("a", maxTokenBytes+1) + "\n", nil, exitAuth, "too long"},
 		{"approve fails", &scriptedGit{answers: map[string]gitAnswer{
 			helperQuery:          {stdout: "credential.helper\nosxkeychain\x00"},
+			fill:                 noEntry,
 			"credential approve": {err: errExit1},
 		}}, testToken + "\n", nil, exitAuth, "approve"},
 	}
@@ -206,5 +207,87 @@ func TestAuthLoginPipedInMsys(t *testing.T) {
 	r := runWith(t, env{git: loginGit("osxkeychain"), term: term, stdin: strings.NewReader(testToken + "\n")}, "auth", "login")
 	if r.code != exitOK {
 		t.Errorf("got %+v", r)
+	}
+}
+
+func TestAuthLoginHelperThatDoesNotStore(t *testing.T) {
+	otherAccount := gitAnswer{stdout: "username=someone\npassword=other-token-value-4567\n"}
+	tests := []struct {
+		name   string
+		goos   string
+		fill   gitAnswer
+		helper string
+		parts  []string
+	}{
+		{"linux, nothing comes back", "linux", noEntry, "libsecret",
+			[]string{"returned nothing", "git-credential-libsecret", "Git Credential Manager"}},
+		{"linux, another account answers", "linux", otherAccount, "libsecret",
+			[]string{"another account", "git-credential-libsecret", "Git Credential Manager"}},
+		{"macOS", "darwin", noEntry, "osxkeychain", []string{"returned nothing", "osxkeychain"}},
+		{"windows", "windows", noEntry, "manager", []string{"returned nothing", "Git Credential Manager"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			git := loginGit("acme-vault")
+			git.answers[fill] = tt.fill
+			git.answers["credential reject"] = gitAnswer{}
+			r := runWith(t, env{git: git, goos: tt.goos, stdin: strings.NewReader(testToken + "\n")}, "auth", "login")
+			if r.code != exitUnsafeStorage || r.stdout != "" {
+				t.Fatalf("got %+v, want code %d and no output", r, exitUnsafeStorage)
+			}
+			parts := append([]string{"github.com: token not stored", "git config"}, tt.parts...)
+			parts = append(parts, auth.SetupCommands("github.com", tt.helper)...)
+			for _, part := range parts {
+				if !strings.Contains(r.stderr, part) {
+					t.Errorf("stderr %q does not say %q", r.stderr, part)
+				}
+			}
+			if !strings.HasSuffix(r.stderr, "\nthen run `agent-code-review auth login` again.\n") {
+				t.Errorf("stderr %q does not end by saying to run auth login again", r.stderr)
+			}
+			for _, secret := range []string{testToken, "other-token-value", "someone"} {
+				if strings.Contains(r.stderr, secret) {
+					t.Errorf("stderr leaks %q", secret)
+				}
+			}
+			if got := git.stdin["credential reject"]; got != "protocol=https\nhost=github.com\nusername=acr-api\n\n" {
+				t.Errorf("reject stdin = %q: what was approved must be rejected", got)
+			}
+		})
+	}
+}
+
+const previousToken = "previous-token-value-7890"
+
+func TestAuthLoginSaysWhatBecameOfThePreviousToken(t *testing.T) {
+	previous := gitAnswer{stdout: "username=acr-api\npassword=" + previousToken + "\n"}
+	tests := []struct {
+		name  string
+		fills []gitAnswer // the previous token, the read-back, the check of the restore
+		want  string
+		not   string
+	}{
+		{"kept", []gitAnswer{previous, noEntry, previous}, "the new token was rejected and your previous token was kept", "nothing is left stored"},
+		{"lost", []gitAnswer{previous, noEntry, noEntry}, "your previous token could not be put back", "was kept"},
+		{"none", []gitAnswer{noEntry, noEntry}, "nothing is left stored", "previous"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			git := loginGit("acme-vault")
+			git.sequence = map[string][]gitAnswer{fill: tt.fills}
+			git.answers["credential reject"] = gitAnswer{}
+			r := runWith(t, env{git: git, goos: "linux", stdin: strings.NewReader(testToken + "\n")}, "auth", "login")
+			if r.code != exitUnsafeStorage || r.stdout != "" {
+				t.Fatalf("got %+v, want code %d and no output", r, exitUnsafeStorage)
+			}
+			if !strings.Contains(r.stderr, tt.want) || strings.Contains(r.stderr, tt.not) {
+				t.Errorf("stderr %q does not say %q, or says %q", r.stderr, tt.want, tt.not)
+			}
+			for _, secret := range []string{testToken, previousToken} {
+				if strings.Contains(r.stderr, secret) {
+					t.Errorf("stderr leaks a token")
+				}
+			}
+		})
 	}
 }
